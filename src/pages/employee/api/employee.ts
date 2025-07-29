@@ -1,0 +1,31 @@
+import { employeePrefix } from "../api";
+import { Post, Get, Put, Delete } from "@/http/axios";
+export interface Employee {
+  id?: number;
+  code: string;
+  username: string;
+  password: string;
+  realName: string;
+  departmentId: number;
+  roleId: number;
+  gender: number;
+  avatar: string;
+  position: string;
+  phone: string;
+  email: string;
+  status: number;
+}
+export interface queryEmployeeConditions {
+  code: string;
+  realName: string;
+  departmentId: number;
+  roleId: number;
+  size: number;
+  page: number;
+}
+
+export const createEmployee = (data: Employee) => Post(employeePrefix, data);
+export const editEmployee = (data: Employee) => Put(employeePrefix, data);
+export const deleteEmployee = (id: number) => Delete(employeePrefix + `/${id}`);
+export const findEmployeePage = (data: queryEmployeeConditions) =>
+  Get(employeePrefix + "/page", data);
