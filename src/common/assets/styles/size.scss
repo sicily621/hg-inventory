@@ -1,0 +1,20 @@
+$vw_design: 1920;
+$vw_font_size: 14;
+
+//适用于pc端 h5需要更改vw_design值为750左右
+@function zrem($px) {
+  @return calc($px / $vw_font_size * 1rem);
+}
+
+@mixin setHtmlFontSize($val) {
+  html[data-font-size="default"] {
+    $vw_font_size: $val;
+    font-size: $vw_font_size + px;
+  }
+}
+
+@for $i from 12 through 48 {
+  .fz#{$i} {
+    font-size: zrem($i);
+  }
+}

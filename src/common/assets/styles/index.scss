@@ -14,11 +14,10 @@
 @import "./mixins.scss";
 // View Transition
 @import "./view-transition.scss";
-
+@import "./size.scss";
 // 业务页面几乎都应该在根元素上挂载 class="app-container"，以保持页面美观
 .app-container {
   padding: 20px;
-  padding-bottom: 0;
 }
 
 html {
