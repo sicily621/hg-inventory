@@ -82,7 +82,7 @@
             }}</el-tag>
           </template>
           <template #operate="scope">
-            <el-icon class="fz20 pointer" text>
+            <el-icon class="fz20 pointer m-r-5" text>
               <Edit />
             </el-icon>
             <el-icon class="fz20 pointer" text>
@@ -184,7 +184,7 @@ const columns = ref([
   { prop: "gender", label: "性别" },
   { prop: "phone", label: "电话" },
   { prop: "status", label: "状态" },
-  { prop: "operate", label: "操作" },
+  { prop: "operate", label: "操作", width: 100 },
 ]);
 
 const { paginationData, handleCurrentChange, handleSizeChange } =
