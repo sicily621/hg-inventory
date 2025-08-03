@@ -79,7 +79,11 @@
                 >
                   <Edit />
                 </el-icon>
-                <el-icon class="fz16 cursor-pointer" text>
+                <el-icon
+                  class="fz16 cursor-pointer"
+                  text
+                  @click="remove(scope.scope.row.id)"
+                >
                   <Delete />
                 </el-icon>
               </div>
@@ -205,6 +209,14 @@ const save = () => {
 const back = () => {
   processFlag.value = 0;
   currentData.value = null;
+  refreshTable();
+};
+const remove = async (id: string) => {
+  await deleteEmployee(id);
+  ElMessage({
+    type: "success",
+    message: "删除成功",
+  });
   refreshTable();
 };
 function buildDepartmentTree(departments: Department[]) {
