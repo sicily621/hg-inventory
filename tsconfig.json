@@ -21,6 +21,7 @@
       "@/*": ["src/*"],
       "@@/*": ["src/common/*"]
     },
+    "typeRoots": ["./node_modules/@types", "./types/declarations"],
     "resolveJsonModule": true,
     "types": ["vite/client", "element-plus/global"],
     // 允许导入 .ts .mts .tsx 拓展名的文件

@@ -2,15 +2,16 @@ import { employeePrefix } from "../api";
 import { Post, Get, Put, Delete } from "@/http/axios";
 
 export interface Employee {
-  id?: number;
+  id?: string;
   code: string;
   username: string;
-  password: string;
+  password?: string;
   realName: string;
   departmentId: number;
   roleId: number;
   gender: number;
   avatar: string;
+  avatarFile?: File | null;
   position: string;
   phone: string;
   email: string;

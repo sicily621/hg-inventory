@@ -185,9 +185,9 @@ export const constantRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: "/employee",
+    path: "/employeeManagement",
     component: Layouts,
-    redirect: "/employee/list",
+    redirect: "/employeeManagement/employee",
     meta: {
       title: "员工管理",
       elIcon: "User",
@@ -195,7 +195,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: "list",
-        component: () => import("@/pages/employee/list/index.vue"),
+        component: () => import("@/pages/employeeManagement/employee/list.vue"),
         name: "list",
         meta: {
           title: "员工管理",

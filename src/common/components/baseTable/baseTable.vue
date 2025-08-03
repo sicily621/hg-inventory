@@ -259,9 +259,9 @@ const renderHeaderIconEdit = (data: any, col: any) => {
             marginLeft: "2px",
           },
         },
-        [h(Edit, {})]
+        [h(Edit, {})],
       ),
-    ]
+    ],
   );
 };
 const isCheckedObj = ref<any>({});

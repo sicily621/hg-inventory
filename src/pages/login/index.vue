@@ -8,6 +8,7 @@ import { useUserStore } from "@/pinia/stores/user";
 import { getCaptchaApi, loginApi } from "./apis";
 import Owl from "./components/Owl.vue";
 import { useFocus } from "./composables/useFocus";
+import md5 from "js-md5";
 
 const router = useRouter();
 
@@ -29,7 +30,7 @@ const codeUrl = ref("");
 /** 登录表单数据 */
 const loginFormData: LoginRequestData = reactive({
   username: "admin",
-  password: "Admin@123",
+  password: "Admin@123456",
   code: "",
 });
 
@@ -51,7 +52,9 @@ function handleLogin() {
       return;
     }
     loading.value = true;
-    loginApi(loginFormData)
+    const params = { ...loginFormData };
+    params.password = md5(params.password);
+    loginApi(params)
       .then(({ data }) => {
         userStore.setToken(data.token);
         router.push("/");

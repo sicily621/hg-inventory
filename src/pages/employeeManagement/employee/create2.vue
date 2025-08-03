@@ -571,11 +571,11 @@ codeValue.value = `${props?.data?.projectId}.${props?.data?.code}`;
 //建筑类型下拉选中值发生变化时触发
 const changeBuildingType = (val: any) => {
   const selected = buildingTypeOptions?.value.filter(
-    (option: any) => option.id == val
+    (option: any) => option.id == val,
   );
   subBuildingTypeOptions.value = selected[0]?.subList ?? [];
   form.value.building.buildingTypeId = Number(
-    subBuildingTypeOptions?.value[0]?.id ?? 0
+    subBuildingTypeOptions?.value[0]?.id ?? 0,
   );
 };
 //编辑或新建时选中建筑类型
@@ -749,7 +749,7 @@ const loadMap = () => {
 
   nextTick(() => {
     files.value = mapFiles.value.map(
-      (file: BuildingMap) => file.mapFilePath || ""
+      (file: BuildingMap) => file.mapFilePath || "",
     );
     mapRef.value?.load(files.value);
   });
@@ -1000,7 +1000,7 @@ onMounted(() => {
         (res: any) => {
           mapFiles.value = res?.data;
           querySpaceThirdMap();
-        }
+        },
       );
     }
   } else {
