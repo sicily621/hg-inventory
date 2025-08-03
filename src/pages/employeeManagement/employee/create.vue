@@ -67,15 +67,15 @@
           </el-form-item>
         </div>
         <div class="width-300 d-flex m-l-16">
-          <el-form-item label="所属部门" prop="departmentId">
-            <el-select v-model="form.departmentId" placeholder="请选择部门">
-              <el-option
-                v-for="item in departmentOptions"
-                :key="item.value"
-                :label="item.name"
-                :value="item.value"
-              />
-            </el-select>
+          <el-form-item label="部门" prop="departmentId">
+            <el-tree-select
+              v-model="form.departmentId"
+              placeholder="请选择部门"
+              :data="departmentOptions"
+              check-strictly
+              :render-after-expand="false"
+              :props="selectProps"
+            />
           </el-form-item>
           <el-form-item label="角色" prop="roleId">
             <el-select v-model="form.roleId" placeholder="请选择角色">
@@ -148,19 +148,22 @@
 <script lang="ts" setup>
 import { ref, reactive } from "vue";
 import { Employee, createEmployee, editEmployee } from "../api/employee";
+import { Department, getDepartmentList } from "../api/department";
+import { getRoleList } from "../api/role";
 import type { UploadProps } from "element-plus";
 import md5 from "js-md5";
 const props = defineProps<{ data: Employee | null }>();
 const formRef = ref();
 const defaultPwd = "Admin@123456";
+const selectProps = { value: "id", label: "name" };
 //表单
 const form = ref<Employee>({
   code: "",
   username: "",
   password: "",
   realName: "",
-  departmentId: 0,
-  roleId: 0,
+  departmentId: "",
+  roleId: "",
   gender: 1,
   avatar: "defaultAvatar.png",
   avatarFile: null,
@@ -206,13 +209,43 @@ const validateEmail = (rule: any, value: any, callback: any) => {
 const rules = reactive({
   code: [{ required: true, message: "不能为空" }],
   username: [{ required: true, message: "不能为空" }],
+  roleId: [{ required: true, message: "不能为空" }],
+  departmentId: [{ required: true, message: "不能为空" }],
   password: [{ validator: validatePwd, trigger: "blur" }],
   realName: [{ required: true, message: "不能为空" }],
   phone: [{ required: true, validator: validatePhone, trigger: "blur" }],
   email: [{ required: true, validator: validateEmail, trigger: "blur" }],
 });
-const departmentOptions = ref([{ name: "全部", value: 0 }]);
-const roleOptions = ref([{ name: "全部", value: 0 }]);
+
+function buildDepartmentTree(departments: Department[]) {
+  const map = new Map();
+
+  // 第一步：创建所有部门的映射并初始化children
+  departments.forEach((dept: Department) => {
+    map.set(dept.id, {
+      ...dept,
+      children: [],
+    });
+  });
+
+  // 第二步：建立所有层级的父子关系
+  departments.forEach((dept: Department) => {
+    const current = map.get(dept.id);
+    if (dept.parentId !== 0) {
+      const parent = map.get(dept.parentId);
+      if (parent) {
+        parent.children.push(current);
+      }
+    }
+  });
+
+  // 第三步：收集顶级部门
+  return departments
+    .filter((dept: Department) => dept.parentId === 0)
+    .map((dept: Department) => map.get(dept.id));
+}
+const departmentOptions = ref<any[]>([{ name: "无", id: 0 }]);
+const roleOptions = ref<any[]>([{ name: "无", value: 0 }]);
 
 const imageUrl = ref("");
 
@@ -251,7 +284,22 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-
+const queryDepartmentOptions = async () => {
+  const res = await getDepartmentList();
+  if ((res as any)?.data?.length) {
+    departmentOptions.value = buildDepartmentTree((res as any)?.data || []);
+  }
+};
+const queryRoleOptions = async () => {
+  const res = await getRoleList();
+  if ((res as any)?.data?.length) {
+    roleOptions.value = (res as any).data;
+  }
+};
+onMounted(() => {
+  queryDepartmentOptions();
+  queryRoleOptions();
+});
 defineExpose({ confirmSave });
 </script>
 <style lang="scss" scoped>
