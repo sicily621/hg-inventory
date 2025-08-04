@@ -1,46 +1,45 @@
-/**
- * @link https://www.typescriptlang.org/tsconfig
- * @link https://cn.vuejs.org/guide/typescript/overview#configuring-tsconfig-json
- * @link https://cn.vite.dev/guide/features#typescript-compiler-options
- */
-
 {
   "compilerOptions": {
-    "target": "esnext",
-    "jsx": "preserve",
-    "jsxImportSource": "vue",
-    "lib": ["esnext", "dom"],
-    "useDefineForClassFields": true,
-    "experimentalDecorators": true,
-    // baseUrl 用来告诉编译器到哪里去查找模块，使用非相对模块时必须配置此项
-    "baseUrl": ".",
-    "module": "esnext",
+    // 基础设置
+    "target": "ES2021",
+    "module": "ESNext",
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "composite": true,
+    // 模块解析与导入设置
     "moduleResolution": "bundler",
-    // 非相对模块导入的路径映射配置，根据 baseUrl 配置进行路径计算，与 vite.config 中 alias 配置同步
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    // 发射设置
+    "noEmit": true, // 不发射文件，通常在配合其他构建工具时使用
+    "jsx": "preserve",
+    // 类型检查设置
+    "strict": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    // 类型声明
+    "types": ["element-plus/global", "vue", "node"],
+
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
       "@@/*": ["src/common/*"]
-    },
-    "typeRoots": ["./node_modules/@types", "./types/declarations"],
-    "resolveJsonModule": true,
-    "types": ["vite/client", "element-plus/global"],
-    // 允许导入 .ts .mts .tsx 拓展名的文件
-    "allowImportingTsExtensions": true,
-    // 允许 JS
-    "allowJs": true,
-    // TS 严格模式
-    "strict": true,
-    "importHelpers": true,
-    // 不输出任何编译后的文件，只进行类型检查
-    "noEmit": true,
-    "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "skipLibCheck": true
+    }
   },
-  // 需要被编译的文件列表
-  "include": ["**/*.ts", "**/*.tsx", "**/*.vue", "**/*.d.ts"],
-  // 从编译中排除的文件列表
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue", // 关键：包含 Vue 单文件组件
+    "types/**/*.d.ts"
+  ]
 }

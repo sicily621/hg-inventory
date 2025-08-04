@@ -1,6 +1,11 @@
 <template>
   <div class="flex flex-col">
     <el-card class="w-full h-full">
+      <div class="zc-header-title">
+        <div class="zc-header-icon"></div>
+        <div class="zc-header-word">员工信息</div>
+      </div>
+      <el-divider />
       <el-form
         ref="formRef"
         :model="form"
@@ -146,7 +151,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { Employee, createEmployee, editEmployee } from "../api/employee";
 import { Department, getDepartmentList } from "../api/department";
 import { getRoleList } from "../api/role";

@@ -1,57 +1,69 @@
 <script lang="ts" setup>
-import type { RouteRecordRaw } from "vue-router"
-import { isExternal } from "@@/utils/validate"
-import path from "path-browserify"
-import Link from "./Link.vue"
+import type { RouteRecordRaw } from "vue-router";
+import { isExternal } from "@@/utils/validate";
+import path from "path-browserify";
+import Link from "./Link.vue";
 
 interface Props {
-  item: RouteRecordRaw
-  basePath?: string
+  item: RouteRecordRaw;
+  basePath?: string;
 }
 
-const { item, basePath = "" } = defineProps<Props>()
+const { item, basePath = "" } = defineProps<Props>();
 
 /** 是否始终显示根菜单 */
-const alwaysShowRootMenu = computed(() => item.meta?.alwaysShow)
+const alwaysShowRootMenu = computed(() => item.meta?.alwaysShow);
 
 /** 显示的子菜单 */
-const showingChildren = computed(() => item.children?.filter(child => !child.meta?.hidden) ?? [])
+const showingChildren = computed(
+  () => item.children?.filter((child) => !child.meta?.hidden) ?? [],
+);
 
 /** 显示的子菜单数量 */
-const showingChildNumber = computed(() => showingChildren.value.length)
+const showingChildNumber = computed(() => showingChildren.value.length);
 
 /** 唯一的子菜单项 */
 const theOnlyOneChild = computed(() => {
-  const number = showingChildNumber.value
+  const number = showingChildNumber.value;
   switch (true) {
     case number > 1:
-      return null
+      return null;
     case number === 1:
-      return showingChildren.value[0]
+      return showingChildren.value[0];
     default:
-      return { ...item, path: "" }
+      return { ...item, path: "" };
   }
-})
+});
 
 /** 解析路径 */
 function resolvePath(routePath: string) {
   switch (true) {
     case isExternal(routePath):
-      return routePath
+      return routePath;
     case isExternal(basePath):
-      return basePath
+      return basePath;
     default:
-      return path.resolve(basePath, routePath)
+      return path.resolve(basePath, routePath);
   }
 }
 </script>
 
 <template>
-  <template v-if="!alwaysShowRootMenu && theOnlyOneChild && !theOnlyOneChild.children">
+  <template
+    v-if="!alwaysShowRootMenu && theOnlyOneChild && !theOnlyOneChild.children"
+  >
     <Link v-if="theOnlyOneChild.meta" :to="resolvePath(theOnlyOneChild.path)">
-      <el-menu-item :index="resolvePath(theOnlyOneChild.path)">
-        <SvgIcon v-if="theOnlyOneChild.meta.svgIcon" :name="theOnlyOneChild.meta.svgIcon" class="svg-icon" />
-        <component v-else-if="theOnlyOneChild.meta.elIcon" :is="theOnlyOneChild.meta.elIcon" class="el-icon" />
+      <el-menu-item :index="resolvePath(theOnlyOneChild.path)" class="m-l-3">
+        <SvgIcon
+          v-if="theOnlyOneChild.meta.svgIcon"
+          :name="theOnlyOneChild.meta.svgIcon"
+          class="svg-icon"
+        />
+        <component
+          v-else-if="theOnlyOneChild.meta.elIcon"
+          :is="theOnlyOneChild.meta.elIcon"
+          class="el-icon"
+        />
         <template v-if="theOnlyOneChild.meta.title" #title>
           <span class="title">{{ theOnlyOneChild.meta.title }}</span>
         </template>
@@ -60,8 +72,16 @@ function resolvePath(routePath: string) {
   </template>
   <el-sub-menu v-else :index="resolvePath(item.path)" teleported>
     <template #title>
-      <SvgIcon v-if="item.meta?.svgIcon" :name="item.meta.svgIcon" class="svg-icon" />
-      <component v-else-if="item.meta?.elIcon" :is="item.meta.elIcon" class="el-icon" />
+      <SvgIcon
+        v-if="item.meta?.svgIcon"
+        :name="item.meta.svgIcon"
+        class="svg-icon"
+      />
+      <component
+        v-else-if="item.meta?.elIcon"
+        :is="item.meta.elIcon"
+        class="el-icon"
+      />
       <span v-if="item.meta?.title" class="title">{{ item.meta.title }}</span>
     </template>
     <template v-if="item.children">
