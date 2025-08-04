@@ -203,6 +203,14 @@ export const constantRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        path: "role",
+        component: () => import("@/pages/employeeManagement/role/list.vue"),
+        name: "role",
+        meta: {
+          title: "角色管理",
+        },
+      },
+      {
         path: "employee",
         component: () => import("@/pages/employeeManagement/employee/list.vue"),
         name: "employee",

@@ -3,7 +3,7 @@ import { getToken } from "@@/utils/cache/cookies";
 import axios from "axios";
 import { get, merge } from "lodash-es";
 import { useUserStore } from "@/pinia/stores/user";
-
+import qs from "qs";
 /** 退出登录并强制刷新页面（会重定向到登录页） */
 function logout() {
   useUserStore().logout();
@@ -19,7 +19,7 @@ function createInstance() {
     // 发送之前
     (config) => config,
     // 发送失败
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
   // 响应拦截器（可根据具体业务作出相应的调整）
   instance.interceptors.response.use(
@@ -93,7 +93,7 @@ function createInstance() {
       }
       ElMessage.error(error.message);
       return Promise.reject(error);
-    }
+    },
   );
   return instance;
 }
@@ -138,7 +138,17 @@ export const Put = (url: string, data: any) => {
   return request({ url, method: "put", data });
 };
 export const Get = (url: string, data: any) => {
-  return request({ url, method: "get", data });
+  return request({
+    url,
+    method: "get",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    params: data, // GET参数会被自动添加到URL
+    paramsSerializer: {
+      serialize: (params) => qs.stringify(params), // 使用qs序列化参数
+    },
+  });
 };
 export const Delete = (url: string) => {
   return request({

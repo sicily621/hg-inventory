@@ -12,34 +12,6 @@
             <el-form-item prop="code" label="编码">
               <el-input v-model="searchData.code" placeholder="请输入" />
             </el-form-item>
-            <el-form-item prop="realName" label="姓名">
-              <el-input v-model="searchData.realName" placeholder="请输入" />
-            </el-form-item>
-            <el-form-item prop="departmentId" label="部门">
-              <el-tree-select
-                class="w-40"
-                v-model="searchData.departmentId"
-                placeholder="请选择部门"
-                :data="departmentOptions"
-                check-strictly
-                :render-after-expand="false"
-                :props="selectProps"
-              />
-            </el-form-item>
-            <el-form-item prop="roleId" label="角色">
-              <el-select
-                v-model="searchData.roleId"
-                placeholder="请选择角色"
-                class="w-40"
-              >
-                <el-option
-                  v-for="item in roleOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
           </el-form>
           <el-button type="primary" @click="create">新增</el-button>
         </div>
@@ -56,18 +28,9 @@
             :indexMethod="indexMethod(currentPage, pageSize)"
             class="h-full"
           >
-            <template #departmentId="scope">
-              {{ getName(scope.scope.row.departmentId, departmentMap) }}
-            </template>
-            <template #roleId="scope">
-              {{ getName(scope.scope.row.roleId, roleMap) }}
-            </template>
-            <template #gender="scope">
-              {{ scope.scope.row.gender ? "男" : "女" }}
-            </template>
             <template #status="scope">
               <el-tag :type="scope.scope.row.status ? 'primary' : 'warning'">{{
-                scope.scope.row.status ? "在职" : "离职"
+                scope.scope.row.status ? "启用" : "禁用"
               }}</el-tag>
             </template>
             <template #operate="scope">
@@ -118,32 +81,23 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
-  queryEmployeeConditions,
-  deleteEmployee,
-  findEmployeePage,
-  Employee,
-} from "../api/employee";
-import { Department, getDepartmentList } from "../api/department";
-import { getRoleList } from "../api/role";
+  queryRoleConditions,
+  deleteRole,
+  findRolePage,
+  Role,
+} from "../api/role";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 
 const createRef = ref();
-const selectProps = { value: "id", label: "name" };
-const departmentOptions = ref([{ name: "全部", id: 0 }]);
-const roleOptions = ref([{ name: "全部", id: 0 }]);
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "username", label: "用户名" },
+  { prop: "name", label: "名称" },
   { prop: "code", label: "编码" },
-  { prop: "realName", label: "真实姓名" },
-  { prop: "departmentId", label: "部门" },
-  { prop: "roleId", label: "角色" },
-  { prop: "gender", label: "性别" },
-  { prop: "phone", label: "电话" },
+  { prop: "description", label: "描述" },
   { prop: "status", label: "状态" },
   { prop: "operate", label: "操作", width: 100 },
 ]);
@@ -156,23 +110,19 @@ const pageChange = (page: any) => {
   currentPage.value = page - 1;
   refreshTable();
 };
-const currentData = ref<Employee | null>(null);
-const edit = (row: Employee) => {
+const currentData = ref<Role | null>(null);
+const edit = (row: Role) => {
   currentData.value = row;
   processFlag.value = 1;
 };
 
-const tableData = ref<Employee[]>([]);
+const tableData = ref<Role[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 
-const searchData = reactive<queryEmployeeConditions>({
+const searchData = reactive<queryRoleConditions>({
   code: "",
-  realName: "",
-  departmentId: 0,
-  roleId: 0,
 });
-
 watchDebounced(
   searchData,
   () => {
@@ -182,15 +132,12 @@ watchDebounced(
 );
 function refreshTable() {
   loading.value = true;
-  const params: PaginatedRequest<queryEmployeeConditions> = {
-    currentPage: currentPage.value + 1,
+  const params: PaginatedRequest<queryRoleConditions> = {
+    currentPage: currentPage.value,
     size: pageSize.value,
   };
   if (searchData.code.length) params.code = searchData.code;
-  if (searchData.realName.length) params.realName = searchData.realName;
-  if (searchData.departmentId) params.departmentId = searchData.departmentId;
-  if (searchData.roleId) params.roleId = searchData.roleId;
-  findEmployeePage(params)
+  findRolePage(params)
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
@@ -218,70 +165,15 @@ const back = () => {
   refreshTable();
 };
 const remove = async (id: string) => {
-  await deleteEmployee(id);
+  await deleteRole(id);
   ElMessage({
     type: "success",
     message: "删除成功",
   });
   refreshTable();
 };
-function buildDepartmentTree(departments: Department[]) {
-  const map = new Map();
 
-  // 第一步：创建所有部门的映射并初始化children
-  departments.forEach((dept: Department) => {
-    map.set(dept.id, {
-      ...dept,
-      children: [],
-    });
-  });
-
-  // 第二步：建立所有层级的父子关系
-  departments.forEach((dept: Department) => {
-    const current = map.get(dept.id);
-    if (dept.parentId !== 0) {
-      const parent = map.get(dept.parentId);
-      if (parent) {
-        parent.children.push(current);
-      }
-    }
-  });
-
-  // 第三步：收集顶级部门
-  return departments
-    .filter((dept: Department) => dept.parentId === 0)
-    .map((dept: Department) => map.get(dept.id));
-}
-const departmentMap = ref(new Map());
-const queryDepartmentOptions = async () => {
-  const res = await getDepartmentList();
-  if ((res as any)?.data?.length) {
-    departmentOptions.value = buildDepartmentTree((res as any)?.data || []);
-    const all = { id: 0, name: "全部", children: [] };
-    departmentOptions.value.unshift(all);
-    departmentMap.value.clear();
-    (res as any)?.data.map((item: any) => {
-      departmentMap.value.set(item.id, item.name);
-    });
-  }
-};
-const roleMap = ref(new Map());
-const queryRoleOptions = async () => {
-  const res = await getRoleList();
-  if ((res as any)?.data?.length) {
-    roleOptions.value = (res as any).data;
-    roleMap.value.clear();
-    (res as any)?.data.map((item: any) => {
-      roleMap.value.set(item.id, item.name);
-    });
-  }
-};
-const getName = (id: string, mapData: Map<string, string>) => {
-  return mapData.get(id) ?? "无";
-};
 onMounted(async () => {
-  await queryDepartmentOptions();
-  await queryRoleOptions();
   refreshTable();
 });
 </script>

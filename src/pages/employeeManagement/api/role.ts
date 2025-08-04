@@ -8,6 +8,9 @@ export interface Role {
   description: string;
   status: number;
 }
+export interface queryRoleConditions {
+  code: string;
+}
 export const createRole = (data: Role) => Post(rolePrefix, data);
 export const editRole = (data: Role) => Put(rolePrefix, data);
 export const deleteRole = (id: string | number) =>
