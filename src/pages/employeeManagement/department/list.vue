@@ -170,7 +170,7 @@ const add = async () => {
   const valid = await formRef.value.validate();
   if (valid) {
     if (isEdit.value) {
-      const params: Department = {
+      const params: any = {
         ...currentData.value,
         name: form.name,
       };

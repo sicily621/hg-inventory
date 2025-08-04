@@ -86,9 +86,9 @@
             <el-select v-model="form.roleId" placeholder="请选择角色">
               <el-option
                 v-for="item in roleOptions"
-                :key="item.value"
+                :key="item.id"
                 :label="item.name"
-                :value="item.value"
+                :value="item.id"
               />
             </el-select>
           </el-form-item>

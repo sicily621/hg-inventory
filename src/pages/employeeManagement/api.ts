@@ -4,3 +4,5 @@ export const employeePrefix = `/employee`;
 export const departmentPrefix = "/department";
 //角色管理
 export const rolePrefix = "/role";
+//权限管理
+export const permissionPrefix = "/permission";

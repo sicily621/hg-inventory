@@ -218,6 +218,15 @@ export const constantRoutes: RouteRecordRaw[] = [
           title: "员工管理",
         },
       },
+      {
+        path: "permission",
+        component: () =>
+          import("@/pages/employeeManagement/permission/list.vue"),
+        name: "permission",
+        meta: {
+          title: "权限管理",
+        },
+      },
     ],
   },
 ];

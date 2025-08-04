@@ -9,8 +9,8 @@
             :inline="true"
             :model="searchData"
           >
-            <el-form-item prop="code" label="编码">
-              <el-input v-model="searchData.code" placeholder="请输入" />
+            <el-form-item prop="moduleCode" label="模块编码">
+              <el-input v-model="searchData.moduleCode" placeholder="请输入" />
             </el-form-item>
           </el-form>
           <el-button type="primary" @click="create">新增</el-button>
@@ -22,36 +22,47 @@
         shadow="never"
       >
         <div class="table-wrap">
-          <baseTable
-            :columns="columns"
-            :table-data="tableData"
-            :indexMethod="indexMethod(currentPage, pageSize)"
-            class="h-full"
-          >
-            <template #status="scope">
-              <el-tag :type="scope.scope.row.status ? 'primary' : 'warning'">{{
-                scope.scope.row.status ? "启用" : "禁用"
-              }}</el-tag>
-            </template>
-            <template #operate="scope">
-              <div class="flex">
-                <el-icon
-                  class="fz16 pointer m-r-5 cursor-pointer"
-                  text
-                  @click="edit(scope.scope.row)"
-                >
-                  <Edit />
-                </el-icon>
-                <el-icon
-                  class="fz16 cursor-pointer"
-                  text
-                  @click="remove(scope.scope.row.id)"
-                >
-                  <Delete />
-                </el-icon>
-              </div>
-            </template>
-          </baseTable>
+          <div class="table-wrap">
+            <el-table
+              :data="tableData"
+              row-key="id"
+              default-expand-all
+              highlight-current-row
+              stripe
+            >
+              <el-table-column prop="name" label="名称" />
+              <el-table-column prop="moduleCode" label="模块编码" />
+              <el-table-column prop="url" label="模块路径" />
+              <el-table-column prop="description" label="描述" />
+              <el-table-column prop="operate" label="操作" :width="200">
+                <template #default="scope">
+                  <div class="flex">
+                    <el-icon
+                      class="fz16 pointer m-r-5 cursor-pointer"
+                      text
+                      @click="edit(scope.row)"
+                    >
+                      <Edit />
+                    </el-icon>
+                    <el-icon
+                      class="fz16 pointer m-r-5 cursor-pointer"
+                      text
+                      @click="addSubPermission(scope.row)"
+                    >
+                      <Plus />
+                    </el-icon>
+                    <el-icon
+                      class="fz16 cursor-pointer"
+                      text
+                      @click="remove(scope.row.id)"
+                    >
+                      <Delete />
+                    </el-icon>
+                  </div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </div>
         <div class="pager-wrapper h-12 p-r-4">
           <pagination
@@ -81,11 +92,11 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
-  queryRoleConditions,
-  deleteRole,
-  findRolePage,
-  Role,
-} from "../api/role";
+  queryPermissionConditions,
+  deletePermission,
+  findPermissionPage,
+  Permission,
+} from "../api/permission";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
@@ -96,9 +107,9 @@ const processFlag = ref(0); // 0列表 1新建 2编辑
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "name", label: "名称" },
-  { prop: "code", label: "编码" },
+  { prop: "moduleCode", label: "模块编码" },
+  { prop: "url", label: "状态" },
   { prop: "description", label: "描述" },
-  { prop: "status", label: "状态" },
   { prop: "operate", label: "操作", width: 100 },
 ]);
 
@@ -110,18 +121,18 @@ const pageChange = (page: any) => {
   currentPage.value = page - 1;
   refreshTable();
 };
-const currentData = ref<Role | null>(null);
-const edit = (row: Role) => {
+const currentData = ref<Permission | null>(null);
+const edit = (row: Permission) => {
   currentData.value = row;
   processFlag.value = 1;
 };
 
-const tableData = ref<Role[]>([]);
+const tableData = ref<Permission[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 
-const searchData = reactive<queryRoleConditions>({
-  code: "",
+const searchData = reactive<queryPermissionConditions>({
+  moduleCode: "",
 });
 watchDebounced(
   searchData,
@@ -132,16 +143,16 @@ watchDebounced(
 );
 function refreshTable() {
   loading.value = true;
-  const params: PaginatedRequest<queryRoleConditions> = {
-    currentPage: currentPage.value + 1,
+  const params: PaginatedRequest<queryPermissionConditions> = {
+    currentPage: currentPage.value,
     size: pageSize.value,
   };
-  if (searchData.code.length) params.code = searchData.code;
-  findRolePage(params)
+  if (searchData.moduleCode.length) params.moduleCode = searchData.moduleCode;
+  findPermissionPage(params)
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
-      tableData.value = list;
+      tableData.value = buildPermissionTree(list);
     })
     .catch(() => {
       tableData.value = [];
@@ -150,7 +161,35 @@ function refreshTable() {
       loading.value = false;
     });
 }
+function buildPermissionTree(permissions: Permission[]) {
+  const map = new Map();
+
+  // 第一步：创建所有部门的映射并初始化children
+  permissions.forEach((dept: Permission) => {
+    map.set(dept.id, {
+      ...dept,
+      children: [],
+    });
+  });
+
+  // 第二步：建立所有层级的父子关系
+  permissions.forEach((dept: Permission) => {
+    const current = map.get(dept.id);
+    if (dept.parentId !== 0) {
+      const parent = map.get(dept.parentId);
+      if (parent) {
+        parent.children.push(current);
+      }
+    }
+  });
+
+  // 第三步：收集顶级部门
+  return permissions
+    .filter((dept: Permission) => dept.parentId === 0)
+    .map((dept: Permission) => map.get(dept.id));
+}
 const create = () => {
+  currentData.value = null;
   processFlag.value = 1;
 };
 const save = () => {
@@ -159,13 +198,23 @@ const save = () => {
     back();
   });
 };
+const addSubPermission = (row: any) => {
+  currentData.value = {
+    name: "",
+    moduleCode: "",
+    parentId: row.id,
+    url: "",
+    description: "",
+  };
+  processFlag.value = 1;
+};
 const back = () => {
   processFlag.value = 0;
   currentData.value = null;
   refreshTable();
 };
 const remove = async (id: string) => {
-  await deleteRole(id);
+  await deletePermission(id);
   ElMessage({
     type: "success",
     message: "删除成功",
