@@ -33,6 +33,16 @@
               <el-table-column prop="name" label="名称" />
               <el-table-column prop="moduleCode" label="模块编码" />
               <el-table-column prop="url" label="模块路径" />
+              <el-table-column prop="action" label="操作类型">
+                <template #default="scope">
+                  {{ getName(scope.row.action, PermissionActionList) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="type" label="权限类型">
+                <template #default="scope">
+                  {{ getName(scope.row.type, PermissionTypeList) }}
+                </template>
+              </el-table-column>
               <el-table-column prop="description" label="描述" />
               <el-table-column prop="operate" label="操作" :width="200">
                 <template #default="scope">
@@ -88,7 +98,6 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref, reactive } from "vue";
-import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
@@ -96,23 +105,19 @@ import {
   deletePermission,
   findPermissionPage,
   Permission,
+  PermissionActionList,
+  PermissionTypeList,
 } from "../api/permission";
-import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
-const columns = ref([
-  { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "name", label: "名称" },
-  { prop: "moduleCode", label: "模块编码" },
-  { prop: "url", label: "状态" },
-  { prop: "description", label: "描述" },
-  { prop: "operate", label: "操作", width: 100 },
-]);
-
+const getName = (value: number, list: any[]) => {
+  const result = list.find((item) => item.id == value);
+  return result?.name ?? "";
+};
 //分页
 const pageSize = ref(10);
 const currentPage = ref(0);
