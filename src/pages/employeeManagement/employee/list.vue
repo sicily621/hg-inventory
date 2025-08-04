@@ -116,11 +116,9 @@
 import { onMounted, ref, reactive } from "vue";
 import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
-import type { PaginatedRequest, TableData } from "@@/apis/tables/type";
+import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
   queryEmployeeConditions,
-  createEmployee,
-  editEmployee,
   deleteEmployee,
   findEmployeePage,
   Employee,
@@ -163,7 +161,7 @@ const edit = (row: Employee) => {
   processFlag.value = 1;
 };
 
-const tableData = ref<TableData[]>([]);
+const tableData = ref<Employee[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 

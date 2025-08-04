@@ -18,3 +18,14 @@ $vw_font_size: 14;
     font-size: zrem($i);
   }
 }
+
+.zc-header-title {
+  display: flex;
+  align-items: center;
+  .zc-header-icon {
+    background: var(--el-color-primary);
+    width: zrem(6);
+    height: zrem(18);
+    margin-right: zrem(10);
+  }
+}

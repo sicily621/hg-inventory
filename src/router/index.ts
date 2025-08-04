@@ -194,9 +194,18 @@ export const constantRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
-        path: "list",
+        path: "department",
+        component: () =>
+          import("@/pages/employeeManagement/department/list.vue"),
+        name: "department",
+        meta: {
+          title: "部门管理",
+        },
+      },
+      {
+        path: "employee",
         component: () => import("@/pages/employeeManagement/employee/list.vue"),
-        name: "list",
+        name: "employee",
         meta: {
           title: "员工管理",
         },
