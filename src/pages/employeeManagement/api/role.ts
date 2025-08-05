@@ -17,3 +17,5 @@ export const deleteRole = (id: string | number) =>
   Delete(rolePrefix + `/${id}`);
 export const findRolePage = (data: any) => Get(rolePrefix + "/page", data);
 export const getRoleList = () => Get(`${rolePrefix}/list`, null);
+export const getRoleListByIds = (ids: string) =>
+  Get(`${rolePrefix}/getByIds/${ids}`, null);

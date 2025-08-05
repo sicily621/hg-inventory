@@ -45,3 +45,5 @@ export const deletePermission = (id: string | number) =>
 export const findPermissionPage = (data: any) =>
   Get(permissionPrefix + "/page", data);
 export const getPermissionList = () => Get(`${permissionPrefix}/list`, null);
+export const getPermissionListByIds = (ids: string[]) =>
+  Get(`${permissionPrefix}/getByIds/${ids}`, null);

@@ -3,6 +3,7 @@ import { createRouter } from "vue-router";
 import { routerConfig } from "@/router/config";
 import { registerNavigationGuard } from "@/router/guard";
 import { flatMultiLevelRoutes } from "./helper";
+import { ModuleCode } from "./moduleCode";
 
 const Layouts = () => import("@/layouts/index.vue");
 
@@ -184,6 +185,14 @@ export const constantRoutes: RouteRecordRaw[] = [
       },
     ],
   },
+];
+
+/**
+ * @name 动态路由
+ * @description 用来放置有权限 (Roles 属性) 的路由
+ * @description 必须带有唯一的 Name 属性
+ */
+export const dynamicRoutes: RouteRecordRaw[] = [
   {
     path: "/employeeManagement",
     component: Layouts,
@@ -191,6 +200,7 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: {
       title: "员工管理",
       elIcon: "User",
+      moduleCode: ModuleCode.EmployeeManagement,
     },
     children: [
       {
@@ -200,6 +210,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "department",
         meta: {
           title: "部门管理",
+          moduleCode: ModuleCode.Department,
         },
       },
       {
@@ -208,6 +219,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "role",
         meta: {
           title: "角色管理",
+          moduleCode: ModuleCode.Role,
         },
       },
       {
@@ -216,6 +228,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "employee",
         meta: {
           title: "员工管理",
+          moduleCode: ModuleCode.Employee,
         },
       },
       {
@@ -225,18 +238,11 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: "permission",
         meta: {
           title: "权限管理",
+          moduleCode: ModuleCode.Permission,
         },
       },
     ],
   },
-];
-
-/**
- * @name 动态路由
- * @description 用来放置有权限 (Roles 属性) 的路由
- * @description 必须带有唯一的 Name 属性
- */
-export const dynamicRoutes: RouteRecordRaw[] = [
   {
     path: "/permission",
     component: Layouts,

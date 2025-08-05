@@ -5,6 +5,9 @@ import ThemeSwitch from "@@/components/ThemeSwitch/index.vue";
 import { Key, Loading, Lock, Picture, User } from "@element-plus/icons-vue";
 import { useSettingsStore } from "@/pinia/stores/settings";
 import { useUserStore } from "@/pinia/stores/user";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { getRolePermissionRelationsByRoleId } from "@/pages/employeeManagement/api/rolePermissionRelations";
+import { getPermissionListByIds } from "@/pages/employeeManagement/api/permission";
 import { getCaptchaApi, loginApi } from "./apis";
 import Owl from "./components/Owl.vue";
 import { useFocus } from "./composables/useFocus";
@@ -15,6 +18,8 @@ const router = useRouter();
 const userStore = useUserStore();
 
 const settingsStore = useSettingsStore();
+
+const permissionStore = usePermissionStore();
 
 const { isFocus, handleBlur, handleFocus } = useFocus();
 
@@ -56,8 +61,18 @@ function handleLogin() {
     params.password = md5(params.password);
     loginApi(params)
       .then(({ data }) => {
-        userStore.setToken(data.token);
-        router.push("/");
+        const { id, token, departmentId, roleId, username } = data;
+        userStore.setToken(token);
+        userStore.setInfo({ id, departmentId, roleId, username });
+        getRolePermissionRelationsByRoleId(roleId).then((res) => {
+          const permissions = (res as any).data.map(
+            (item: any) => item.permissionId,
+          );
+          getPermissionListByIds(permissions).then((res: any) => {
+            permissionStore.setPermissions(res.data);
+            router.push("/");
+          });
+        });
       })
       .catch(() => {
         createCode();

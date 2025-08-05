@@ -32,7 +32,7 @@
             >
               <el-table-column prop="name" label="名称" />
               <el-table-column prop="moduleCode" label="模块编码" />
-              <el-table-column prop="url" label="模块路径" />
+              <el-table-column prop="url" label="模块路径" :width="300" />
               <el-table-column prop="action" label="操作类型">
                 <template #default="scope">
                   {{ getName(scope.row.action, PermissionActionList) }}
@@ -44,7 +44,7 @@
                 </template>
               </el-table-column>
               <el-table-column prop="description" label="描述" />
-              <el-table-column prop="operate" label="操作" :width="200">
+              <el-table-column prop="operate" label="操作" :width="150">
                 <template #default="scope">
                   <div class="flex">
                     <el-icon
@@ -210,6 +210,8 @@ const addSubPermission = (row: any) => {
     parentId: row.id,
     url: "",
     description: "",
+    action: 1,
+    type: 1,
   };
   processFlag.value = 1;
 };

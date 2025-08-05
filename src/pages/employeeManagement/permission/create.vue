@@ -46,6 +46,18 @@
             >
             </el-input>
           </el-form-item>
+          <el-form-item label="描述" prop="description">
+            <el-input
+              v-model="form.description"
+              class="flex-1"
+              placeholder="请输入描述"
+              maxlength="32"
+              required
+            >
+            </el-input>
+          </el-form-item>
+        </div>
+        <div class="width-300 d-flex m-l-16">
           <el-form-item label="父权限" prop="parentId">
             <el-tree-select
               v-model="form.parentId"
@@ -56,15 +68,25 @@
               :props="selectProps"
             />
           </el-form-item>
-          <el-form-item label="描述" prop="description">
-            <el-input
-              v-model="form.description"
-              class="flex-1"
-              placeholder="请输入描述"
-              maxlength="32"
-              required
-            >
-            </el-input>
+          <el-form-item label="操作类型" prop="action">
+            <el-select v-model="form.action" placeholder="请选择操作类型">
+              <el-option
+                v-for="item in PermissionActionList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="权限类型" prop="type">
+            <el-select v-model="form.type" placeholder="请选择权限类型">
+              <el-option
+                v-for="item in PermissionTypeList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
         </div>
       </el-form>
@@ -78,6 +100,8 @@ import {
   createPermission,
   editPermission,
   getPermissionList,
+  PermissionActionList,
+  PermissionTypeList,
 } from "../api/permission";
 const props = defineProps<{ data: Permission | null }>();
 const formRef = ref();
@@ -89,6 +113,8 @@ const form = ref<Permission>({
   parentId: 0,
   url: "",
   description: "",
+  action: 1,
+  type: 1,
 });
 //合并props
 if (props.data) {
@@ -100,6 +126,8 @@ const rules = reactive({
   moduleCode: [{ required: true, message: "不能为空" }],
   parentId: [{ required: true, message: "不能为空" }],
   url: [{ required: true, message: "不能为空" }],
+  action: [{ required: true, message: "不能为空" }],
+  type: [{ required: true, message: "不能为空" }],
 });
 
 const confirmSave = async (cb?: Function) => {

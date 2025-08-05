@@ -6,3 +6,5 @@ export const departmentPrefix = "/department";
 export const rolePrefix = "/role";
 //权限管理
 export const permissionPrefix = "/permission";
+//权限管理
+export const rolePermissionRelationsPrefix = "/role/permission/relations";
