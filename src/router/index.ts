@@ -244,6 +244,27 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: "/productManagement",
+    component: Layouts,
+    redirect: "/productManagement/category",
+    meta: {
+      title: "商品管理",
+      elIcon: "User",
+      moduleCode: ModuleCode.ProductManagement,
+    },
+    children: [
+      {
+        path: "category",
+        component: () => import("@/pages/productManagement/category/list.vue"),
+        name: "category",
+        meta: {
+          title: "商品分类",
+          moduleCode: ModuleCode.Category,
+        },
+      },
+    ],
+  },
+  {
     path: "/permission",
     component: Layouts,
     redirect: "/permission/page-level",
