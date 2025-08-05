@@ -11,7 +11,7 @@
  Target Server Version : 80025 (8.0.25)
  File Encoding         : 65001
 
- Date: 01/08/2025 17:39:43
+ Date: 05/08/2025 18:02:49
 */
 
 SET NAMES utf8mb4;
@@ -120,11 +120,20 @@ CREATE TABLE `hg_department`  (
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `department_name`(`name` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1952276819339325442 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of hg_department
 -- ----------------------------
+INSERT INTO `hg_department` VALUES (1952262586321022978, '销售部', 0, 0, '2025-08-04 14:57:27', '2025-08-04 14:57:27', 0);
+INSERT INTO `hg_department` VALUES (1952264115023196161, '人事部', 0, 0, '2025-08-04 15:03:31', '2025-08-04 15:03:31', 0);
+INSERT INTO `hg_department` VALUES (1952265346936418305, '销售小组1', 1952262586321022978, 0, '2025-08-04 15:08:25', '2025-08-04 15:43:05', 0);
+INSERT INTO `hg_department` VALUES (1952275260559798273, '销售小组2', 1952262586321022978, 0, '2025-08-04 15:47:48', '2025-08-04 15:47:48', 0);
+INSERT INTO `hg_department` VALUES (1952276451498864642, '采购部', 0, 0, '2025-08-04 15:52:32', '2025-08-04 15:53:04', 0);
+INSERT INTO `hg_department` VALUES (1952276503030083586, '采购小组1', 1952276451498864642, 0, '2025-08-04 15:52:45', '2025-08-04 15:52:45', 0);
+INSERT INTO `hg_department` VALUES (1952276547581980674, '采购小组2', 1952276451498864642, 0, '2025-08-04 15:52:55', '2025-08-04 15:52:55', 0);
+INSERT INTO `hg_department` VALUES (1952276768491778049, '仓库管理部', 0, 0, '2025-08-04 15:53:48', '2025-08-04 15:53:48', 0);
+INSERT INTO `hg_department` VALUES (1952276819339325441, '财务部', 0, 0, '2025-08-04 15:54:00', '2025-08-04 15:54:00', 0);
 
 -- ----------------------------
 -- Table structure for hg_employee
@@ -148,12 +157,13 @@ CREATE TABLE `hg_employee`  (
   `avatar` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '头像',
   `del_flag` int NULL DEFAULT 0 COMMENT '0正常1删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1950095792504283139 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '员工表（用户表）' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1952309334494097411 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '员工表（用户表）' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of hg_employee
 -- ----------------------------
-INSERT INTO `hg_employee` VALUES (1950095792504283138, '', 'admin', 'Admin@123', 'zm', 0, '', '', '', 0, '2025-07-29 15:27:22', '2025-07-29 15:55:56', 0, 0, '', 0);
+INSERT INTO `hg_employee` VALUES (1950095792504283138, '', 'admin', '0f2797f2182804d0cc7f0b85d254c146', 'zm', 0, '', '', '', 0, '2025-07-29 15:27:22', '2025-08-05 16:45:31', 1952580037491453953, 0, '', 0);
+INSERT INTO `hg_employee` VALUES (1952309334494097410, '004', 'xiaoliu', '0f2797f2182804d0cc7f0b85d254c146', '小刘', 1952264115023196161, '', '17300001111', '123@163.com', 1, '2025-08-04 18:03:12', '2025-08-05 17:54:11', 1952580037491453953, 1, 'defaultAvatar.png', 0);
 
 -- ----------------------------
 -- Table structure for hg_inventory
@@ -303,22 +313,22 @@ CREATE TABLE `hg_permission`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
+  `action` int NOT NULL DEFAULT 1 COMMENT '操作类型 1 view、2 add、3 edit、4 delete、5 approve',
+  `type` int NOT NULL DEFAULT 1 COMMENT '权限类型 1 菜单级别 2 按钮级别',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `permission_name`(`name` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '权限表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1952658612836016130 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '权限表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of hg_permission
 -- ----------------------------
-INSERT INTO `hg_permission` VALUES (1, '商品管理', 'product', 0, '/product', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (2, '商品查看', 'product', 1, '/product/list', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (3, '商品新增', 'product', 1, '/product/add', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (4, '供应商管理', 'supplier', 0, '/supplier', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (5, '采购订单管理', 'purchase', 0, '/purchase/order', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (6, '销售订单管理', 'sales', 0, '/sales/order', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (7, '库存查询', 'inventory', 0, '/inventory/query', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (8, '库存调整', 'inventory', 0, '/inventory/adjust', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
-INSERT INTO `hg_permission` VALUES (9, '财务管理', 'finance', 0, '/finance', NULL, '2025-07-17 17:30:29', '2025-07-17 17:30:29', NULL);
+INSERT INTO `hg_permission` VALUES (1952561113785896961, '员工管理菜单', 'employeeManagement', 0, '/employeeManagement', '', '2025-08-05 10:43:41', '2025-08-05 17:09:01', 0, 1, 1);
+INSERT INTO `hg_permission` VALUES (1952561423342309377, '部门管理', 'department', 1952561113785896961, '/employeeManagement/department', '', '2025-08-05 10:44:55', '2025-08-05 10:44:55', 0, 1, 1);
+INSERT INTO `hg_permission` VALUES (1952562158385696769, '部门添加', 'department', 1952561423342309377, '/employeeManagement/department', '', '2025-08-05 10:47:50', '2025-08-05 10:49:01', 0, 2, 2);
+INSERT INTO `hg_permission` VALUES (1952562778312216578, '部门删除', 'department', 1952561423342309377, '/employeeManagement/department', '', '2025-08-05 10:50:18', '2025-08-05 10:50:18', 0, 4, 2);
+INSERT INTO `hg_permission` VALUES (1952658215757062146, '角色管理', 'role', 1952561113785896961, '/employeeManagement/role', '', '2025-08-05 17:09:32', '2025-08-05 17:09:46', 0, 1, 1);
+INSERT INTO `hg_permission` VALUES (1952658439359602690, '员工管理页面', 'employee', 1952561113785896961, '/employeeManagement/employee', '', '2025-08-05 17:10:25', '2025-08-05 17:10:39', 0, 1, 1);
+INSERT INTO `hg_permission` VALUES (1952658612836016129, '权限管理', 'permission', 1952561113785896961, '/employeeManagement/permission', '', '2025-08-05 17:11:07', '2025-08-05 17:11:35', 0, 1, 1);
 
 -- ----------------------------
 -- Table structure for hg_product
@@ -502,45 +512,45 @@ CREATE TABLE `hg_role`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `role_name`(`name` ASC) USING BTREE,
   UNIQUE INDEX `role_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1952580037491453954 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of hg_role
 -- ----------------------------
-INSERT INTO `hg_role` VALUES (1, '系统管理员', 'sys_admin', '拥有系统所有权限', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
-INSERT INTO `hg_role` VALUES (2, '仓库管理员', 'warehouse_admin', '负责仓库管理和库存操作', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
-INSERT INTO `hg_role` VALUES (3, '库存人员', 'inventory_staff', '负责库存盘点和调整', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
-INSERT INTO `hg_role` VALUES (4, '库存经理', 'inventory_manager', '负责库存报表和决策', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
-INSERT INTO `hg_role` VALUES (5, '销售人员', 'sales_staff', '负责销售订单和客户维护', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
-INSERT INTO `hg_role` VALUES (6, '销售经理', 'sales_manager', '负责销售团队管理和报表', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
-INSERT INTO `hg_role` VALUES (7, '财务人员', 'finance_staff', '负责财务管理和报表', 1, '2025-07-17 17:30:15', '2025-07-17 17:30:15', NULL);
+INSERT INTO `hg_role` VALUES (1, '系统管理员', 'sys_admin', '拥有系统所有权限', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:28', 0);
+INSERT INTO `hg_role` VALUES (2, '仓库管理员', 'warehouse_admin', '负责仓库管理和库存操作', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:28', 0);
+INSERT INTO `hg_role` VALUES (3, '库存人员', 'inventory_staff', '负责库存盘点和调整', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:28', 0);
+INSERT INTO `hg_role` VALUES (4, '库存经理', 'inventory_manager', '负责库存报表和决策', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:28', 0);
+INSERT INTO `hg_role` VALUES (5, '销售人员', 'sales_staff', '负责销售订单和客户维护', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:28', 0);
+INSERT INTO `hg_role` VALUES (6, '销售经理', 'sales_manager', '负责销售团队管理和报表', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:29', 0);
+INSERT INTO `hg_role` VALUES (7, '财务人员', 'finance_staff', '负责财务管理和报表', 1, '2025-07-17 17:30:15', '2025-08-04 17:33:29', 0);
+INSERT INTO `hg_role` VALUES (1952303554671882242, '超级管理员', 'admin', '超级管理员拥有最大权限', 1, '2025-08-04 17:40:14', '2025-08-05 14:34:33', 0);
+INSERT INTO `hg_role` VALUES (1952580037491453953, '测试角色', 'test', '', 1, '2025-08-05 11:58:53', '2025-08-05 17:13:18', 0);
 
 -- ----------------------------
 -- Table structure for hg_role_permission
 -- ----------------------------
 DROP TABLE IF EXISTS `hg_role_permission`;
 CREATE TABLE `hg_role_permission`  (
+  `id` bigint NOT NULL,
   `role_id` bigint NOT NULL COMMENT '角色ID',
   `permission_id` bigint NOT NULL COMMENT '权限ID',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
-  `id` bigint NOT NULL,
-  PRIMARY KEY (`role_id`, `permission_id`) USING BTREE,
-  INDEX `permission_id`(`permission_id` ASC) USING BTREE
+  `update_time` datetime NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色权限关联表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of hg_role_permission
 -- ----------------------------
-INSERT INTO `hg_role_permission` VALUES (1, 1, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 2, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 3, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 4, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 5, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 6, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 7, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 8, '2025-07-17 17:30:50', NULL, 0);
-INSERT INTO `hg_role_permission` VALUES (1, 9, '2025-07-17 17:30:50', NULL, 0);
+INSERT INTO `hg_role_permission` VALUES (1952659164466683906, 1952580037491453953, 1952561423342309377, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
+INSERT INTO `hg_role_permission` VALUES (1952659164466683907, 1952580037491453953, 1952562778312216578, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
+INSERT INTO `hg_role_permission` VALUES (1952659164537987074, 1952580037491453953, 1952561113785896961, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
+INSERT INTO `hg_role_permission` VALUES (1952659164537987075, 1952580037491453953, 1952562158385696769, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
+INSERT INTO `hg_role_permission` VALUES (1952659164537987076, 1952580037491453953, 1952658215757062146, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
+INSERT INTO `hg_role_permission` VALUES (1952659164537987077, 1952580037491453953, 1952658439359602690, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
+INSERT INTO `hg_role_permission` VALUES (1952659164537987078, 1952580037491453953, 1952658612836016129, '2025-08-05 17:13:18', 0, '2025-08-05 17:13:18');
 
 -- ----------------------------
 -- Table structure for hg_sales_order
