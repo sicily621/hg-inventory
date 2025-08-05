@@ -15,17 +15,6 @@
             <el-form-item prop="code" label="编码">
               <el-input v-model="searchData.code" placeholder="请输入" />
             </el-form-item>
-            <el-form-item prop="categoryId" label="商品分类">
-              <el-tree-select
-                class="w-40"
-                v-model="searchData.categoryId"
-                placeholder="请选择部门"
-                :data="categoryOptions"
-                check-strictly
-                :render-after-expand="false"
-                :props="selectProps"
-              />
-            </el-form-item>
           </el-form>
           <el-button type="primary" @click="create">新增</el-button>
         </div>
@@ -42,16 +31,8 @@
             :indexMethod="indexMethod(currentPage, pageSize)"
             class="h-full"
           >
-            <template #categoryId="scope">
-              {{ getName(scope.scope.row.categoryId, categoryMap) }}
-            </template>
-            <template #purchasePrice="scope">
-              <el-tag type="primary"
-                >￥{{ scope.scope.row.purchasePrice }}</el-tag
-              >
-            </template>
-            <template #retailPrice="scope">
-              <el-tag type="danger">￥{{ scope.scope.row.retailPrice }}</el-tag>
+            <template #area="scope">
+              <el-tag type="primary">{{ scope.scope.row.area }} ㎡</el-tag>
             </template>
             <template #operate="scope">
               <div class="flex">
@@ -101,15 +82,15 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
-  queryProductConditions,
-  deleteProduct,
-  findProductPage,
-  Product,
-} from "../api/product";
-import { Category, getCategoryList } from "../api/category";
+  queryWarehouseConditions,
+  deleteWarehouse,
+  findWarehousePage,
+  Warehouse,
+} from "../api/warehouse";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
+import { ElMessage } from "element-plus";
 
 const createRef = ref();
 const selectProps = { value: "id", label: "name" };
@@ -120,13 +101,8 @@ const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "name", label: "名称" },
   { prop: "code", label: "编码" },
-  { prop: "categoryId", label: "商品分类" },
-  { prop: "purchasePrice", label: "采购价" },
-  { prop: "retailPrice", label: "零售价" },
-  { prop: "specification", label: "规格" },
-  { prop: "unit", label: "单位" },
-  { prop: "brand", label: "品牌" },
-  { prop: "barcode", label: "条形码" },
+  { prop: "area", label: "面积" },
+  { prop: "managerId", label: "负责人" },
   { prop: "operate", label: "操作", width: 100 },
 ]);
 
@@ -138,19 +114,18 @@ const pageChange = (page: any) => {
   currentPage.value = page - 1;
   refreshTable();
 };
-const currentData = ref<Product | null>(null);
-const edit = (row: Product) => {
+const currentData = ref<Warehouse | null>(null);
+const edit = (row: Warehouse) => {
   currentData.value = row;
   processFlag.value = 1;
 };
 
-const tableData = ref<Product[]>([]);
+const tableData = ref<Warehouse[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 
-const searchData = reactive<queryProductConditions>({
+const searchData = reactive<queryWarehouseConditions>({
   code: "",
-  categoryId: 0,
   name: "",
 });
 
@@ -163,14 +138,13 @@ watchDebounced(
 );
 function refreshTable() {
   loading.value = true;
-  const params: PaginatedRequest<queryProductConditions> = {
+  const params: PaginatedRequest<queryWarehouseConditions> = {
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   };
   if (searchData.code.length) params.code = searchData.code;
   if (searchData.name.length) params.name = searchData.name;
-  if (searchData.categoryId) params.categoryId = searchData.categoryId;
-  findProductPage(params)
+  findWarehousePage(params)
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
@@ -198,55 +172,15 @@ const back = () => {
   refreshTable();
 };
 const remove = async (id: string) => {
-  await deleteProduct(id);
+  await deleteWarehouse(id);
   ElMessage({
     type: "success",
     message: "删除成功",
   });
   refreshTable();
 };
-function buildCategoryTree(categorys: Category[]) {
-  const map = new Map();
-  categoryMap.value.clear();
-  // 第一步：创建所有部门的映射并初始化children
-  categorys.forEach((dept: Category) => {
-    categoryMap.value.set(dept.id, dept.name);
-    map.set(dept.id, {
-      ...dept,
-      children: [],
-    });
-  });
-  // 第二步：建立所有层级的父子关系
-  categorys.forEach((dept: Category) => {
-    const current = map.get(dept.id);
-    if (dept.parentId !== 0) {
-      const parent = map.get(dept.parentId);
-      if (parent) {
-        parent.children.push(current);
-      }
-    }
-  });
 
-  // 第三步：收集顶级部门
-  return categorys
-    .filter((dept: Category) => dept.parentId === 0)
-    .map((dept: Category) => map.get(dept.id));
-}
-const categoryMap = ref(new Map());
-const queryCategoryOptions = async () => {
-  const res = await getCategoryList();
-  if ((res as any)?.data?.length) {
-    categoryOptions.value = buildCategoryTree((res as any)?.data || []);
-    const all = { id: 0, name: "全部", children: [] };
-    categoryOptions.value.unshift(all);
-  }
-};
-
-const getName = (id: string, mapData: Map<string, string>) => {
-  return mapData.get(id) ?? "无";
-};
-onMounted(async () => {
-  await queryCategoryOptions();
+onMounted(() => {
   refreshTable();
 });
 </script>

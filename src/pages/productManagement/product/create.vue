@@ -38,9 +38,9 @@
           </el-form-item>
           <el-form-item label="采购价" prop="purchasePrice">
             <el-input
-              v-model="form.purchasePrice"
+              v-model.number="form.purchasePrice"
               class="flex-1"
-              placeholder="请输入密码"
+              placeholder="请输入采购价"
               maxlength="32"
               required
             >
@@ -48,7 +48,7 @@
           </el-form-item>
           <el-form-item label="零售价" prop="retailPrice">
             <el-input
-              v-model="form.retailPrice"
+              v-model.number="form.retailPrice"
               class="flex-1"
               placeholder="请输入零售价"
               maxlength="32"
@@ -127,7 +127,7 @@ const selectProps = { value: "id", label: "name" };
 const form = ref<Product>({
   code: "",
   name: "",
-  categoryId: 0,
+  categoryId: "",
   purchasePrice: 0,
   retailPrice: 0,
   specification: "",

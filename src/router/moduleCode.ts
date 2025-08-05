@@ -6,4 +6,7 @@ export enum ModuleCode {
   Permission = "permission",
   ProductManagement = "ProductManagement",
   Category = "category",
+  Product = "product",
+  WarehouseManagement = "warehouseManagement",
+  Warehouse = "warehouse",
 }

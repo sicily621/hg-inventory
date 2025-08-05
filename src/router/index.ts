@@ -249,7 +249,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/productManagement/category",
     meta: {
       title: "商品管理",
-      elIcon: "User",
+      elIcon: "Goods",
       moduleCode: ModuleCode.ProductManagement,
     },
     children: [
@@ -260,6 +260,37 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "商品分类",
           moduleCode: ModuleCode.Category,
+        },
+      },
+      {
+        path: "product",
+        component: () => import("@/pages/productManagement/product/list.vue"),
+        name: "product",
+        meta: {
+          title: "商品管理",
+          moduleCode: ModuleCode.Product,
+        },
+      },
+    ],
+  },
+  {
+    path: "/warehouseManagement",
+    component: Layouts,
+    redirect: "/warehouseManagement/warehouse",
+    meta: {
+      title: "仓库管理",
+      elIcon: "Goods",
+      moduleCode: ModuleCode.WarehouseManagement,
+    },
+    children: [
+      {
+        path: "warehouse",
+        component: () =>
+          import("@/pages/warehouseManagement/warehouse/list.vue"),
+        name: "warehouse",
+        meta: {
+          title: "仓库管理",
+          moduleCode: ModuleCode.Warehouse,
         },
       },
     ],

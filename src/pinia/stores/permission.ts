@@ -21,7 +21,7 @@ export const usePermissionStore = defineStore("permission", () => {
   // 有访问权限的动态路由
   const addRoutes = ref<RouteRecordRaw[]>([]);
 
-  function hasPermission(roles: string[], route: RouteRecordRaw) {
+  function hasPermission(route: RouteRecordRaw) {
     // const routeRoles = route.meta?.roles;
     // return routeRoles ? roles.some((role) => routeRoles.includes(role)) : true;
     const userInfo = getUserInfo() ? JSON.parse(getUserInfo() || "") : null;
@@ -36,13 +36,13 @@ export const usePermissionStore = defineStore("permission", () => {
     }
   }
 
-  function filterDynamicRoutes(routes: RouteRecordRaw[], roles: string[]) {
+  function filterDynamicRoutes(routes: RouteRecordRaw[]) {
     const res: RouteRecordRaw[] = [];
     routes.forEach((route) => {
       const tempRoute = { ...route };
-      if (hasPermission(roles, tempRoute)) {
+      if (hasPermission(tempRoute)) {
         if (tempRoute.children) {
-          tempRoute.children = filterDynamicRoutes(tempRoute.children, roles);
+          tempRoute.children = filterDynamicRoutes(tempRoute.children);
         }
         res.push(tempRoute);
       }
@@ -51,8 +51,8 @@ export const usePermissionStore = defineStore("permission", () => {
   }
 
   // 根据角色生成可访问的 Routes（可访问的路由 = 常驻路由 + 有访问权限的动态路由）
-  const setRoutes = (roles: string[]) => {
-    const accessedRoutes = filterDynamicRoutes(dynamicRoutes, roles);
+  const setRoutes = () => {
+    const accessedRoutes = filterDynamicRoutes(dynamicRoutes);
     set(accessedRoutes);
   };
 

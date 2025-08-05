@@ -8,7 +8,7 @@ import { useUserStore } from "@/pinia/stores/user";
 import { usePermissionStore } from "@/pinia/stores/permission";
 import { getRolePermissionRelationsByRoleId } from "@/pages/employeeManagement/api/rolePermissionRelations";
 import { getPermissionListByIds } from "@/pages/employeeManagement/api/permission";
-import { getCaptchaApi, loginApi } from "./apis";
+import { loginApi } from "./apis";
 import Owl from "./components/Owl.vue";
 import { useFocus } from "./composables/useFocus";
 import md5 from "js-md5";
@@ -24,7 +24,7 @@ const permissionStore = usePermissionStore();
 const { isFocus, handleBlur, handleFocus } = useFocus();
 
 /** 登录表单元素的引用 */
-const loginFormRef = useTemplateRef("loginFormRef");
+const loginFormRef = ref();
 
 /** 登录按钮 Loading */
 const loading = ref(false);
@@ -51,7 +51,7 @@ const loginFormRules: FormRules = {
 
 /** 登录 */
 function handleLogin() {
-  loginFormRef.value?.validate((valid) => {
+  loginFormRef.value?.validate((valid: boolean) => {
     if (!valid) {
       ElMessage.error("表单校验不通过");
       return;
@@ -64,15 +64,19 @@ function handleLogin() {
         const { id, token, departmentId, roleId, username } = data;
         userStore.setToken(token);
         userStore.setInfo({ id, departmentId, roleId, username });
-        getRolePermissionRelationsByRoleId(roleId).then((res) => {
-          const permissions = (res as any).data.map(
-            (item: any) => item.permissionId,
-          );
-          getPermissionListByIds(permissions).then((res: any) => {
-            permissionStore.setPermissions(res.data);
-            router.push("/");
+        if (roleId) {
+          getRolePermissionRelationsByRoleId(roleId).then((res) => {
+            const permissions = (res as any).data.map(
+              (item: any) => item.permissionId,
+            );
+            getPermissionListByIds(permissions).then((res: any) => {
+              permissionStore.setPermissions(res.data);
+              router.push("/");
+            });
           });
-        });
+        } else {
+          router.push("/");
+        }
       })
       .catch(() => {
         createCode();
