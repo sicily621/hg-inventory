@@ -31,11 +31,11 @@
             :indexMethod="indexMethod(currentPage, pageSize)"
             class="h-full"
           >
-            <template #area="scope">
-              <el-tag type="primary">{{ scope.scope.row.area }} ㎡</el-tag>
-            </template>
-            <template #managerId="scope">
-              {{ getName(scope.scope.row.managerId, employeeMap) }}
+            <template #creditLevel="scope">
+              <el-tag
+                :type="scope.scope.row.creditLevel < 2 ? 'primary' : 'warning'"
+                >{{ getName(scope.scope.row.creditLevel) }}</el-tag
+              >
             </template>
             <template #operate="scope">
               <div class="flex">
@@ -85,28 +85,25 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
-  queryWarehouseConditions,
-  deleteWarehouse,
-  findWarehousePage,
-  Warehouse,
-} from "../api/warehouse";
+  querySupplierConditions,
+  deleteSupplier,
+  findSupplierPage,
+  Supplier,
+} from "../api/supplier";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
-import { ElMessage } from "element-plus";
-import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 
 const createRef = ref();
-const selectProps = { value: "id", label: "name" };
-const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "name", label: "名称" },
+  { prop: "name", label: "姓名" },
   { prop: "code", label: "编码" },
-  { prop: "area", label: "面积" },
-  { prop: "managerId", label: "负责人" },
+  { prop: "phone", label: "电话" },
+  { prop: "email", label: "邮箱" },
+  { prop: "address", label: "地址" },
   { prop: "operate", label: "操作", width: 100 },
 ]);
 
@@ -118,19 +115,19 @@ const pageChange = (page: any) => {
   currentPage.value = page - 1;
   refreshTable();
 };
-const currentData = ref<Warehouse | null>(null);
-const edit = (row: Warehouse) => {
+const currentData = ref<Supplier | null>(null);
+const edit = (row: Supplier) => {
   currentData.value = row;
   processFlag.value = 1;
 };
 
-const tableData = ref<Warehouse[]>([]);
+const tableData = ref<Supplier[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 
-const searchData = reactive<queryWarehouseConditions>({
-  code: "",
+const searchData = reactive<querySupplierConditions>({
   name: "",
+  code: "",
 });
 
 watchDebounced(
@@ -142,13 +139,14 @@ watchDebounced(
 );
 function refreshTable() {
   loading.value = true;
-  const params: PaginatedRequest<queryWarehouseConditions> = {
+  const params: PaginatedRequest<querySupplierConditions> = {
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   };
-  if (searchData.code.length) params.code = searchData.code;
   if (searchData.name.length) params.name = searchData.name;
-  findWarehousePage(params)
+  if (searchData.code.length) params.code = searchData.code;
+
+  findSupplierPage(params)
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
@@ -176,28 +174,26 @@ const back = () => {
   refreshTable();
 };
 const remove = async (id: string) => {
-  await deleteWarehouse(id);
+  await deleteSupplier(id);
   ElMessage({
     type: "success",
     message: "删除成功",
   });
   refreshTable();
 };
-const employeeMap = ref<Map<string, string>>(new Map());
-const queryEmployeeOptions = async () => {
-  const res = await getEmployeeList();
-  if ((res as any)?.data?.length) {
-    employeeMap.value.clear();
-    (res as any)?.data.map((item: any) => {
-      employeeMap.value.set(item.id, item.username);
-    });
-  }
-};
-const getName = (id: string, map: Map<string, string>) => {
-  return map.get(id) ?? "无";
+const creditLevelOptions = ref([
+  { id: 0, name: "全部" },
+  { id: 1, name: "一级" },
+  { id: 2, name: "二级" },
+  { id: 3, name: "三级" },
+  { id: 4, name: "四级" },
+  { id: 5, name: "五级" },
+]);
+const getName = (id: string) => {
+  const result = creditLevelOptions.value.find((item: any) => item.id === id);
+  return result ?? "无";
 };
 onMounted(async () => {
-  await queryEmployeeOptions();
   refreshTable();
 });
 </script>

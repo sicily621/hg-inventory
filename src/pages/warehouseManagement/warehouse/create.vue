@@ -45,8 +45,18 @@
               required
             >
             </el-input>
+            <span class="m-l-3">㎡</span>
           </el-form-item>
-          <el-form-item label="负责人" prop="managerId"> </el-form-item>
+          <el-form-item label="负责人" prop="managerId">
+            <el-select v-model="form.managerId" placeholder="请选择负责人">
+              <el-option
+                v-for="item in employeeOptions"
+                :key="item.id"
+                :label="item.username"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
         </div>
       </el-form>
     </el-card>
@@ -56,6 +66,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { Warehouse, createWarehouse, editWarehouse } from "../api/warehouse";
 import { ElMessage } from "element-plus";
+import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 const props = defineProps<{ data: Warehouse | null }>();
 const formRef = ref();
 //表单
@@ -63,16 +74,24 @@ const form = ref<Warehouse>({
   code: "",
   name: "",
   area: 0,
-  managerId: 0,
+  managerId: "",
 });
 //合并props
 if (props.data) {
   Object.assign(form.value, props.data);
 }
-
+const validateArea = (rule: any, value: any, callback: any) => {
+  if (value <= 0) {
+    callback(new Error("仓库面积应大于0"));
+  } else {
+    callback();
+  }
+};
 const rules = reactive({
   code: [{ required: true, message: "不能为空" }],
   name: [{ required: true, message: "不能为空" }],
+  managerId: [{ required: true, message: "不能为空" }],
+  area: [{ required: true, validator: validateArea, trigger: "blur" }],
 });
 
 const confirmSave = async (cb?: Function) => {
@@ -88,14 +107,15 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-// const queryEmployeeOptions = async () => {
-//   const res = await getCategoryList();
-//   if ((res as any)?.data?.length) {
-//     categoryOptions.value = buildCategoryTree((res as any)?.data || []);
-//   }
-// };
+const employeeOptions = ref<any[]>([]);
+const queryEmployeeOptions = async () => {
+  const res = await getEmployeeList();
+  if ((res as any)?.data?.length) {
+    employeeOptions.value = (res as any)?.data || [];
+  }
+};
 onMounted(() => {
-  //queryCategoryOptions();
+  queryEmployeeOptions();
 });
 defineExpose({ confirmSave });
 </script>

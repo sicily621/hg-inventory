@@ -11,6 +11,7 @@ export interface Shelf {
 export interface queryShelfConditions {
   code: string;
   name: string;
+  areaId: string | number;
 }
 
 export const createShelf = (data: Shelf) => Post(shelfPrefix, data);

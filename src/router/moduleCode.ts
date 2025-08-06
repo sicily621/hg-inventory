@@ -9,4 +9,10 @@ export enum ModuleCode {
   Product = "product",
   WarehouseManagement = "warehouseManagement",
   Warehouse = "warehouse",
+  Area = "area",
+  Shelf = "shelf",
+  SaleManagement = "saleManagement",
+  Customer = "customer",
+  PurchaseManagement = "purchaseManagement",
+  Supplier = "supplier",
 }

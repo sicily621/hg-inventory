@@ -293,6 +293,66 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           moduleCode: ModuleCode.Warehouse,
         },
       },
+      {
+        path: "area",
+        component: () => import("@/pages/warehouseManagement/area/list.vue"),
+        name: "area",
+        meta: {
+          title: "区域管理",
+          moduleCode: ModuleCode.Area,
+        },
+      },
+      {
+        path: "shelf",
+        component: () => import("@/pages/warehouseManagement/shelf/list.vue"),
+        name: "shelf",
+        meta: {
+          title: "货架管理",
+          moduleCode: ModuleCode.Shelf,
+        },
+      },
+    ],
+  },
+  {
+    path: "/saleManagement",
+    component: Layouts,
+    redirect: "/saleManagement/customer",
+    meta: {
+      title: "销售管理",
+      elIcon: "Goods",
+      moduleCode: ModuleCode.WarehouseManagement,
+    },
+    children: [
+      {
+        path: "customer",
+        component: () => import("@/pages/saleManagement/customer/list.vue"),
+        name: "customer",
+        meta: {
+          title: "客户管理",
+          moduleCode: ModuleCode.Customer,
+        },
+      },
+    ],
+  },
+  {
+    path: "/purchaseManagement",
+    component: Layouts,
+    redirect: "/purchaseManagement/supplier",
+    meta: {
+      title: "采购管理",
+      elIcon: "Goods",
+      moduleCode: ModuleCode.PurchaseManagement,
+    },
+    children: [
+      {
+        path: "supplier",
+        component: () => import("@/pages/purchaseManagement/supplier/list.vue"),
+        name: "supplier",
+        meta: {
+          title: "供应商管理",
+          moduleCode: ModuleCode.Supplier,
+        },
+      },
     ],
   },
   {

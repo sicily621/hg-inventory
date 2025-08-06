@@ -2,7 +2,7 @@ import { areaPrefix } from "../api";
 import { Post, Get, Put, Delete } from "@/http/axios";
 export interface Area {
   id?: string | number;
-  warehouseId: 0;
+  warehouseId: string | number;
   name: string;
   type: number;
 }
@@ -17,8 +17,8 @@ export const AreaTypeList = [
   { id: 3, name: "发货区" },
 ];
 export interface queryAreaConditions {
-  code: string;
-  name: string;
+  type: number;
+  warehouseId: string | number;
 }
 
 export const createArea = (data: Area) => Post(areaPrefix, data);

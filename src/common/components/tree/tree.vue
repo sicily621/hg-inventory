@@ -13,15 +13,27 @@
       <el-icon class="fz16 pointer m-l-10" v-if="addIconFlag" @click="treeAdd">
         <DocumentAdd />
       </el-icon>
-      <el-icon class="fz16 m-l-10 pointer" v-if="editIconFlag" @click="treeEdit">
+      <el-icon
+        class="fz16 m-l-10 pointer"
+        v-if="editIconFlag"
+        @click="treeEdit"
+      >
         <Edit />
       </el-icon>
-      <el-icon class="fz16 m-l-10 pointer" v-if="deleteIconFlag" @click="treeDelete">
+      <el-icon
+        class="fz16 m-l-10 pointer"
+        v-if="deleteIconFlag"
+        @click="treeDelete"
+      >
         <Delete />
       </el-icon>
     </div>
     <div class="zc-tree-content">
-      <el-scrollbar ref="treeScrollbar" style="width: 100%; height: 100%;padding-right: 10px;" @scroll="scrollFunc($event)">
+      <el-scrollbar
+        ref="treeScrollbar"
+        style="width: 100%; height: 100%; padding-right: 10px"
+        @scroll="scrollFunc($event)"
+      >
         <el-tree
           class="zc-tree"
           :node-key="nodeKey || 'id'"
@@ -38,23 +50,26 @@
           :filter-node-method="searchFlag ? filterNode : () => {}"
           :draggable="draggableFlag"
           :allow-drop="allowDrop"
-          :allow-drag="allowDrag"
           @node-drop="nodeDrop"
           :props="propsObj"
           :style="style"
+          highlight-current
           :expand-on-click-node="true"
           :check-strictly="checkStrictly"
         >
-        <!--  :accordion="accordion" -->
+          <!--  :accordion="accordion" -->
           <template v-if="slotFlag" #default="{ node, data }">
             <div class="custom-tree-node">
-              <div v-if="node.label.length<=numLen" class="overflow-spot">{{ node.label }}</div>
+              <div v-if="node.label.length <= numLen" class="overflow-spot">
+                {{ node.label }}
+              </div>
               <div v-else>
                 <el-tooltip
-                    class="box-item"
-                    effect="light"
-                    :content="data.label"
-                    placement="top"><span>{{ellipsis(node.label,numLen)}}</span>
+                  class="box-item"
+                  effect="light"
+                  :content="data.label"
+                  placement="top"
+                  ><span>{{ ellipsis(node.label, numLen) }}</span>
                 </el-tooltip>
               </div>
               <div class="overflow-spot">
@@ -75,13 +90,13 @@ import { Search } from "@element-plus/icons-vue";
 
 const numLen = 12; //限制字符长度
 /** * 省略多余字符，用...显示 * @param {String} value * @param {number} len */
-const ellipsis = (value: string, len: number) =>{
-  if (!value) return ''
+const ellipsis = (value: string, len: number) => {
+  if (!value) return "";
   if (value.length > len) {
-    return value.slice(0, len) + '...'
+    return value.slice(0, len) + "...";
   }
-  return value
-}
+  return value;
+};
 export interface TreeNode {
   id: number;
   label: string;
@@ -118,8 +133,16 @@ interface TreeProps {
 const props = defineProps<TreeProps>();
 
 const emits = defineEmits([
-  "changeNode", "changeFilter", "scrollPage", "checkChange", "check", "nodeDrop", "setCurrentKey",
-  "treeAdd", "treeEdit", "treeDelete"
+  "changeNode",
+  "changeFilter",
+  "scrollPage",
+  "checkChange",
+  "check",
+  "nodeDrop",
+  "setCurrentKey",
+  "treeAdd",
+  "treeEdit",
+  "treeDelete",
 ]);
 const filterText = ref("");
 const treeRef = ref(); //当前dom元素
@@ -160,7 +183,11 @@ const handleNodeClick = (data: any) => {
   emits("changeNode", data);
 };
 
-const handleCheckChange = (data: any, checked: boolean, indeterminate: boolean) => {
+const handleCheckChange = (
+  data: any,
+  checked: boolean,
+  indeterminate: boolean,
+) => {
   emits("checkChange", { data, checked, indeterminate });
 };
 
@@ -220,20 +247,26 @@ const setCheckedNodes = (arr: any[]) => treeRef.value!.setCheckedNodes(arr);
 /**
  * 根据id设置选中节点
  */
-const setCheckedKeys = (arr: Array<string | number>) => treeRef.value!.setCheckedKeys(arr);
+const setCheckedKeys = (arr: Array<string | number>) =>
+  treeRef.value!.setCheckedKeys(arr);
 
 /**
  * 根据id设置当前节点
  */
 const setCurrentKey = (id: number) => treeRef.value!.setCurrentKey(id);
 
-
-const append = (data: any, parentData: any) => treeRef.value!.append(data, parentData);
+const append = (data: any, parentData: any) =>
+  treeRef.value!.append(data, parentData);
 
 /**
  * 拖拽成功事件
  */
-const nodeDrop = (draggingNode: Node, dropNode: Node, dropType: NodeDropType, ev: any) => {
+const nodeDrop = (
+  draggingNode: Node,
+  dropNode: Node,
+  dropType: NodeDropType,
+  ev: any,
+) => {
   emits("nodeDrop", {
     draggingNode,
     dropNode,
@@ -267,11 +300,11 @@ defineExpose({
   setCheckedKeys,
   setCurrentKey,
   remove,
-  append
+  append,
 });
 </script>
 <style scoped lang="scss">
-@use "@static/css/common/size.scss" as *;
+@use "@@/assets/styles/size.scss" as *;
 .zc-tree-con {
   width: 100%;
   height: 100%;
