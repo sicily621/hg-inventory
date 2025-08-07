@@ -120,6 +120,7 @@
 import { ref, reactive, onMounted } from "vue";
 import { Product, createProduct, editProduct } from "../api/product";
 import { Category, getCategoryList } from "../api/category";
+import { ElMessage } from "element-plus";
 const props = defineProps<{ data: Product | null }>();
 const formRef = ref();
 const selectProps = { value: "id", label: "name" };

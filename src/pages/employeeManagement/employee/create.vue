@@ -157,6 +157,7 @@ import { Department, getDepartmentList } from "../api/department";
 import { getRoleList } from "../api/role";
 import type { UploadProps } from "element-plus";
 import md5 from "js-md5";
+import { ElMessage } from "element-plus";
 const props = defineProps<{ data: Employee | null }>();
 const formRef = ref();
 const defaultPwd = "Admin@123456";

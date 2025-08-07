@@ -92,6 +92,7 @@ import {
   createDepartment,
   editDepartment,
 } from "../api/department";
+import { ElMessage } from "element-plus";
 const dialogFormVisible = ref(false);
 const form = reactive({
   name: "",

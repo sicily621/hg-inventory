@@ -86,6 +86,7 @@
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
 import { Supplier, createSupplier, editSupplier } from "../api/supplier";
+import { ElMessage } from "element-plus";
 const props = defineProps<{ data: Supplier | null }>();
 const formRef = ref();
 //表单

@@ -90,6 +90,7 @@
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
 import { Customer, createCustomer, editCustomer } from "../api/customer";
+import { ElMessage } from "element-plus";
 const props = defineProps<{ data: Customer | null }>();
 const formRef = ref();
 //表单

@@ -77,7 +77,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { Role, createRole, editRole } from "../api/role";
 import {
   RolePermissionRelations,
@@ -86,6 +86,7 @@ import {
   deleteRolePermissionRelations,
 } from "../api/rolePermissionRelations";
 import { Permission, getPermissionList } from "../api/permission";
+import { ElMessage } from "element-plus";
 const props = defineProps<{ data: Role | null }>();
 const formRef = ref();
 const selectProps = { value: "id", label: "name" };

@@ -103,6 +103,7 @@ import {
   PermissionActionList,
   PermissionTypeList,
 } from "../api/permission";
+import { ElMessage } from "element-plus";
 const props = defineProps<{ data: Permission | null }>();
 const formRef = ref();
 const selectProps = { value: "id", label: "name" };
