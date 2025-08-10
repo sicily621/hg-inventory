@@ -353,6 +353,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           moduleCode: ModuleCode.Supplier,
         },
       },
+      {
+        path: "demand",
+        component: () => import("@/pages/purchaseManagement/demand/list.vue"),
+        name: "demand",
+        meta: {
+          title: "采购需求",
+          moduleCode: ModuleCode.Demand,
+        },
+      },
     ],
   },
   {

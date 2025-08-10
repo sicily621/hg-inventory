@@ -9,11 +9,60 @@
             :inline="true"
             :model="searchData"
           >
-            <el-form-item prop="name" label="名称">
-              <el-input v-model="searchData.name" placeholder="请输入" />
+            <el-form-item prop="departmentId" label="部门">
+              <el-tree-select
+                class="w-40"
+                v-model="searchData.departmentId"
+                placeholder="请选择部门"
+                :data="departmentOptions"
+                check-strictly
+                :render-after-expand="false"
+                :props="selectProps"
+                @change="changeDept"
+              />
             </el-form-item>
-            <el-form-item prop="code" label="编码">
-              <el-input v-model="searchData.code" placeholder="请输入" />
+            <el-form-item prop="applicantId" label="申请人">
+              <el-select
+                v-model="searchData.applicantId"
+                placeholder="请选择申请人"
+                @change="refreshTable()"
+                class="w-40"
+              >
+                <el-option
+                  v-for="item in employeeOptions"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item prop="status" label="状态">
+              <el-select
+                v-model="searchData.status"
+                placeholder="请选择状态"
+                @change="refreshTable()"
+                class="w-40"
+              >
+                <el-option
+                  v-for="item in DemandStatusList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="时间范围">
+              <el-date-picker
+                v-model="time"
+                class="width-100"
+                type="daterange"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                format="YYYY/MM/DD"
+                value-format="YYYY-MM-DD"
+                @change="refreshTable"
+                :disabled-date="isAfter"
+              />
             </el-form-item>
           </el-form>
           <el-button type="primary" @click="create">新增</el-button>
@@ -31,14 +80,26 @@
             :indexMethod="indexMethod(currentPage, pageSize)"
             class="h-full"
           >
-            <template #creditLevel="scope">
-              <el-tag
-                :type="scope.scope.row.creditLevel < 2 ? 'primary' : 'warning'"
-                >{{ getName(scope.scope.row.creditLevel) }}</el-tag
-              >
+            <template #departmentId="scope">
+              {{ getName(scope.scope.row.departmentId, departmentMap) }}
+            </template>
+            <template #applicantId="scope">
+              {{ getName(scope.scope.row.applicantId, employeeMap) }}
+            </template>
+            <template #status="scope">
+              <el-tag>
+                {{ getStatus(scope.scope.row.status, DemandStatusList) }}
+              </el-tag>
             </template>
             <template #operate="scope">
               <div class="flex">
+                <el-icon
+                  v-if="enableApprove"
+                  title="审批"
+                  class="fz16 pointer m-r-5 cursor-pointer"
+                  text
+                  ><DocumentChecked
+                /></el-icon>
                 <el-icon
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
@@ -90,20 +151,40 @@ import {
   findDemandPage,
   Demand,
   DemandStatus,
+  DemandStatusList,
 } from "../api/demand";
+import { deleteDemandDetail } from "../api/demandDetail";
+import {
+  Department,
+  getDepartmentList,
+} from "@/pages/employeeManagement/api/department";
+import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
-import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
-
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+import { ModuleCode } from "@/router/moduleCode";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.Demand,
+  PermissionAction.Approve,
+);
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
+const selectProps = { value: "id", label: "name" };
+const departmentOptions = ref([{ name: "全部", id: 0 }]);
+const employeeOptions = ref([{ name: "全部", id: 0 }]);
+const time = ref("");
+const isAfter = (date: Date) => {
+  return date.getTime() - Date.now() >= 0;
+};
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "departmentId", label: "部门" },
   { prop: "applicantId", label: "申请人" },
-  { prop: "applyDate", label: "申请日期" },
+  { prop: "createTime", label: "申请日期" },
   { prop: "expectedArrivalDate", label: "期望到货日期" },
   { prop: "description", label: "描述" },
   { prop: "status", label: "状态" },
@@ -131,27 +212,27 @@ const tableData = ref<Demand[]>([]);
 const searchFormRef = ref("searchFormRef");
 
 const searchData = reactive<queryDemandConditions>({
-  departmentId: "",
-  applyDate: 0,
-  status: DemandStatus.Pending,
+  departmentId: 0,
+  applicantId: 0,
+  startTime: "",
+  endTime: "",
+  status: 0,
 });
 
-watchDebounced(
-  searchData,
-  () => {
-    refreshTable();
-  },
-  { debounce: 500, maxWait: 1000 },
-);
 function refreshTable() {
   loading.value = true;
   const params: PaginatedRequest<queryDemandConditions> = {
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   };
-  if (searchData.name.length) params.name = searchData.name;
-  if (searchData.code.length) params.code = searchData.code;
-
+  if (searchData.departmentId) params.departmentId = searchData.departmentId;
+  if (searchData.applicantId) params.applicantId = searchData.applicantId;
+  if (searchData.status) params.status = searchData.status;
+  if (time.value?.[0] && time.value?.[1]) {
+    params.startTime = `${time.value?.[0]} 00:00:00`;
+    params.endTime = `${time.value?.[1]} 23:59:59`;
+  }
+  console.log(time.value);
   findDemandPage(params)
     .then((res: any) => {
       const { total, list } = res.data;
@@ -180,6 +261,7 @@ const back = () => {
   refreshTable();
 };
 const remove = async (id: string) => {
+  await deleteDemandDetail(id);
   await deleteDemand(id);
   ElMessage({
     type: "success",
@@ -187,19 +269,77 @@ const remove = async (id: string) => {
   });
   refreshTable();
 };
-const creditLevelOptions = ref([
-  { id: 0, name: "全部" },
-  { id: 1, name: "一级" },
-  { id: 2, name: "二级" },
-  { id: 3, name: "三级" },
-  { id: 4, name: "四级" },
-  { id: 5, name: "五级" },
-]);
-const getName = (id: string) => {
-  const result = creditLevelOptions.value.find((item: any) => item.id === id);
-  return result ?? "无";
+const getName = (id: string, mapData: Map<string, string>) => {
+  return mapData.get(id) ?? "无";
+};
+const getStatus = (id: string, list: any[]) => {
+  return list.find((item) => item.id === id)?.name ?? "无";
+};
+function buildDepartmentTree(departments: Department[]) {
+  const map = new Map();
+
+  // 第一步：创建所有部门的映射并初始化children
+  departments.forEach((dept: Department) => {
+    map.set(dept.id, {
+      ...dept,
+      children: [],
+    });
+  });
+
+  // 第二步：建立所有层级的父子关系
+  departments.forEach((dept: Department) => {
+    const current = map.get(dept.id);
+    if (dept.parentId !== 0) {
+      const parent = map.get(dept.parentId);
+      if (parent) {
+        parent.children.push(current);
+      }
+    }
+  });
+
+  // 第三步：收集顶级部门
+  return departments
+    .filter((dept: Department) => dept.parentId === 0)
+    .map((dept: Department) => map.get(dept.id));
+}
+const departmentMap = ref(new Map());
+const queryDepartmentOptions = async () => {
+  const res = await getDepartmentList();
+  if ((res as any)?.data?.length) {
+    departmentOptions.value = buildDepartmentTree((res as any)?.data || []);
+    const all = { id: 0, name: "全部", children: [] };
+    departmentOptions.value.unshift(all);
+    departmentMap.value.clear();
+    (res as any)?.data.map((item: any) => {
+      departmentMap.value.set(item.id, item.name);
+    });
+  }
+};
+const changeDept = async () => {
+  await queryEmployeeOptions();
+  refreshTable();
+};
+const employeeMap = ref(new Map());
+const queryEmployeeOptions = async () => {
+  const params: any = {};
+  if (searchData.departmentId) params.departmentId = searchData.departmentId;
+  const res = await getEmployeeList(params);
+  employeeMap.value.clear();
+  employeeOptions.value = [];
+  if ((res as any)?.data?.length) {
+    (res as any)?.data.map((item: any) => {
+      const { id, username: name } = item;
+      employeeMap.value.set(id, name);
+      employeeOptions.value.push({ id, name });
+    });
+  }
+  const all = { id: 0, name: "全部" };
+  employeeOptions.value.unshift(all);
+  searchData.applicantId = 0;
 };
 onMounted(async () => {
+  await queryDepartmentOptions();
+  await queryEmployeeOptions();
   refreshTable();
 });
 </script>

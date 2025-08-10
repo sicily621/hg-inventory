@@ -53,7 +53,11 @@ export const useUserStore = defineStore("user", () => {
   };
 
   // 获取用户详情
-  const getInfo = async () => {
+  const getInfo = () => {
+    return userInfo.value;
+  };
+
+  const getRole = async () => {
     let res;
     if (userInfo.value?.roleId) {
       res = await getRoleListByIds(userInfo.value.roleId);
@@ -105,6 +109,7 @@ export const useUserStore = defineStore("user", () => {
     setToken,
     setInfo,
     getInfo,
+    getRole,
     changeRoles,
     logout,
     resetToken,

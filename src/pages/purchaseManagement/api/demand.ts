@@ -5,7 +5,6 @@ export interface Demand {
   id?: string | number;
   departmentId: string | number;
   applicantId: string | number;
-  applyDate: number;
   expectedArrivalDate: number;
   description: string;
   status: DemandStatus;
@@ -21,6 +20,7 @@ export enum DemandStatus {
 }
 
 export const DemandStatusList = [
+  { id: 0, name: "全部" },
   { id: 1, name: "待审批" },
   { id: 2, name: "审批中" },
   { id: 3, name: "已通过" },
@@ -28,8 +28,10 @@ export const DemandStatusList = [
 ];
 export interface queryDemandConditions {
   departmentId: string | number;
-  applyDate: number;
-  status: DemandStatus;
+  applicantId: string | number;
+  startTime: string;
+  endTime: string;
+  status: DemandStatus | 0;
 }
 export const createDemand = (data: Demand) => Post(demandPrefix, data);
 export const editDemand = (data: Demand) => Put(demandPrefix, data);

@@ -3,7 +3,10 @@ import { pinia } from "@/pinia";
 import { constantRoutes, dynamicRoutes } from "@/router";
 import { routerConfig } from "@/router/config";
 import { flatMultiLevelRoutes } from "@/router/helper";
-import { Permission } from "@/pages/employeeManagement/api/permission";
+import {
+  Permission,
+  PermissionAction,
+} from "@/pages/employeeManagement/api/permission";
 import {
   setPermission,
   getPermission,
@@ -21,9 +24,7 @@ export const usePermissionStore = defineStore("permission", () => {
   // 有访问权限的动态路由
   const addRoutes = ref<RouteRecordRaw[]>([]);
 
-  function hasPermission(route: RouteRecordRaw) {
-    // const routeRoles = route.meta?.roles;
-    // return routeRoles ? roles.some((role) => routeRoles.includes(role)) : true;
+  function hasPermissionMenu(route: RouteRecordRaw) {
     const userInfo = getUserInfo() ? JSON.parse(getUserInfo() || "") : null;
     if (userInfo.username === "admin") {
       return true;
@@ -35,12 +36,18 @@ export const usePermissionStore = defineStore("permission", () => {
       return includes ? true : false;
     }
   }
+  const hasPermission = (moduleCode: string, action: PermissionAction) => {
+    const includes = permissions.value.find(
+      (data: any) => data.moduleCode === moduleCode && data.action === action,
+    );
+    return includes ? true : false;
+  };
 
   function filterDynamicRoutes(routes: RouteRecordRaw[]) {
     const res: RouteRecordRaw[] = [];
     routes.forEach((route) => {
       const tempRoute = { ...route };
-      if (hasPermission(tempRoute)) {
+      if (hasPermissionMenu(tempRoute)) {
         if (tempRoute.children) {
           tempRoute.children = filterDynamicRoutes(tempRoute.children);
         }
@@ -83,6 +90,7 @@ export const usePermissionStore = defineStore("permission", () => {
     setAllRoutes,
     setPermissions,
     getPermissions,
+    hasPermission,
   };
 });
 

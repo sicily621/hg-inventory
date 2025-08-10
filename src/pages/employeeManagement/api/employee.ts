@@ -30,4 +30,5 @@ export const deleteEmployee = (id: string | number) =>
   Delete(employeePrefix + `/${id}`);
 export const findEmployeePage = (data: any) =>
   Get(employeePrefix + "/page", data);
-export const getEmployeeList = () => Get(`${employeePrefix}/list`, null);
+export const getEmployeeList = (data: any) =>
+  Get(`${employeePrefix}/list`, data);
