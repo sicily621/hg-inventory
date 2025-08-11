@@ -36,20 +36,6 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item label="供应商" prop="supplierId">
-              <el-select
-                v-model="searchData.supplierId"
-                placeholder="请选择供应商"
-                class="w-40"
-              >
-                <el-option
-                  v-for="item in supplierOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="searchData.status"
@@ -58,7 +44,7 @@
                 class="w-40"
               >
                 <el-option
-                  v-for="item in OrderStatusListWithAll"
+                  v-for="item in ReturnStatusListWithAll"
                   :key="item.id"
                   :label="item.name"
                   :value="item.id"
@@ -79,7 +65,6 @@
               />
             </el-form-item>
           </el-form>
-          <!-- <el-button type="primary" @click="create">新增</el-button> -->
         </div>
       </el-card>
       <div
@@ -103,18 +88,18 @@
             <template #status="scope">
               <el-tag
                 type="warning"
-                v-if="scope.scope.row.status === OrderStatus.Rejected"
+                v-if="scope.scope.row.status === ReturnStatus.Rejected"
               >
-                {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
               </el-tag>
               <el-tag
                 type="success"
-                v-else-if="scope.scope.row.status === OrderStatus.Approved"
+                v-else-if="scope.scope.row.status === ReturnStatus.Approved"
               >
-                {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
               </el-tag>
               <el-tag v-else>
-                {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
               </el-tag>
             </template>
             <template #totalAmount="scope">
@@ -126,26 +111,11 @@
             <template #operate="scope">
               <div class="flex">
                 <el-icon
-                  v-if="scope.scope.row.status !== OrderStatus.Returned"
-                  @click="toReturn(scope.scope.row)"
-                  class="fz16 pointer m-r-5 cursor-pointer"
-                  text
-                  title="退单"
-                  ><DocumentDelete
-                /></el-icon>
-                <el-icon
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
                   @click="edit(scope.scope.row)"
                 >
                   <Edit />
-                </el-icon>
-                <el-icon
-                  class="fz16 cursor-pointer"
-                  text
-                  @click="remove(scope.scope.row.id)"
-                >
-                  <Delete />
                 </el-icon>
               </div>
             </template>
@@ -169,12 +139,6 @@
         :data="currentData"
         v-if="currentData && processFlag === 1"
       ></Detail>
-      <Return
-        class="create-wrap"
-        ref="returnRef"
-        :data="currentData"
-        v-if="currentData && processFlag === 2"
-      ></Return>
       <el-card class="footer flex flex-justify-end flex-items-center">
         <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
@@ -191,14 +155,14 @@ import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import { getSupplierList } from "../api/supplier";
 import {
-  queryOrderConditions,
-  deleteOrder,
-  findOrderPage,
-  Order,
-  OrderStatus,
-  OrderStatusList,
-} from "../api/order";
-import { deleteOrderDetail } from "../api/orderDetail";
+  queryReturnConditions,
+  deleteReturn,
+  findReturnPage,
+  Return,
+  ReturnStatus,
+  ReturnStatusList,
+} from "../api/return";
+import { deleteReturnDetail } from "../api/returnDetail";
 import {
   Department,
   getDepartmentList,
@@ -206,9 +170,8 @@ import {
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { indexMethod } from "@@/utils/page";
 import Detail from "./detail.vue";
-import Return from "./return.vue";
 import { ElMessage } from "element-plus";
-const OrderStatusListWithAll = [{ id: 0, name: "全部" }, ...OrderStatusList];
+const ReturnStatusListWithAll = [{ id: 0, name: "全部" }, ...ReturnStatusList];
 const createRef = ref();
 const returnRef = ref();
 const loading = ref<boolean>(false);
@@ -225,9 +188,7 @@ const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "code", label: "编码" },
   { prop: "supplierId", label: "供应商" },
-  { prop: "employeeId", label: "采购人" },
-  { prop: "expectedDate", label: "期望到货日期" },
-  { prop: "actualDate", label: "实际到货日期" },
+  { prop: "employeeId", label: "退单人" },
   { prop: "status", label: "状态" },
   { prop: "totalAmount", label: "总金额" },
   { prop: "description", label: "备注" },
@@ -244,23 +205,18 @@ const pageChange = (page: any) => {
   currentPage.value = page - 1;
   refreshTable();
 };
-const currentData = ref<Order | null>(null);
-const edit = (row: Order) => {
+const currentData = ref<Return | null>(null);
+const edit = (row: Return) => {
   currentData.value = row;
   processFlag.value = 1;
 };
-const toReturn = (row: Order) => {
-  currentData.value = row;
-  processFlag.value = 2;
-};
 
-const tableData = ref<Order[]>([]);
+const tableData = ref<Return[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 
-const searchData = reactive<queryOrderConditions>({
+const searchData = reactive<queryReturnConditions>({
   code: "",
-  supplierId: "",
   employeeId: "",
   startTime: "",
   endTime: "",
@@ -282,19 +238,18 @@ const querySupplierOptions = async () => {
 
 function refreshTable() {
   loading.value = true;
-  const params: PaginatedRequest<queryOrderConditions> = {
+  const params: PaginatedRequest<queryReturnConditions> = {
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   };
   if (searchData.code) params.code = searchData.code;
-  if (searchData.supplierId) params.supplierId = searchData.supplierId;
   if (searchData.employeeId) params.employeeId = searchData.employeeId;
   if (searchData.status) params.status = searchData.status;
   if (time.value?.[0] && time.value?.[1]) {
     params.startTime = `${time.value?.[0]} 00:00:00`;
     params.endTime = `${time.value?.[1]} 23:59:59`;
   }
-  findOrderPage(params)
+  findReturnPage(params)
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
@@ -325,8 +280,8 @@ const back = () => {
   refreshTable();
 };
 const remove = async (id: string) => {
-  await deleteOrderDetail(id);
-  await deleteOrder(id);
+  await deleteReturnDetail(id);
+  await deleteReturn(id);
   ElMessage({
     type: "success",
     message: "删除成功",

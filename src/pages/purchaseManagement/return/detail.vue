@@ -12,7 +12,6 @@
           <el-form
             ref="formRef"
             :model="form"
-            :rules="rules"
             label-position="top"
             class="flex relative"
             label-width="120px"
@@ -34,7 +33,6 @@
                   v-model="form.supplierId"
                   placeholder="请选择供应商"
                   class="w-full"
-                  disabled
                 >
                   <el-option
                     v-for="item in supplierOptions"
@@ -48,6 +46,21 @@
                 <el-tag class="fz22 p-5" type="danger"
                   >￥{{ totalAmount }}</el-tag
                 >
+              </el-form-item>
+              <el-form-item prop="status" label="状态">
+                <el-select
+                  v-model="form.status"
+                  placeholder="请选择状态"
+                  class="w-full"
+                  :disabled="disabledApprove"
+                >
+                  <el-option
+                    v-for="item in ReturnStatusList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
               </el-form-item>
               <el-form-item label="备注" prop="description"
                 ><el-input
@@ -84,15 +97,6 @@
                   getItem(scope.scope.row.productId, productMap)?.specification
                 }}
               </template>
-              <template #quantity="scope">
-                <el-input-number
-                  v-model="scope.scope.row.quantity"
-                  :min="0"
-                  :max="scope.scope.row.quantityOrder"
-                  class="flex-1"
-                  @change="changeQuantity(scope.scope.row)"
-                />
-              </template>
 
               <template #price="scope">
                 <el-tag type="primary"
@@ -119,54 +123,47 @@ import {
   Category,
   getCategoryList,
 } from "@/pages/productManagement/api/category";
-import { Order, OrderStatus, editOrder } from "../api/order";
-import { Return, ReturnStatus, createReturn } from "../api/return";
 import {
-  ReturnDetail,
-  createReturnDetail,
-  deleteReturnDetail,
-} from "../api/returnDetail";
-import { getOrderDetailList } from "../api/orderDetail";
+  Return,
+  ReturnStatus,
+  editReturn,
+  ReturnStatusList,
+} from "../api/return";
+
+import { getReturnDetailList } from "../api/returnDetail";
 import { getSupplierList } from "../api/supplier";
 import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+import { ModuleCode } from "@/router/moduleCode";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.PurchaseReturn,
+  PermissionAction.Approve,
+);
+const disabledApprove = computed(() => {
+  return !enableApprove;
+});
 const pageSize = ref(1000);
 const currentPage = ref(0);
-const props = defineProps<{ data: Order }>();
+const props = defineProps<{ data: Return }>();
 const formRef = ref();
+const userStore = useUserStore();
 const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const productOptions = ref<any[]>([]);
 
-const changeQuantity = (row: any) => {
-  const { quantity, price } = row;
-  row.amount = +quantity * +price;
-};
-const userStore = useUserStore();
 //表单
-const form = ref<Return>({
-  orderId: String(props.data.id),
-  code: "",
-  employeeId: userStore.getInfo().id,
-  supplierId: props.data.supplierId,
-  status: ReturnStatus.Pending,
-  description: "",
-  approverId: "",
-  totalAmount: 0,
-});
-const rules = reactive({
-  code: [{ required: true, message: "不能为空" }],
-  supplierId: [{ required: true, message: "不能为空" }],
-});
+const form = ref<Return>(props.data);
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "categoryId", label: "分类" },
   { prop: "productId", label: "名称" },
   { prop: "specification", label: "规格" },
   { prop: "unit", label: "计量单位" },
-  { prop: "quantityOrder", label: "订单数量" },
-  { prop: "quantity", label: "退单数量" },
+  { prop: "quantity", label: "数量" },
   { prop: "price", label: "采购价" },
   { prop: "amount", label: "金额" },
 ]);
@@ -236,32 +233,25 @@ const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
 const confirmSave = async (cb?: Function) => {
-  if (totalAmount.value == 0) {
+  if (tableData.value.length == 0) {
     ElMessage({
       type: "error",
-      message: "采购退单商品列表不能为空",
+      message: "采购订单商品列表不能为空",
     });
     return;
   }
   const valid = await formRef.value.validate();
   if (valid) {
-    const params = { ...form.value, totalAmount: totalAmount.value };
-    const res = await createReturn(params);
-    const detailList: ReturnDetail[] = tableData.value.map((item: any) => {
-      const { productId, categoryId, price, quantity, amount } = item;
-      return {
-        productId,
-        categoryId,
-        price,
-        quantity,
-        returnId: (res as any).data.id,
-        amount,
-      };
-    });
-    await deleteReturnDetail((res as any).data.id);
-    await createReturnDetail(detailList);
-    const order = { ...props.data, status: OrderStatus.Returned };
-    await editOrder(order);
+    const params = { ...form.value };
+    if (
+      enableApprove &&
+      (params.status == ReturnStatus.Approved ||
+        params.status == ReturnStatus.Rejected)
+    ) {
+      params.approverId = userStore.getInfo().id;
+      params.approvalTime = Date.now();
+    }
+    await editReturn(params);
     ElMessage({
       type: "success",
       message: "保存成功",
@@ -276,10 +266,8 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryProductOptions();
   if (props?.data?.id) {
-    const res = await getOrderDetailList((props as any).data.id);
-    tableData.value = (res as any)?.data.map((item: any) => {
-      return { ...item, quantityOrder: item.quantity };
-    });
+    const res = await getReturnDetailList((props as any).data.id);
+    tableData.value = (res as any)?.data;
   }
 });
 </script>
@@ -290,8 +278,8 @@ onMounted(async () => {
 }
 .avatar-upload {
   font-size: zrem(20);
-  border: zrem(1) solid var(--el-border-color-darker);
-  border-radius: 50%;
+  breturn: zrem(1) solid var(--el-breturn-color-darker);
+  breturn-radius: 50%;
   &,
   & img {
     width: zrem(60);

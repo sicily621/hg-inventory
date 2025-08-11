@@ -12,8 +12,8 @@ export interface Order {
   status: OrderStatus;
   totalAmount: number;
   description: string;
-  approverId: string | number;
-  approvalTime: number;
+  approverId?: string | number;
+  approvalTime?: number;
 }
 
 export enum OrderStatus {
@@ -23,6 +23,7 @@ export enum OrderStatus {
   Confirmed = 4,
   PartiallyReceived = 5,
   FullyReceived = 6,
+  Returned = 7,
 }
 
 export const OrderStatusList = [
@@ -32,6 +33,7 @@ export const OrderStatusList = [
   { id: 4, name: "供应商已确认" },
   { id: 5, name: "部分收货" },
   { id: 6, name: "全部收货" },
+  { id: 7, name: "已退单" },
 ];
 
 export interface queryOrderConditions {

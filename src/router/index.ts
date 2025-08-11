@@ -371,6 +371,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           moduleCode: ModuleCode.PurchaseOrder,
         },
       },
+      {
+        path: "return",
+        component: () => import("@/pages/purchaseManagement/return/list.vue"),
+        name: "return",
+        meta: {
+          title: "采购退单",
+          moduleCode: ModuleCode.PurchaseReturn,
+        },
+      },
     ],
   },
   {

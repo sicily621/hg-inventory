@@ -16,5 +16,6 @@ export enum ModuleCode {
   PurchaseManagement = "purchaseManagement",
   Supplier = "supplier",
   PurchaseDemand = "purchaseDemand",
-  PurchaseOrder = "purchaseorder",
+  PurchaseOrder = "purchaseOrder",
+  PurchaseReturn = "purchaseReturn",
 }

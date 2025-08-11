@@ -127,7 +127,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { getProductList } from "@/pages/productManagement/api/product";
 import {
   Category,
@@ -162,10 +162,6 @@ const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const productOptions = ref<any[]>([]);
 const isBefore = (date: Date) => {
   return date.getTime() - Date.now() <= 0;
-};
-const changeQuantity = (row: any) => {
-  const { quantity, price } = row;
-  row.amount = +quantity * +price;
 };
 //表单
 const form = ref<Order>(props.data);

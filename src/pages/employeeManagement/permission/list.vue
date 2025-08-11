@@ -74,15 +74,6 @@
             </el-table>
           </div>
         </div>
-        <div class="pager-wrapper h-12 p-r-4">
-          <pagination
-            :page-size="pageSize"
-            :current-page="currentPage + 1"
-            :total="totalItems"
-            @pageChange="pageChange($event)"
-            class="zc-page"
-          ></pagination>
-        </div>
       </div>
     </div>
     <div class="h-full w-full flex flex-col" v-if="processFlag">
@@ -241,7 +232,7 @@ onMounted(async () => {
   height: calc(100% - zrem(110));
 }
 .table-wrap {
-  height: calc(100% - zrem(45));
+  height: 100%;
 }
 
 .search-wrapper {

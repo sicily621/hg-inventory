@@ -121,19 +121,8 @@
 </template>
 <script lang="ts" setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import {
-  Demand,
-  createDemand,
-  editDemand,
-  DemandStatus,
-  DemandStatusList,
-} from "../api/demand";
-import {
-  DemandDetail,
-  createDemandDetail,
-  getDemandDetailList,
-  deleteDemandDetail,
-} from "../api/demandDetail";
+import { Demand, editDemand, DemandStatus } from "../api/demand";
+import { getDemandDetailList } from "../api/demandDetail";
 import { getProductList } from "@/pages/productManagement/api/product";
 import {
   Category,
@@ -150,17 +139,7 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
-import { usePermissionStore } from "@/pinia/stores/permission";
-import { PermissionAction } from "@/pages/employeeManagement/api/permission";
-import { ModuleCode } from "@/router/moduleCode";
-const permissionStore = usePermissionStore();
-const enableApprove = permissionStore.hasPermission(
-  ModuleCode.PurchaseDemand,
-  PermissionAction.Approve,
-);
-const disabledApprove = computed(() => {
-  return !enableApprove;
-});
+
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Demand }>();
@@ -188,7 +167,6 @@ const form = ref<Order>({
   totalAmount: 0,
   description: "",
   approverId: "",
-  approvalTime: 0,
 });
 const rules = reactive({
   code: [{ required: true, message: "不能为空" }],

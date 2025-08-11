@@ -10,8 +10,8 @@ export interface Return {
   status: ReturnStatus;
   totalAmount: number;
   description: string;
-  approverId: string | number;
-  approvalTime: number;
+  approverId?: string | number;
+  approvalTime?: number;
 }
 
 export enum ReturnStatus {
