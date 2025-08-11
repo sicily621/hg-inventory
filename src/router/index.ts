@@ -359,7 +359,16 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: "demand",
         meta: {
           title: "采购需求",
-          moduleCode: ModuleCode.Demand,
+          moduleCode: ModuleCode.PurchaseDemand,
+        },
+      },
+      {
+        path: "order",
+        component: () => import("@/pages/purchaseManagement/order/list.vue"),
+        name: "order",
+        meta: {
+          title: "采购订单",
+          moduleCode: ModuleCode.PurchaseOrder,
         },
       },
     ],

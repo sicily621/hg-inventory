@@ -6,6 +6,7 @@ import { flatMultiLevelRoutes } from "@/router/helper";
 import {
   Permission,
   PermissionAction,
+  PermissionType,
 } from "@/pages/employeeManagement/api/permission";
 import {
   setPermission,
@@ -31,14 +32,18 @@ export const usePermissionStore = defineStore("permission", () => {
     } else {
       const moduleCode = route.meta?.moduleCode;
       const includes = permissions.value.find(
-        (data: any) => data.moduleCode === moduleCode,
+        (data: any) =>
+          data.moduleCode === moduleCode && data.type === PermissionType.Menu,
       );
       return includes ? true : false;
     }
   }
   const hasPermission = (moduleCode: string, action: PermissionAction) => {
     const includes = permissions.value.find(
-      (data: any) => data.moduleCode === moduleCode && data.action === action,
+      (data: any) =>
+        data.moduleCode === moduleCode &&
+        data.action === action &&
+        data.type === PermissionType.Button,
     );
     return includes ? true : false;
   };

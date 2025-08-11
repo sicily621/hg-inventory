@@ -120,7 +120,7 @@ const getName = (value: number, list: any[]) => {
   return result?.name ?? "";
 };
 //分页
-const pageSize = ref(10);
+const pageSize = ref(1000);
 const currentPage = ref(0);
 const totalItems = ref(0);
 const pageChange = (page: any) => {

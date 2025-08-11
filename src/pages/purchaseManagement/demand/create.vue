@@ -24,6 +24,7 @@
                 placeholder="请输入需求说明"
                 maxlength="32"
                 required
+                :disabled="form.status === DemandStatus.WorkOrder"
               >
               </el-input>
             </el-form-item>
@@ -37,6 +38,7 @@
                 placeholder="请输入期望到货时间"
                 :default-time="defaultTime"
                 :disabled-date="isBefore"
+                :disabled="form.status === DemandStatus.WorkOrder"
               />
             </el-form-item>
           </div>
@@ -46,6 +48,7 @@
                 v-model="form.status"
                 placeholder="请选择状态"
                 class="flex-1"
+                :disabled="disabledApprove"
               >
                 <el-option
                   v-for="item in DemandStatusList"
@@ -137,6 +140,7 @@
                   type="primary"
                   class="m-t-2"
                   size="small"
+                  :disabled="form.status === DemandStatus.WorkOrder"
                   @click="addProduct"
                   >{{ editIndex > -1 ? "修改商品" : "添加商品" }}</el-button
                 >
@@ -167,7 +171,7 @@
                 }}
               </template>
               <template #operate="scope">
-                <div class="flex">
+                <div class="flex" v-if="form.status === DemandStatus.Pending">
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
@@ -216,7 +220,17 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
-
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+import { ModuleCode } from "@/router/moduleCode";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.PurchaseDemand,
+  PermissionAction.Approve,
+);
+const disabledApprove = computed(() => {
+  return !enableApprove || form.value.status === DemandStatus.WorkOrder;
+});
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Demand | null }>();
@@ -238,7 +252,7 @@ const form = ref<Demand>({
   description: "",
   status: DemandStatus.Pending,
   approverId: "",
-  approverTime: 0,
+  approvalTime: 0,
 });
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
@@ -370,6 +384,16 @@ const confirmSave = async (cb?: Function) => {
   if (valid) {
     const params = { ...form.value };
     const api = params.id ? editDemand : createDemand;
+
+    if (
+      params.id &&
+      enableApprove &&
+      (params.status == DemandStatus.Approved ||
+        params.status == DemandStatus.Rejected)
+    ) {
+      params.approverId = userStore.getInfo().id;
+      params.approvalTime = Date.now();
+    }
     const res = await api(params);
     const detailList = tableData.value.map((item: any) => {
       const { productId, categoryId, quantity } = item;

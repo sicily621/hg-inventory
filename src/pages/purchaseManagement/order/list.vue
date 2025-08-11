@@ -12,7 +12,7 @@
             <el-form-item prop="departmentId" label="部门">
               <el-tree-select
                 class="w-40"
-                v-model="searchData.departmentId"
+                v-model="departmentId"
                 placeholder="请选择部门"
                 :data="departmentOptions"
                 check-strictly
@@ -21,15 +21,29 @@
                 @change="changeDept"
               />
             </el-form-item>
-            <el-form-item prop="applicantId" label="申请人">
+            <el-form-item prop="employeeId" label="采购人">
               <el-select
-                v-model="searchData.applicantId"
-                placeholder="请选择申请人"
+                v-model="searchData.employeeId"
+                placeholder="请选择采购人"
                 @change="refreshTable()"
                 class="w-40"
               >
                 <el-option
                   v-for="item in employeeOptions"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="供应商" prop="supplierId">
+              <el-select
+                v-model="searchData.supplierId"
+                placeholder="请选择供应商"
+                class="w-40"
+              >
+                <el-option
+                  v-for="item in supplierOptions"
                   :key="item.id"
                   :label="item.name"
                   :value="item.id"
@@ -44,7 +58,7 @@
                 class="w-40"
               >
                 <el-option
-                  v-for="item in DemandStatusListWithAll"
+                  v-for="item in OrderStatusListWithAll"
                   :key="item.id"
                   :label="item.name"
                   :value="item.id"
@@ -65,7 +79,7 @@
               />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <!-- <el-button type="primary" @click="create">新增</el-button> -->
         </div>
       </el-card>
       <div
@@ -80,38 +94,40 @@
             :indexMethod="indexMethod(currentPage, pageSize)"
             class="h-full"
           >
-            <template #departmentId="scope">
-              {{ getName(scope.scope.row.departmentId, departmentMap) }}
+            <template #supplierId="scope">
+              {{ getName(scope.scope.row.supplierId, supplierMap) }}
             </template>
-            <template #applicantId="scope">
-              {{ getName(scope.scope.row.applicantId, employeeMap) }}
+            <template #employeeId="scope">
+              {{ getName(scope.scope.row.employeeId, employeeMap) }}
             </template>
             <template #status="scope">
               <el-tag
                 type="warning"
-                v-if="scope.scope.row.status === DemandStatus.Rejected"
+                v-if="scope.scope.row.status === OrderStatus.Rejected"
               >
-                {{ getStatus(scope.scope.row.status, DemandStatusList) }}
+                {{ getStatus(scope.scope.row.status, OrderStatusList) }}
               </el-tag>
               <el-tag
                 type="success"
-                v-else-if="scope.scope.row.status === DemandStatus.Approved"
+                v-else-if="scope.scope.row.status === OrderStatus.Approved"
               >
-                {{ getStatus(scope.scope.row.status, DemandStatusList) }}
+                {{ getStatus(scope.scope.row.status, OrderStatusList) }}
               </el-tag>
               <el-tag v-else>
-                {{ getStatus(scope.scope.row.status, DemandStatusList) }}
+                {{ getStatus(scope.scope.row.status, OrderStatusList) }}
               </el-tag>
+            </template>
+            <template #totalAmount="scope">
+              <el-tag type="danger">￥{{ scope.scope.row.totalAmount }}</el-tag>
             </template>
             <template #approverId="scope">
               {{ getName(scope.scope.row.approverId, employeeMap) }}
             </template>
-
             <template #operate="scope">
               <div class="flex">
                 <el-icon
-                  v-if="scope.scope.row.status === DemandStatus.Approved"
-                  @click="toOrder(scope.scope.row)"
+                  v-if="scope.scope.row.status !== OrderStatus.Pending"
+                  @click="toReturn(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
                   title="转订单"
@@ -122,10 +138,7 @@
                   text
                   @click="edit(scope.scope.row)"
                 >
-                  <Edit
-                    v-if="scope.scope.row.status === DemandStatus.Pending"
-                  />
-                  <View v-else />
+                  <Edit />
                 </el-icon>
                 <el-icon
                   class="fz16 cursor-pointer"
@@ -150,18 +163,18 @@
       </div>
     </div>
     <div class="h-full w-full flex flex-col" v-if="processFlag">
-      <Create
+      <Detail
         class="create-wrap"
         ref="createRef"
         :data="currentData"
-        v-if="processFlag === 1"
-      ></Create>
-      <Order
+        v-if="currentData && processFlag === 1"
+      ></Detail>
+      <Return
         class="create-wrap"
-        ref="orderRef"
+        ref="returnRef"
         :data="currentData"
         v-if="currentData && processFlag === 2"
-      ></Order>
+      ></Return>
       <el-card class="footer flex flex-justify-end flex-items-center">
         <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
@@ -176,27 +189,28 @@ import { onMounted, ref, reactive } from "vue";
 import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
+import { getSupplierList } from "../api/supplier";
 import {
-  queryDemandConditions,
-  deleteDemand,
-  findDemandPage,
-  Demand,
-  DemandStatus,
-  DemandStatusList,
-} from "../api/demand";
-import { deleteDemandDetail } from "../api/demandDetail";
+  queryOrderConditions,
+  deleteOrder,
+  findOrderPage,
+  Order,
+  OrderStatus,
+  OrderStatusList,
+} from "../api/order";
+import { deleteOrderDetail } from "../api/orderDetail";
 import {
   Department,
   getDepartmentList,
 } from "@/pages/employeeManagement/api/department";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { indexMethod } from "@@/utils/page";
-import Create from "./create.vue";
-import Order from "./order.vue";
+import Detail from "./detail.vue";
+import Return from "./return.vue";
 import { ElMessage } from "element-plus";
-const DemandStatusListWithAll = [{ id: 0, name: "全部" }, ...DemandStatusList];
+const OrderStatusListWithAll = [{ id: 0, name: "全部" }, ...OrderStatusList];
 const createRef = ref();
-const orderRef = ref();
+const returnRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
 const selectProps = { value: "id", label: "name" };
@@ -206,14 +220,17 @@ const time = ref("");
 const isAfter = (date: Date) => {
   return date.getTime() - Date.now() >= 0;
 };
+const departmentId = ref("");
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "departmentId", label: "部门" },
-  { prop: "applicantId", label: "申请人" },
-  { prop: "createTime", label: "申请日期" },
-  { prop: "expectedArrivalDate", label: "期望到货日期" },
-  { prop: "description", label: "描述" },
+  { prop: "code", label: "编码" },
+  { prop: "supplierId", label: "供应商" },
+  { prop: "employeeId", label: "采购人" },
+  { prop: "expectedDate", label: "期望到货日期" },
+  { prop: "actualDate", label: "实际到货日期" },
   { prop: "status", label: "状态" },
+  { prop: "totalAmount", label: "总金额" },
+  { prop: "description", label: "备注" },
   { prop: "approverId", label: "审批人" },
   { prop: "approvalTime", label: "审批时间" },
   { prop: "operate", label: "操作", width: 100 },
@@ -227,42 +244,57 @@ const pageChange = (page: any) => {
   currentPage.value = page - 1;
   refreshTable();
 };
-const currentData = ref<Demand | null>(null);
-const edit = (row: Demand) => {
+const currentData = ref<Order | null>(null);
+const edit = (row: Order) => {
   currentData.value = row;
   processFlag.value = 1;
 };
-const toOrder = (row: Demand) => {
+const toReturn = (row: Order) => {
   currentData.value = row;
   processFlag.value = 2;
 };
 
-const tableData = ref<Demand[]>([]);
+const tableData = ref<Order[]>([]);
 
 const searchFormRef = ref("searchFormRef");
 
-const searchData = reactive<queryDemandConditions>({
-  departmentId: 0,
-  applicantId: 0,
+const searchData = reactive<queryOrderConditions>({
+  code: "",
+  supplierId: "",
+  employeeId: "",
   startTime: "",
   endTime: "",
   status: 0,
 });
+const supplierMap = ref<Map<string, string>>(new Map());
+const supplierOptions = ref<any[]>([]);
+const querySupplierOptions = async () => {
+  const res = await getSupplierList();
+  if ((res as any)?.data?.length) {
+    supplierOptions.value = (res as any).data;
+    supplierMap.value.clear();
+    supplierOptions.value.map((item: any) => {
+      const { id, name } = item;
+      supplierMap.value.set(id, name);
+    });
+  }
+};
 
 function refreshTable() {
   loading.value = true;
-  const params: PaginatedRequest<queryDemandConditions> = {
+  const params: PaginatedRequest<queryOrderConditions> = {
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   };
-  if (searchData.departmentId) params.departmentId = searchData.departmentId;
-  if (searchData.applicantId) params.applicantId = searchData.applicantId;
+  if (searchData.code) params.code = searchData.code;
+  if (searchData.supplierId) params.supplierId = searchData.supplierId;
+  if (searchData.employeeId) params.employeeId = searchData.employeeId;
   if (searchData.status) params.status = searchData.status;
   if (time.value?.[0] && time.value?.[1]) {
     params.startTime = `${time.value?.[0]} 00:00:00`;
     params.endTime = `${time.value?.[1]} 23:59:59`;
   }
-  findDemandPage(params)
+  findOrderPage(params)
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
@@ -285,7 +317,7 @@ const save = () => {
     });
   }
   if (processFlag.value === 2) {
-    orderRef.value.confirmSave(() => {
+    returnRef.value.confirmSave(() => {
       back();
     });
   }
@@ -296,8 +328,8 @@ const back = () => {
   refreshTable();
 };
 const remove = async (id: string) => {
-  await deleteDemandDetail(id);
-  await deleteDemand(id);
+  await deleteOrderDetail(id);
+  await deleteOrder(id);
   ElMessage({
     type: "success",
     message: "删除成功",
@@ -357,7 +389,7 @@ const changeDept = async () => {
 const employeeMap = ref(new Map());
 const queryEmployeeOptions = async () => {
   const params: any = {};
-  if (searchData.departmentId) params.departmentId = searchData.departmentId;
+  if (departmentId.value) params.departmentId = departmentId.value;
   const res = await getEmployeeList(params);
   employeeMap.value.clear();
   employeeOptions.value = [];
@@ -370,9 +402,10 @@ const queryEmployeeOptions = async () => {
   }
   const all = { id: 0, name: "全部" };
   employeeOptions.value.unshift(all);
-  searchData.applicantId = 0;
+  searchData.employeeId = 0;
 };
 onMounted(async () => {
+  await querySupplierOptions();
   await queryDepartmentOptions();
   await queryEmployeeOptions();
   refreshTable();

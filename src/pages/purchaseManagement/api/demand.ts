@@ -9,22 +9,21 @@ export interface Demand {
   description: string;
   status: DemandStatus;
   approverId: string | number;
-  approverTime: number;
+  approvalTime: number;
 }
 
 export enum DemandStatus {
   Pending = 1,
-  Processing = 2,
-  Approved = 3,
-  Rejected = 4,
+  Approved = 2,
+  Rejected = 3,
+  WorkOrder = 4,
 }
 
 export const DemandStatusList = [
-  { id: 0, name: "全部" },
   { id: 1, name: "待审批" },
-  { id: 2, name: "审批中" },
-  { id: 3, name: "已通过" },
-  { id: 4, name: "已驳回" },
+  { id: 2, name: "已通过" },
+  { id: 3, name: "已驳回" },
+  { id: 4, name: "已转订单" },
 ];
 export interface queryDemandConditions {
   departmentId: string | number;
