@@ -11,7 +11,7 @@
  Target Server Version : 80025
  File Encoding         : 65001
 
- Date: 12/08/2025 22:56:22
+ Date: 12/08/2025 23:11:45
 */
 
 SET NAMES utf8mb4;
@@ -915,12 +915,14 @@ CREATE TABLE `hg_sales_order`  (
   `employee_id` bigint NOT NULL COMMENT '销售人员ID',
   `expected_date` date NULL DEFAULT NULL COMMENT '预计交货日期',
   `actual_date` date NULL DEFAULT NULL COMMENT '实际交货日期',
-  `order_status` tinyint NULL DEFAULT 1 COMMENT '订单状态(1-待审核,2-已审核,3-已发货,4-已完成,5-已取消)',
+  `status` tinyint NULL DEFAULT 1 COMMENT '订单状态(1-待审核,2-已审核,3-已发货,4-已完成,5-已取消)',
   `total_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '订单总金额',
   `discount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '折扣金额',
   `tax` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '税额',
   `final_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '最终金额',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `approverId` bigint NULL DEFAULT NULL COMMENT '审核人ID',
+  `approvalTime` datetime NULL DEFAULT NULL COMMENT '审核时间',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
@@ -967,6 +969,8 @@ CREATE TABLE `hg_sales_return`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
+  `approverId` bigint NULL DEFAULT NULL COMMENT '审核人ID',
+  `approvalTime` datetime NULL DEFAULT NULL COMMENT '审核时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '销售退货表' ROW_FORMAT = DYNAMIC;
 
