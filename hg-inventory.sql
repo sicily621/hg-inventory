@@ -11,7 +11,7 @@
  Target Server Version : 80025
  File Encoding         : 65001
 
- Date: 12/08/2025 23:11:45
+ Date: 13/08/2025 23:18:05
 */
 
 SET NAMES utf8mb4;
@@ -726,7 +726,7 @@ CREATE TABLE `hg_purchase_return`  (
   `employee_id` bigint NOT NULL COMMENT '操作员工ID',
   `supplier_id` bigint NOT NULL COMMENT '供应商ID',
   `status` tinyint NULL DEFAULT 1 COMMENT '状态(1-待审核,2-已审核,3-已驳回,4-已完成)',
-  `total_amount` int NULL DEFAULT NULL COMMENT '退单总金额',
+  `total_amount` decimal(10, 0) NULL DEFAULT NULL COMMENT '退单总金额',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   `approver_id` bigint NULL DEFAULT NULL COMMENT '审核人ID',
   `approval_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
@@ -921,8 +921,8 @@ CREATE TABLE `hg_sales_order`  (
   `tax` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '税额',
   `final_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '最终金额',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
-  `approverId` bigint NULL DEFAULT NULL COMMENT '审核人ID',
-  `approvalTime` datetime NULL DEFAULT NULL COMMENT '审核时间',
+  `approver_id` bigint NULL DEFAULT NULL COMMENT '审核人ID',
+  `approval_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
@@ -940,6 +940,7 @@ DROP TABLE IF EXISTS `hg_sales_order_detail`;
 CREATE TABLE `hg_sales_order_detail`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `order_id` bigint NOT NULL COMMENT '订单ID',
+  `categoryId` bigint NULL DEFAULT NULL COMMENT '商品分类ID',
   `product_id` bigint NOT NULL COMMENT '商品ID',
   `quantity` decimal(10, 2) NOT NULL COMMENT '销售数量',
   `price` decimal(10, 2) NOT NULL COMMENT '销售单价',
@@ -966,11 +967,12 @@ CREATE TABLE `hg_sales_return`  (
   `customer_id` int NOT NULL COMMENT '客户ID',
   `status` tinyint NULL DEFAULT 1 COMMENT '状态(1-待审核,2-已审核,3-已完成)',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `total_amount` decimal(10, 2) NULL DEFAULT NULL COMMENT '总金额',
+  `approver_id` bigint NULL DEFAULT NULL COMMENT '审核人ID',
+  `approval_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
-  `approverId` bigint NULL DEFAULT NULL COMMENT '审核人ID',
-  `approvalTime` datetime NULL DEFAULT NULL COMMENT '审核时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '销售退货表' ROW_FORMAT = DYNAMIC;
 
@@ -985,6 +987,7 @@ DROP TABLE IF EXISTS `hg_sales_return_detail`;
 CREATE TABLE `hg_sales_return_detail`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `return_id` int NOT NULL COMMENT '退货单ID',
+  `categoryId` bigint NULL DEFAULT NULL COMMENT '商品分类ID',
   `product_id` int NOT NULL COMMENT '商品ID',
   `quantity` decimal(10, 2) NOT NULL COMMENT '退货数量',
   `price` decimal(10, 2) NOT NULL COMMENT '退货单价',
