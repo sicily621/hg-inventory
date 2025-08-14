@@ -13,6 +13,8 @@ export enum ModuleCode {
   Shelf = "shelf",
   SaleManagement = "saleManagement",
   Customer = "customer",
+  SalesOrder = "salesOrder",
+  SalesReturn = "salesReturn",
   PurchaseManagement = "purchaseManagement",
   Supplier = "supplier",
   PurchaseDemand = "purchaseDemand",

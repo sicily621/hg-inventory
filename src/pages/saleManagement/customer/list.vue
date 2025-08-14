@@ -205,7 +205,7 @@ const creditLevelOptions = ref([
 ]);
 const getName = (id: string) => {
   const result = creditLevelOptions.value.find((item: any) => item.id === id);
-  return result ?? "无";
+  return result?.name ?? "无";
 };
 onMounted(async () => {
   refreshTable();

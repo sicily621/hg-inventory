@@ -89,7 +89,6 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, ref, reactive } from "vue";
-import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
   queryPermissionConditions,
@@ -114,10 +113,6 @@ const getName = (value: number, list: any[]) => {
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const totalItems = ref(0);
-const pageChange = (page: any) => {
-  currentPage.value = page - 1;
-  refreshTable();
-};
 const currentData = ref<Permission | null>(null);
 const edit = (row: Permission) => {
   currentData.value = row;

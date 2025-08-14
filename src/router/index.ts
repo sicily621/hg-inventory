@@ -326,10 +326,19 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "customer",
         component: () => import("@/pages/saleManagement/customer/list.vue"),
-        name: "customer",
+        name: ModuleCode.Customer,
         meta: {
           title: "客户管理",
           moduleCode: ModuleCode.Customer,
+        },
+      },
+      {
+        path: "order",
+        component: () => import("@/pages/saleManagement/order/list.vue"),
+        name: ModuleCode.SalesOrder,
+        meta: {
+          title: "销售订单",
+          moduleCode: ModuleCode.SalesOrder,
         },
       },
     ],
@@ -347,7 +356,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "supplier",
         component: () => import("@/pages/purchaseManagement/supplier/list.vue"),
-        name: "supplier",
+        name: ModuleCode.Supplier,
         meta: {
           title: "供应商管理",
           moduleCode: ModuleCode.Supplier,
@@ -356,7 +365,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "demand",
         component: () => import("@/pages/purchaseManagement/demand/list.vue"),
-        name: "demand",
+        name: ModuleCode.PurchaseDemand,
         meta: {
           title: "采购需求",
           moduleCode: ModuleCode.PurchaseDemand,
@@ -365,7 +374,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "order",
         component: () => import("@/pages/purchaseManagement/order/list.vue"),
-        name: "order",
+        name: ModuleCode.PurchaseOrder,
         meta: {
           title: "采购订单",
           moduleCode: ModuleCode.PurchaseOrder,
@@ -374,7 +383,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       {
         path: "return",
         component: () => import("@/pages/purchaseManagement/return/list.vue"),
-        name: "return",
+        name: ModuleCode.PurchaseReturn,
         meta: {
           title: "采购退单",
           moduleCode: ModuleCode.PurchaseReturn,
