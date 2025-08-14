@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost_3306
+ Source Server         : localhost
  Source Server Type    : MySQL
- Source Server Version : 80025
+ Source Server Version : 80025 (8.0.25)
  Source Host           : localhost:3306
  Source Schema         : hg-inventory
 
  Target Server Type    : MySQL
- Target Server Version : 80025
+ Target Server Version : 80025 (8.0.25)
  File Encoding         : 65001
 
- Date: 13/08/2025 23:18:05
+ Date: 14/08/2025 18:37:10
 */
 
 SET NAMES utf8mb4;
@@ -187,6 +187,32 @@ CREATE TABLE `hg_customer`  (
 INSERT INTO `hg_customer` VALUES (1953018819353198594, '客户1', '17312021111', 'sasas', '1213@163.com', 1, '2025-08-06 17:02:27', '2025-08-06 17:02:33', '小明', 0);
 
 -- ----------------------------
+-- Table structure for hg_customer_receivable
+-- ----------------------------
+DROP TABLE IF EXISTS `hg_customer_receivable`;
+CREATE TABLE `hg_customer_receivable`  (
+  `receivable_id` bigint NOT NULL AUTO_INCREMENT,
+  `customer_id` bigint NOT NULL COMMENT '客户ID',
+  `order_id` bigint NOT NULL COMMENT '关联销售订单ID',
+  `invoice_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '发票号码',
+  `invoice_date` date NULL DEFAULT NULL COMMENT '发票日期',
+  `amount` decimal(10, 2) NOT NULL COMMENT '应收金额',
+  `received_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '已收金额',
+  `balance` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '余额',
+  `due_date` date NULL DEFAULT NULL COMMENT '到期日期',
+  `collection_status` tinyint NULL DEFAULT 1 COMMENT '收款状态(1-未收款,2-部分收款,3-已收清)',
+  `remark` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `del_flag` int NULL DEFAULT 0,
+  PRIMARY KEY (`receivable_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '客户应收账款表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of hg_customer_receivable
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for hg_department
 -- ----------------------------
 DROP TABLE IF EXISTS `hg_department`;
@@ -199,7 +225,7 @@ CREATE TABLE `hg_department`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `department_name`(`name`) USING BTREE
+  UNIQUE INDEX `department_name`(`name` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1952987749664636930 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -488,7 +514,7 @@ CREATE TABLE `hg_permission`  (
   `action` int NOT NULL DEFAULT 1 COMMENT '操作类型 1 view、2 add、3 edit、4 delete、5 approve',
   `type` int NOT NULL DEFAULT 1 COMMENT '权限类型 1 菜单级别 2 按钮级别',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `permission_name`(`name`) USING BTREE
+  UNIQUE INDEX `permission_name`(`name` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1954922913359269891 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -782,8 +808,8 @@ CREATE TABLE `hg_role`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `role_name`(`name`) USING BTREE,
-  UNIQUE INDEX `role_code`(`code`) USING BTREE
+  UNIQUE INDEX `role_name`(`name` ASC) USING BTREE,
+  UNIQUE INDEX `role_code`(`code` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1952580037491453954 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -940,7 +966,7 @@ DROP TABLE IF EXISTS `hg_sales_order_detail`;
 CREATE TABLE `hg_sales_order_detail`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `order_id` bigint NOT NULL COMMENT '订单ID',
-  `categoryId` bigint NULL DEFAULT NULL COMMENT '商品分类ID',
+  `category_id` bigint NULL DEFAULT NULL COMMENT '商品分类ID',
   `product_id` bigint NOT NULL COMMENT '商品ID',
   `quantity` decimal(10, 2) NOT NULL COMMENT '销售数量',
   `price` decimal(10, 2) NOT NULL COMMENT '销售单价',
@@ -987,7 +1013,7 @@ DROP TABLE IF EXISTS `hg_sales_return_detail`;
 CREATE TABLE `hg_sales_return_detail`  (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `return_id` int NOT NULL COMMENT '退货单ID',
-  `categoryId` bigint NULL DEFAULT NULL COMMENT '商品分类ID',
+  `category_id` bigint NULL DEFAULT NULL COMMENT '商品分类ID',
   `product_id` int NOT NULL COMMENT '商品ID',
   `quantity` decimal(10, 2) NOT NULL COMMENT '退货数量',
   `price` decimal(10, 2) NOT NULL COMMENT '退货单价',
@@ -1000,6 +1026,49 @@ CREATE TABLE `hg_sales_return_detail`  (
 
 -- ----------------------------
 -- Records of hg_sales_return_detail
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for hg_sales_shipment
+-- ----------------------------
+DROP TABLE IF EXISTS `hg_sales_shipment`;
+CREATE TABLE `hg_sales_shipment`  (
+  `shipment_id` bigint NOT NULL AUTO_INCREMENT,
+  `shipment_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '出库单号',
+  `order_id` bigint NOT NULL COMMENT '关联销售订单ID',
+  `employee_id` bigint NOT NULL COMMENT '操作员工ID',
+  `shipment_date` date NOT NULL COMMENT '出库日期',
+  `warehouse_id` bigint NOT NULL COMMENT '仓库ID',
+  `status` tinyint NULL DEFAULT 1 COMMENT '状态(1-待审核,2-已完成)',
+  `remark` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`shipment_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '销售出库表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of hg_sales_shipment
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for hg_sales_shipment_detail
+-- ----------------------------
+DROP TABLE IF EXISTS `hg_sales_shipment_detail`;
+CREATE TABLE `hg_sales_shipment_detail`  (
+  `detail_id` bigint NOT NULL AUTO_INCREMENT,
+  `shipment_id` bigint NOT NULL COMMENT '出库单ID',
+  `product_id` bigint NOT NULL COMMENT '商品ID',
+  `quantity` decimal(10, 2) NOT NULL COMMENT '出库数量',
+  `price` decimal(10, 2) NOT NULL COMMENT '出库单价',
+  `amount` decimal(10, 2) NOT NULL COMMENT '金额',
+  `shelf_id` bigint NULL DEFAULT NULL COMMENT '来源货架ID',
+  `batch_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '批次号',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`detail_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '销售出库明细表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of hg_sales_shipment_detail
 -- ----------------------------
 
 -- ----------------------------
@@ -1041,13 +1110,38 @@ CREATE TABLE `hg_supplier`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `supplier_code`(`code`) USING BTREE
+  UNIQUE INDEX `supplier_code`(`code` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1953021744750215170 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '供应商表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of hg_supplier
 -- ----------------------------
 INSERT INTO `hg_supplier` VALUES (1953021744750215169, '001', '供应商1', '小李', '17310241221', '', '123@163.com', '2025-08-06 17:14:04', '2025-08-06 17:14:04', 0);
+
+-- ----------------------------
+-- Table structure for hg_supplier_payable
+-- ----------------------------
+DROP TABLE IF EXISTS `hg_supplier_payable`;
+CREATE TABLE `hg_supplier_payable`  (
+  `payable_id` bigint NOT NULL AUTO_INCREMENT,
+  `supplier_id` bigint NOT NULL COMMENT '供应商ID',
+  `order_id` bigint NOT NULL COMMENT '关联采购订单ID',
+  `invoice_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '发票号码',
+  `invoice_date` date NULL DEFAULT NULL COMMENT '发票日期',
+  `amount` decimal(10, 2) NOT NULL COMMENT '应付金额',
+  `paid_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '已付金额',
+  `balance` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '余额',
+  `due_date` date NULL DEFAULT NULL COMMENT '到期日期',
+  `payment_status` tinyint NULL DEFAULT 1 COMMENT '付款状态(1-未付款,2-部分付款,3-已付清)',
+  `remark` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`payable_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '供应商应付账款表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of hg_supplier_payable
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for hg_warehouse
