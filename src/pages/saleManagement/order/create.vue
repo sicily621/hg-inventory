@@ -29,12 +29,27 @@
                 >
                 </el-input>
               </el-form-item>
-              <el-form-item label="期望到货时间" prop="expectedDate">
+              <el-form-item prop="status" label="状态">
+                <el-select
+                  v-model="form.status"
+                  placeholder="请选择状态"
+                  class="w-full"
+                  :disabled="disabledApprove"
+                >
+                  <el-option
+                    v-for="item in OrderStatusList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="期望交货时间" prop="expectedDate">
                 <el-date-picker
                   v-model="form.expectedDate"
                   type="datetime"
                   class="flex-1"
-                  placeholder="请输入期望到货时间"
+                  placeholder="请输入期望交货时间"
                   :default-time="defaultTime"
                   :disabled-date="isBefore"
                 />
@@ -53,11 +68,28 @@
                   />
                 </el-select>
               </el-form-item>
-              <el-form-item label="总金额" prop="totalAmount">
-                <el-tag class="fz22 p-5" type="danger"
-                  >￥{{ totalAmount }}</el-tag
-                >
+
+              <el-form-item label="折扣金额" prop="discount">
+                <el-input-number
+                  v-model="form.discount"
+                  :step="0.1"
+                  :min="0"
+                  :max="totalAmount"
+                />
               </el-form-item>
+              <div class="flex">
+                <el-form-item label="总金额" prop="totalAmount">
+                  <el-tag class="fz22 p-5" type="primary"
+                    >￥{{ totalAmount }}</el-tag
+                  >
+                </el-form-item>
+                <el-form-item label="最终金额" prop="finalAmount" class="m-l-5">
+                  <el-tag class="fz22 p-5" type="danger"
+                    >￥{{ finalAmount }}</el-tag
+                  >
+                </el-form-item>
+              </div>
+
               <el-form-item label="备注" prop="description"
                 ><el-input
                   v-model="form.description"
@@ -72,6 +104,14 @@
           </el-form>
         </el-card>
         <el-card class="flex-1" shadow="never">
+          <div>
+            <el-button
+              type="primary"
+              :icon="Plus"
+              @click="dialogFormVisible = true"
+              >新增商品</el-button
+            >
+          </div>
           <div class="table-wrap">
             <baseTable
               :columns="columns"
@@ -112,11 +152,117 @@
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
               </template>
+              <template #operate="scope">
+                <div class="flex" v-if="form.status === OrderStatus.Pending">
+                  <el-icon
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="edit(scope.scope.row)"
+                  >
+                    <Edit />
+                  </el-icon>
+                  <el-icon
+                    class="fz16 cursor-pointer"
+                    text
+                    @click="remove(scope.scope.row)"
+                  >
+                    <Delete />
+                  </el-icon>
+                </div>
+              </template>
             </baseTable>
           </div>
         </el-card>
       </div>
     </div>
+    <el-dialog
+      v-model="dialogFormVisible"
+      :title="editIndex > -1 ? '编辑商品' : '添加商品'"
+      width="600"
+      @close="closeModal()"
+    >
+      <el-form
+        ref="productFormRef"
+        :model="productForm"
+        :rules="productRules"
+        label-position="top"
+        class="relative"
+        label-width="120px"
+        require-asterisk-position="right"
+      >
+        <div class="flex width-full">
+          <el-form-item class="flex-1" label="商品分类" prop="categoryId">
+            <el-tree-select
+              class="w-full"
+              v-model="productForm.categoryId"
+              placeholder="请选择商品分类"
+              :data="categoryOptions"
+              check-strictly
+              :render-after-expand="false"
+              :props="selectProps"
+              @change="queryProductOptions"
+            />
+          </el-form-item>
+          <el-form-item class="flex-1 m-l-4" label="商品" prop="productId">
+            <el-select
+              v-model="productForm.productId"
+              placeholder="请选择商品"
+              class="flex-1"
+            >
+              <el-option
+                v-for="item in productOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="需求数量" class="flex-1 m-l-4" prop="quantity">
+            <el-input-number
+              v-model="productForm.quantity"
+              :min="1"
+              class="flex-1 m-r-2"
+            />
+          </el-form-item>
+        </div>
+        <div class="flex width-full">
+          <el-form-item label="商品规格" class="flex-1">
+            <el-input
+              v-model="specification"
+              class="flex-1"
+              placeholder="请输入商品规格"
+              maxlength="32"
+              disabled
+              required
+            >
+            </el-input>
+          </el-form-item>
+          <el-form-item label="计量单位" class="flex-1 m-l-4">
+            <el-input
+              v-model="unit"
+              class="flex-1"
+              placeholder="请输入商品规格"
+              maxlength="32"
+              disabled
+              required
+            >
+            </el-input>
+          </el-form-item>
+          <div class="flex-1 m-l-4"></div>
+        </div>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="closeModal()">取消</el-button>
+          <el-button
+            type="primary"
+            :disabled="form.status !== OrderStatus.Pending"
+            @click="addProduct"
+            >确定</el-button
+          >
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -127,7 +273,13 @@ import {
   Category,
   getCategoryList,
 } from "@/pages/productManagement/api/category";
-import { Order, OrderStatus, createOrder, editOrder } from "../api/order";
+import {
+  Order,
+  OrderStatus,
+  createOrder,
+  editOrder,
+  OrderStatusList,
+} from "../api/order";
 import {
   OrderDetail,
   createOrderDetail,
@@ -138,7 +290,18 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
-
+import { Plus } from "@element-plus/icons-vue";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+import { ModuleCode } from "@/router/moduleCode";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.SalesOrder,
+  PermissionAction.Approve,
+);
+const disabledApprove = computed(() => {
+  return !enableApprove;
+});
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Order | null }>();
@@ -146,6 +309,7 @@ const formRef = ref();
 const defaultTime = new Date();
 const userStore = useUserStore();
 const categoryOptions = ref([{ name: "全部", id: 0 }]);
+const selectProps = { value: "id", label: "name" };
 const productOptions = ref<any[]>([]);
 const isBefore = (date: Date) => {
   return date.getTime() - Date.now() <= 0;
@@ -153,6 +317,66 @@ const isBefore = (date: Date) => {
 const changeQuantity = (row: any) => {
   const { quantity, price } = row;
   row.amount = +quantity * +price;
+};
+const productFormRef = ref();
+const defaultProduct = {
+  productId: "",
+  categoryId: 0,
+  quantity: 0,
+  price: 0,
+  amount: 0,
+};
+const productForm = ref<OrderDetail>(defaultProduct);
+const productRules = reactive({
+  productId: [{ required: true, message: "不能为空" }],
+  categoryId: [{ required: true, message: "不能为空" }],
+  quantity: [{ required: true, message: "不能为空" }],
+});
+const seletedProduct = computed(() => {
+  return productOptions.value.find(
+    (item: any) => item.id === productForm.value.productId,
+  );
+});
+const specification = computed(() => {
+  return seletedProduct.value?.specification;
+});
+const unit = computed(() => {
+  return seletedProduct.value?.unit;
+});
+
+const editIndex = ref(-1);
+const addProduct = async () => {
+  const valid = await productFormRef.value.validate();
+  if (valid) {
+    productForm.value.price = getItem(
+      String(productForm.value.productId),
+      productMap.value,
+    )?.purchasePrice;
+    const { price, quantity } = productForm.value;
+    const row: any = {
+      ...productForm.value,
+      specification: specification.value,
+      unit: unit.value,
+      amount: +quantity * +price,
+    };
+    if (editIndex.value > -1) {
+      row.index = editIndex.value + 1;
+      tableData.value[editIndex.value] = row;
+      editIndex.value = -1;
+    } else {
+      row.index = tableData.value.length + 1;
+      tableData.value.push(row);
+    }
+
+    productForm.value = defaultProduct;
+    closeModal();
+  }
+};
+
+const dialogFormVisible = ref(false);
+const closeModal = () => {
+  editIndex.value = -1;
+  dialogFormVisible.value = false;
 };
 //表单
 const form = ref<Order>({
@@ -184,8 +408,19 @@ const columns = ref([
   { prop: "quantity", label: "数量" },
   { prop: "price", label: "销售价" },
   { prop: "amount", label: "金额" },
+  { prop: "operate", label: "操作", width: 80 },
 ]);
-
+const edit = (row: any) => {
+  editIndex.value = row.index - 1;
+  productForm.value = { ...row };
+  dialogFormVisible.value = true;
+};
+const remove = (row: any) => {
+  const index = tableData.value.findIndex((item) => item === row);
+  if (index > -1) {
+    tableData.value.splice(index, 1);
+  }
+};
 const tableData = ref<any[]>([]);
 const totalAmount = computed(() => {
   let result = 0;
@@ -193,6 +428,9 @@ const totalAmount = computed(() => {
     result += +item.amount;
   });
   return result;
+});
+const finalAmount = computed(() => {
+  return totalAmount.value - form.value.discount;
 });
 //合并props
 if (props.data) {
@@ -264,7 +502,19 @@ const confirmSave = async (cb?: Function) => {
   }
   const valid = await formRef.value.validate();
   if (valid) {
-    const params = { ...form.value, totalAmount: totalAmount.value };
+    const params = {
+      ...form.value,
+      totalAmount: totalAmount.value,
+      finalAmount: finalAmount.value,
+    };
+    if (
+      enableApprove &&
+      (params.status == OrderStatus.Approved ||
+        params.status == OrderStatus.Rejected)
+    ) {
+      params.approverId = userStore.getInfo().id;
+      params.approvalTime = Date.now();
+    }
     const api = params.id ? editOrder : createOrder;
     const res = await api(params);
     const detailList: OrderDetail[] = tableData.value.map((item: any) => {

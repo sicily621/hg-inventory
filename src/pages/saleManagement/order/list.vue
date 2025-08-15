@@ -163,7 +163,18 @@
       </div>
     </div>
     <div class="h-full w-full flex flex-col" v-if="processFlag">
-      <Create class="create-wrap" ref="createRef" :data="currentData"></Create>
+      <Create
+        class="create-wrap"
+        ref="createRef"
+        :data="currentData"
+        v-if="processFlag === 1"
+      ></Create>
+      <Return
+        class="create-wrap"
+        ref="returnRef"
+        :data="currentData"
+        v-if="currentData && processFlag === 2"
+      ></Return>
       <el-card class="footer flex flex-justify-end flex-items-center">
         <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
@@ -195,6 +206,7 @@ import {
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
+import Return from "./return.vue";
 import { ElMessage } from "element-plus";
 const OrderStatusListWithAll = [{ id: 0, name: "全部" }, ...OrderStatusList];
 const createRef = ref();
