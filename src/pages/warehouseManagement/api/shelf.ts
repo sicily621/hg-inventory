@@ -19,3 +19,4 @@ export const editShelf = (data: Shelf) => Put(shelfPrefix, data);
 export const deleteShelf = (id: string | number) =>
   Delete(shelfPrefix + `/${id}`);
 export const findShelfPage = (data: any) => Get(shelfPrefix + "/page", data);
+export const getShelfList = (data: any) => Get(`${shelfPrefix}/list`, data);

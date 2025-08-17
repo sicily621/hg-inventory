@@ -18,4 +18,5 @@ export const deleteWarehouse = (id: string | number) =>
   Delete(warehousePrefix + `/${id}`);
 export const findWarehousePage = (data: any) =>
   Get(warehousePrefix + "/page", data);
-export const getWarehouseList = () => Get(`${warehousePrefix}/list`, null);
+export const getWarehouseList = (data: any) =>
+  Get(`${warehousePrefix}/list`, data);

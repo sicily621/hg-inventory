@@ -45,6 +45,8 @@ export interface queryOrderConditions {
   startTime: string;
   endTime: string;
   status: OrderStatus | 0;
+  startStatus?: OrderStatus;
+  endStatus?: OrderStatus;
 }
 
 export const createOrder = (data: Order) => Post(orderPrefix, data);

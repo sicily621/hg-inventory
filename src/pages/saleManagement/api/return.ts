@@ -34,6 +34,8 @@ export interface queryReturnConditions {
   startTime: string;
   endTime: string;
   status: ReturnStatus | 0;
+  startStatus?: ReturnStatus;
+  endStatus?: ReturnStatus;
 }
 
 export const createReturn = (data: Return) => Post(returnPrefix, data);

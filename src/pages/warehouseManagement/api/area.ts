@@ -26,3 +26,4 @@ export const editArea = (data: Area) => Put(areaPrefix, data);
 export const deleteArea = (id: string | number) =>
   Delete(areaPrefix + `/${id}`);
 export const findAreaPage = (data: any) => Get(areaPrefix + "/page", data);
+export const getAreaList = (data: any) => Get(`${areaPrefix}/list`, data);

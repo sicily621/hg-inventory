@@ -1,0 +1,311 @@
+<template>
+  <div class="app-container flex flex-col h-full">
+    <div class="h-full w-full flex flex-col" v-if="!processFlag">
+      <el-card v-loading="loading" shadow="never" class="search-wrapper">
+        <div class="flex">
+          <el-form
+            ref="searchFormRef"
+            class="flex-grow-1"
+            :inline="true"
+            :model="searchData"
+          >
+            <el-form-item prop="type" label="类型">
+              <el-select
+                v-model="searchData.type"
+                placeholder="请选择仓库"
+                @change="refreshTable()"
+                class="w-40"
+              >
+                <el-option :key="1" label="采购订单" :value="1" />
+                <el-option :key="2" label="销售退单" :value="2" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+          <el-button type="primary" @click="create">新增</el-button>
+        </div>
+      </el-card>
+      <div
+        v-loading="loading"
+        class="flex-grow-1 flex flex-col el-card table-card"
+        shadow="never"
+      >
+        <div class="table-wrap">
+          <baseTable
+            :columns="columns"
+            :table-data="tableData"
+            :indexMethod="indexMethod(currentPage, pageSize)"
+            class="h-full"
+          >
+            <template #supplierId="scope">
+              {{ getName(scope.scope.row.supplierId, supplierMap) }}
+            </template>
+            <template #employeeId="scope">
+              {{ getName(scope.scope.row.employeeId, employeeMap) }}
+            </template>
+            <template #status="scope">
+              <template v-if="searchData.type === 1">
+                <el-tag
+                  type="warning"
+                  v-if="scope.scope.row.status === OrderStatus.Rejected"
+                >
+                  {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                </el-tag>
+                <el-tag
+                  type="success"
+                  v-else-if="scope.scope.row.status === OrderStatus.Approved"
+                >
+                  {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                </el-tag>
+                <el-tag v-else>
+                  {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                </el-tag>
+              </template>
+            </template>
+            <template #totalAmount="scope">
+              <el-tag type="danger">￥{{ scope.scope.row.totalAmount }}</el-tag>
+            </template>
+            <template #operate="scope">
+              <div class="flex">
+                <el-icon
+                  class="fz16 pointer m-r-5 cursor-pointer"
+                  text
+                  @click="edit(scope.scope.row)"
+                >
+                  <Edit />
+                </el-icon>
+                <el-icon
+                  class="fz16 cursor-pointer"
+                  text
+                  @click="remove(scope.scope.row.id)"
+                >
+                  <Delete />
+                </el-icon>
+              </div>
+            </template>
+          </baseTable>
+        </div>
+        <div class="pager-wrapper h-12 p-r-4">
+          <pagination
+            :page-size="pageSize"
+            :current-page="currentPage + 1"
+            :total="totalItems"
+            @pageChange="pageChange($event)"
+            class="zc-page"
+          ></pagination>
+        </div>
+      </div>
+    </div>
+    <div class="h-full w-full flex flex-col" v-if="processFlag">
+      <Create class="create-wrap" ref="createRef" :data="currentData"></Create>
+      <el-card class="footer flex flex-justify-end flex-items-center">
+        <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
+          >保存</el-button
+        >
+        <el-button @click="back" class="p-l-6 p-r-6">返回</el-button>
+      </el-card>
+    </div>
+  </div>
+</template>
+<script lang="ts" setup>
+import { onMounted, ref, reactive, computed } from "vue";
+import baseTable from "@@/components/baseTable/baseTable.vue";
+import pagination from "@@/components/pagination/pagination.vue";
+import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
+import type { PaginatedRequest } from "@@/apis/tables/type";
+import {
+  queryReceiptConditions,
+  deleteReceipt,
+  findReceiptPage,
+  Receipt,
+  ReceiptStatusList,
+} from "../api/receipt";
+import { getWarehouseList } from "@/pages/warehouseManagement/api/warehouse";
+import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
+import {
+  Category,
+  getCategoryList,
+} from "@/pages/productManagement/api/category";
+import {
+  findOrderPage,
+  OrderStatus,
+  Order,
+  OrderStatusList,
+} from "@/pages/purchaseManagement/api/order";
+import {
+  findReturnPage,
+  ReturnStatus,
+} from "@/pages/saleManagement/api/return";
+import { indexMethod } from "@@/utils/page";
+import Create from "./create.vue";
+import { watchDebounced } from "@vueuse/core";
+import { ElMessage } from "element-plus";
+const createRef = ref();
+const loading = ref<boolean>(false);
+const processFlag = ref(0); // 0列表 1新建 2编辑
+const searchData = reactive({
+  type: 1, //1采购订单 2 销售退单
+});
+const columns = computed(() => {
+  return [
+    { prop: "index", label: "序号", width: "100", type: 1 },
+    { prop: "code", label: "编码" },
+    {
+      prop: searchData.type === 1 ? "supplierId" : "customerId",
+      label: searchData.type === 1 ? "供应商" : "客户",
+    },
+    { prop: "employeeId", label: "采购人" },
+    { prop: "expectedDate", label: "期望到货日期" },
+    { prop: "actualDate", label: "实际到货日期" },
+    { prop: "status", label: "状态" },
+    { prop: "totalAmount", label: "总金额" },
+    { prop: "description", label: "备注" },
+    { prop: "operate", label: "操作", width: 100 },
+  ];
+});
+
+//分页
+const pageSize = ref(10);
+const currentPage = ref(0);
+const totalItems = ref(0);
+const pageChange = (page: any) => {
+  currentPage.value = page - 1;
+  refreshTable();
+};
+const currentData = ref<Receipt | null>(null);
+const edit = (row: Receipt) => {
+  currentData.value = row;
+  processFlag.value = 1;
+};
+
+const tableData = ref<Receipt[]>([]);
+
+const searchFormRef = ref("searchFormRef");
+
+watchDebounced(
+  searchData,
+  () => {
+    refreshTable();
+  },
+  { debounce: 500, maxWait: 1000 },
+);
+const queryOrder = async () => {
+  return await findOrderPage({
+    startStatus: OrderStatus.Confirmed,
+    endStatus: OrderStatus.PartiallyReceived,
+    currentPage: currentPage.value + 1,
+    size: pageSize.value,
+  });
+};
+const queryReturn = async () => {
+  return await findReturnPage({
+    status: ReturnStatus.Approved,
+    currentPage: currentPage.value + 1,
+    size: pageSize.value,
+  });
+};
+function refreshTable() {
+  loading.value = true;
+  const api = searchData.type === 1 ? queryOrder : queryReturn;
+  api()
+    .then((res: any) => {
+      const { total, list } = res.data;
+      totalItems.value = total;
+      tableData.value = list;
+    })
+    .catch(() => {
+      tableData.value = [];
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+}
+const supplierMap = ref<Map<string, string>>(new Map());
+const supplierOptions = ref<any[]>([]);
+const querySupplierOptions = async () => {
+  const res = await getSupplierList();
+  if ((res as any)?.data?.length) {
+    supplierOptions.value = (res as any).data;
+    supplierMap.value.clear();
+    supplierOptions.value.map((item: any) => {
+      const { id, name } = item;
+      supplierMap.value.set(id, name);
+    });
+  }
+};
+const employeeMap = ref(new Map());
+const employeeOptions = ref<any[]>([]);
+const queryEmployeeOptions = async () => {
+  const params: any = {};
+  const res = await getEmployeeList(params);
+  employeeMap.value.clear();
+  employeeOptions.value = [];
+  if ((res as any)?.data?.length) {
+    (res as any)?.data.map((item: any) => {
+      const { id, username: name } = item;
+      employeeMap.value.set(id, name);
+      employeeOptions.value.push({ id, name });
+    });
+  }
+  const all = { id: 0, name: "全部" };
+  employeeOptions.value.unshift(all);
+};
+const getName = (id: string, mapData: Map<string, string>) => {
+  return mapData.get(id) ?? "无";
+};
+const getStatus = (id: string, list: any[]) => {
+  return list.find((item) => item.id === id)?.name ?? "无";
+};
+const create = () => {
+  processFlag.value = 1;
+};
+const save = () => {
+  currentData.value = null;
+  createRef.value.confirmSave(() => {
+    back();
+  });
+};
+const back = () => {
+  processFlag.value = 0;
+  currentData.value = null;
+  refreshTable();
+};
+const remove = async (id: string) => {
+  await deleteReceipt(id);
+  ElMessage({
+    type: "success",
+    message: "删除成功",
+  });
+  refreshTable();
+};
+onMounted(async () => {
+  await querySupplierOptions();
+  await queryEmployeeOptions();
+  refreshTable();
+});
+</script>
+
+<style lang="scss" scoped>
+@use "@@/assets/styles/size.scss" as *;
+.table-card {
+  height: calc(100% - zrem(110));
+}
+.table-wrap {
+  height: calc(100% - zrem(45));
+}
+
+.search-wrapper {
+  height: zrem(60);
+  margin-bottom: zrem(10);
+}
+
+.pager-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+.create-wrap {
+  height: calc(100% - zrem(45));
+}
+.footer {
+  height: zrem(45);
+}
+</style>

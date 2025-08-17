@@ -20,4 +20,9 @@ export enum ModuleCode {
   PurchaseDemand = "purchaseDemand",
   PurchaseOrder = "purchaseOrder",
   PurchaseReturn = "purchaseReturn",
+  InventoryManagement = "inventoryManagement",
+  Inventory = "inventory",
+  InventoryHistory = "inventoryHistory",
+  InventoryCheck = "inventoryCheck",
+  InventoryReceipt = "inventoryReceipt",
 }

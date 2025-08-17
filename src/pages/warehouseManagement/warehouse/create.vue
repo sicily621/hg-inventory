@@ -109,7 +109,7 @@ const confirmSave = async (cb?: Function) => {
 };
 const employeeOptions = ref<any[]>([]);
 const queryEmployeeOptions = async () => {
-  const res = await getEmployeeList();
+  const res = await getEmployeeList({});
   if ((res as any)?.data?.length) {
     employeeOptions.value = (res as any)?.data || [];
   }

@@ -341,6 +341,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           moduleCode: ModuleCode.SalesOrder,
         },
       },
+      {
+        path: "return",
+        component: () => import("@/pages/saleManagement/return/list.vue"),
+        name: ModuleCode.SalesReturn,
+        meta: {
+          title: "销售退单",
+          moduleCode: ModuleCode.SalesReturn,
+        },
+      },
     ],
   },
   {
@@ -387,6 +396,55 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         meta: {
           title: "采购退单",
           moduleCode: ModuleCode.PurchaseReturn,
+        },
+      },
+    ],
+  },
+  {
+    path: "/inventoryManagement",
+    component: Layouts,
+    redirect: "/inventoryManagement/inventory",
+    meta: {
+      title: "库存管理",
+      elIcon: "Goods",
+      moduleCode: ModuleCode.InventoryManagement,
+    },
+    children: [
+      {
+        path: "inventory",
+        component: () =>
+          import("@/pages/inventoryManagement/inventory/list.vue"),
+        name: ModuleCode.InventoryManagement,
+        meta: {
+          title: "商品库存",
+          moduleCode: ModuleCode.Inventory,
+        },
+      },
+      {
+        path: "history",
+        component: () => import("@/pages/inventoryManagement/history/list.vue"),
+        name: ModuleCode.InventoryHistory,
+        meta: {
+          title: "库存流水",
+          moduleCode: ModuleCode.InventoryHistory,
+        },
+      },
+      {
+        path: "check",
+        component: () => import("@/pages/inventoryManagement/check/list.vue"),
+        name: ModuleCode.InventoryCheck,
+        meta: {
+          title: "库存盘点",
+          moduleCode: ModuleCode.InventoryCheck,
+        },
+      },
+      {
+        path: "receipt",
+        component: () => import("@/pages/inventoryManagement/receipt/list.vue"),
+        name: ModuleCode.InventoryReceipt,
+        meta: {
+          title: "入库",
+          moduleCode: ModuleCode.InventoryReceipt,
         },
       },
     ],
