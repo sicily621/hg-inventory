@@ -24,7 +24,6 @@
                 placeholder="请输入编码"
                 maxlength="32"
                 required
-                :disabled="form.status === ReceiptStatus.Completed"
               >
               </el-input>
             </el-form-item>
@@ -36,30 +35,9 @@
                 placeholder="请选择仓库"
                 class="flex-1"
                 @change="changeWarehouse()"
-                :disabled="
-                  form.status === ReceiptStatus.Completed ||
-                  tableData.length > 0
-                "
               >
                 <el-option
                   v-for="item in warehouseOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="d-flex width-300 m-l-8">
-            <el-form-item label="状态" prop="status">
-              <el-select
-                v-model="form.status"
-                placeholder="请选择状态"
-                class="flex-1"
-                :disabled="form.status === ReceiptStatus.Completed"
-              >
-                <el-option
-                  v-for="item in ReceiptStatusList"
                   :key="item.id"
                   :label="item.name"
                   :value="item.id"
@@ -75,7 +53,6 @@
                 placeholder="请输入描述"
                 maxlength="32"
                 required
-                :disabled="form.status === ReceiptStatus.Completed"
               >
               </el-input>
             </el-form-item></div></el-form
@@ -137,6 +114,7 @@
                   :render-after-expand="false"
                   :props="selectProps"
                   @change="queryProductOptions"
+                  disabled
                 />
               </el-form-item>
               <el-form-item class="flex-1 m-l-4" label="商品" prop="productId">
@@ -144,6 +122,7 @@
                   v-model="productForm.productId"
                   placeholder="请选择商品"
                   class="flex-1"
+                  disabled
                 >
                   <el-option
                     v-for="item in productOptions"
@@ -154,32 +133,28 @@
                 </el-select>
               </el-form-item>
             </div>
-            <div class="flex width-300">
-              <el-form-item label="系统库存" class="flex-1">
-                <el-input-number
-                  v-model="productForm.systemQuantity"
-                  :min="1"
-                  class="flex-1"
-                />
-              </el-form-item>
-              <el-form-item label="实际库存" class="flex-1 m-l-4">
-                <el-input-number
-                  v-model="productForm.actualQuantity"
-                  :min="1"
-                  class="flex-1"
-                />
-              </el-form-item>
-            </div>
+            <el-form-item label="时间范围">
+              <el-date-picker
+                v-model="time"
+                class="width-100"
+                type="daterange"
+                start-placeholder="生产日期"
+                end-placeholder="过期日期"
+                format="YYYY/MM/DD"
+                value-format="YYYY-MM-DD"
+                @change="changeTime"
+              />
+            </el-form-item>
 
             <div class="flex width-300">
               <div class="flex justify-end flex-1 items-center">
                 <el-button
+                  v-if="editIndex > -1"
                   type="primary"
                   class="m-t-2"
                   size="small"
-                  :disabled="form.status === ReceiptStatus.Completed"
                   @click="addProduct"
-                  >{{ editIndex > -1 ? "修改商品" : "添加商品" }}</el-button
+                  >入库</el-button
                 >
               </div>
             </div>
@@ -209,23 +184,13 @@
                 {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
               </template>
               <template #operate="scope">
-                <div
-                  class="flex"
-                  v-if="form.status !== ReceiptStatus.Completed"
-                >
+                <div class="flex">
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
                     @click="edit(scope.scope.row)"
                   >
                     <Edit />
-                  </el-icon>
-                  <el-icon
-                    class="fz16 cursor-pointer"
-                    text
-                    @click="remove(scope.scope.row)"
-                  >
-                    <Delete />
                   </el-icon>
                 </div>
               </template>
@@ -237,18 +202,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted } from "vue";
-import {
-  Receipt,
-  createReceipt,
-  editReceipt,
-  ReceiptStatus,
-  ReceiptStatusList,
-} from "../api/receipt";
+import { ref, reactive, onMounted } from "vue";
+import { Receipt, createReceipt, editReceipt } from "../api/receipt";
 import {
   ReceiptDetail,
   createReceiptDetail,
-  getReceiptDetailList,
   deleteReceiptDetail,
 } from "../api/receiptDetail";
 import { getProductList } from "@/pages/productManagement/api/product";
@@ -264,6 +222,8 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
+import { getOrderDetailList } from "@/pages/purchaseManagement/api/orderDetail";
+import { getReturnDetailList } from "@/pages/saleManagement/api/returnDetail";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -278,18 +238,20 @@ const form = ref<Receipt>({
   orderId: props.data.orderId,
   warehouseId: "",
   employeeId: userStore.getInfo().id,
-  status: ReceiptStatus.NotReceived,
   description: "",
 });
+
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "productId", label: "商品" },
+  { prop: "categoryId", label: "商品分类" },
+  { prop: "productId", label: "商品名称" },
   { prop: "areaId", label: "区域" },
   { prop: "shelfId", label: "货架" },
-  { prop: "systemQuantity", label: "系统库存数量" },
-  { prop: "actualQuantity", label: "实际盘点数量" },
-  { prop: "difference", label: "差异数量" },
-  { prop: "description", label: "描述" },
+  { prop: "quantity", label: "数量" },
+  { prop: "price", label: "单价" },
+  { prop: "amount", label: "金额" },
+  { prop: "productionDate", label: "生产日期" },
+  { prop: "expirationDate", label: "过期日期" },
   { prop: "operate", label: "操作", width: 80 },
 ]);
 const changeWarehouse = async () => {
@@ -305,9 +267,13 @@ const defaultProduct: ReceiptDetail = {
   quantity: 0,
   price: 0,
   amount: 0,
-  batchNumber: 0,
-  // productionDate?: number;
-  // expirationDate?: number;
+};
+const time = ref<any>("");
+const changeTime = () => {
+  if (time.value?.[0] && time.value?.[1]) {
+    productForm.value.productionDate = `${time.value?.[0]} 00:00:00`;
+    productForm.value.expirationDate = `${time.value?.[1]} 23:59:59`;
+  }
 };
 const productForm = ref<ReceiptDetail>(defaultProduct);
 
@@ -443,10 +409,8 @@ const editIndex = ref(-1);
 const addProduct = async () => {
   const valid = await productFormRef.value.validate();
   if (valid) {
-    const { systemQuantity, actualQuantity } = productForm.value;
     const row: any = {
       ...productForm.value,
-      difference: actualQuantity - systemQuantity,
     };
     if (editIndex.value > -1) {
       row.index = editIndex.value + 1;
@@ -494,15 +458,11 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-const edit = (row: any) => {
-  editIndex.value = row.index - 1;
+const edit = (row: ReceiptDetail) => {
+  editIndex.value = (row as any).index - 1;
+  const { productionDate, expirationDate } = row;
+  time.value = [productionDate, expirationDate];
   productForm.value = { ...row };
-};
-const remove = (row: any) => {
-  const index = tableData.value.findIndex((item) => item === row);
-  if (index > -1) {
-    tableData.value.splice(index, 1);
-  }
 };
 
 defineExpose({ confirmSave });
@@ -513,10 +473,20 @@ onMounted(async () => {
   await queryEmployeeOptions();
   await queryCategoryOptions();
   await queryProductOptions();
-  if (props?.data?.id) {
-    const res = await getReceiptDetailList((props as any).data.id);
-    tableData.value = (res as any)?.data || [];
-  }
+  const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
+  const res = await api((props as any).data.id);
+  tableData.value = (res as any)?.data.map((item: any, i: number) => {
+    const { productId, categoryId, quantity, price, amount } = item;
+    const result = Object.assign({}, defaultProduct, {
+      productId,
+      categoryId,
+      quantity,
+      price,
+      amount,
+      index: i + 1,
+    });
+    return result;
+  });
 });
 </script>
 <style lang="scss" scoped>

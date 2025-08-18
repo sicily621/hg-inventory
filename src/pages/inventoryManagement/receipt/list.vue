@@ -21,7 +21,6 @@
               </el-select>
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
         </div>
       </el-card>
       <div
@@ -116,7 +115,12 @@
       </div>
     </div>
     <div class="h-full w-full flex flex-col" v-if="processFlag">
-      <Create class="create-wrap" ref="createRef" :data="currentData"></Create>
+      <Create
+        class="create-wrap"
+        :type="searchData.type"
+        ref="createRef"
+        :data="currentData"
+      ></Create>
       <el-card class="footer flex flex-justify-end flex-items-center">
         <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
@@ -131,24 +135,11 @@ import { onMounted, ref, reactive, computed } from "vue";
 import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
-import type { PaginatedRequest } from "@@/apis/tables/type";
-import {
-  queryReceiptConditions,
-  deleteReceipt,
-  findReceiptPage,
-  Receipt,
-  ReceiptStatusList,
-} from "../api/receipt";
-import { getWarehouseList } from "@/pages/warehouseManagement/api/warehouse";
+import { deleteReceipt, Receipt } from "../api/receipt";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
-import {
-  Category,
-  getCategoryList,
-} from "@/pages/productManagement/api/category";
 import {
   findOrderPage,
   OrderStatus,
-  Order,
   OrderStatusList,
 } from "@/pages/purchaseManagement/api/order";
 import { getCustomerList } from "@/pages/saleManagement/api/customer";
@@ -296,9 +287,6 @@ const getName = (id: string, mapData: Map<string, string>) => {
 };
 const getStatus = (id: string, list: any[]) => {
   return list.find((item) => item.id === id)?.name ?? "无";
-};
-const create = () => {
-  processFlag.value = 1;
 };
 const save = () => {
   currentData.value = null;
