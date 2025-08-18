@@ -21,59 +21,60 @@
         class="flex-grow-1 flex flex-col el-card table-card"
         shadow="never"
       >
-        <div class="table-wrap">
+        <el-scrollbar class="h-full w-full">
           <div class="table-wrap">
-            <el-table
-              :data="tableData"
-              row-key="id"
-              default-expand-all
-              highlight-current-row
-              stripe
-            >
-              <el-table-column prop="name" label="名称" />
-              <el-table-column prop="moduleCode" label="模块编码" />
-              <el-table-column prop="url" label="模块路径" :width="300" />
-              <el-table-column prop="action" label="操作类型">
-                <template #default="scope">
-                  {{ getName(scope.row.action, PermissionActionList) }}
-                </template>
-              </el-table-column>
-              <el-table-column prop="type" label="权限类型">
-                <template #default="scope">
-                  {{ getName(scope.row.type, PermissionTypeList) }}
-                </template>
-              </el-table-column>
-              <el-table-column prop="description" label="描述" />
-              <el-table-column prop="operate" label="操作" :width="150">
-                <template #default="scope">
-                  <div class="flex">
-                    <el-icon
-                      class="fz16 pointer m-r-5 cursor-pointer"
-                      text
-                      @click="edit(scope.row)"
-                    >
-                      <Edit />
-                    </el-icon>
-                    <el-icon
-                      class="fz16 pointer m-r-5 cursor-pointer"
-                      text
-                      @click="addSubPermission(scope.row)"
-                    >
-                      <Plus />
-                    </el-icon>
-                    <el-icon
-                      class="fz16 cursor-pointer"
-                      text
-                      @click="remove(scope.row.id)"
-                    >
-                      <Delete />
-                    </el-icon>
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </div>
+            <div class="table-wrap">
+              <el-table
+                :data="tableData"
+                row-key="id"
+                default-expand-all
+                highlight-current-row
+                stripe
+              >
+                <el-table-column prop="name" label="名称" />
+                <el-table-column prop="moduleCode" label="模块编码" />
+                <el-table-column prop="url" label="模块路径" :width="300" />
+                <el-table-column prop="action" label="操作类型">
+                  <template #default="scope">
+                    {{ getName(scope.row.action, PermissionActionList) }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="type" label="权限类型">
+                  <template #default="scope">
+                    {{ getName(scope.row.type, PermissionTypeList) }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="description" label="描述" />
+                <el-table-column prop="operate" label="操作" :width="150">
+                  <template #default="scope">
+                    <div class="flex">
+                      <el-icon
+                        class="fz16 pointer m-r-5 cursor-pointer"
+                        text
+                        @click="edit(scope.row)"
+                      >
+                        <Edit />
+                      </el-icon>
+                      <el-icon
+                        class="fz16 pointer m-r-5 cursor-pointer"
+                        text
+                        @click="addSubPermission(scope.row)"
+                      >
+                        <Plus />
+                      </el-icon>
+                      <el-icon
+                        class="fz16 cursor-pointer"
+                        text
+                        @click="remove(scope.row.id)"
+                      >
+                        <Delete />
+                      </el-icon>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div></div
+        ></el-scrollbar>
       </div>
     </div>
     <div class="h-full w-full flex flex-col" v-if="processFlag">

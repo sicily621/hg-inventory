@@ -39,6 +39,9 @@
             <template #supplierId="scope">
               {{ getName(scope.scope.row.supplierId, supplierMap) }}
             </template>
+            <template #customerId="scope">
+              {{ getName(scope.scope.row.customerId, customerMap) }}
+            </template>
             <template #employeeId="scope">
               {{ getName(scope.scope.row.employeeId, employeeMap) }}
             </template>
@@ -58,6 +61,23 @@
                 </el-tag>
                 <el-tag v-else>
                   {{ getStatus(scope.scope.row.status, OrderStatusList) }}
+                </el-tag>
+              </template>
+              <template v-if="searchData.type === 2">
+                <el-tag
+                  type="warning"
+                  v-if="scope.scope.row.status === ReturnStatus.Rejected"
+                >
+                  {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
+                </el-tag>
+                <el-tag
+                  type="success"
+                  v-else-if="scope.scope.row.status === ReturnStatus.Approved"
+                >
+                  {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
+                </el-tag>
+                <el-tag v-else>
+                  {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
                 </el-tag>
               </template>
             </template>
@@ -131,9 +151,11 @@ import {
   Order,
   OrderStatusList,
 } from "@/pages/purchaseManagement/api/order";
+import { getCustomerList } from "@/pages/saleManagement/api/customer";
 import {
   findReturnPage,
   ReturnStatus,
+  ReturnStatusList,
 } from "@/pages/saleManagement/api/return";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
@@ -146,6 +168,13 @@ const searchData = reactive({
   type: 1, //1采购订单 2 销售退单
 });
 const columns = computed(() => {
+  const list: any[] =
+    searchData.type === 1
+      ? [
+          { prop: "expectedDate", label: "期望到货日期" },
+          { prop: "actualDate", label: "实际到货日期" },
+        ]
+      : [{ prop: "createTime", label: "退单时间" }];
   return [
     { prop: "index", label: "序号", width: "100", type: 1 },
     { prop: "code", label: "编码" },
@@ -154,8 +183,7 @@ const columns = computed(() => {
       label: searchData.type === 1 ? "供应商" : "客户",
     },
     { prop: "employeeId", label: "采购人" },
-    { prop: "expectedDate", label: "期望到货日期" },
-    { prop: "actualDate", label: "实际到货日期" },
+    ...list,
     { prop: "status", label: "状态" },
     { prop: "totalAmount", label: "总金额" },
     { prop: "description", label: "备注" },
@@ -249,6 +277,20 @@ const queryEmployeeOptions = async () => {
   const all = { id: 0, name: "全部" };
   employeeOptions.value.unshift(all);
 };
+const customerMap = ref<Map<string, string>>(new Map());
+const customerOptions = ref<any[]>([]);
+const queryCustomerOptions = async () => {
+  const res = await getCustomerList();
+  if ((res as any)?.data?.length) {
+    customerOptions.value = (res as any).data;
+    customerMap.value.clear();
+    customerOptions.value.map((item: any) => {
+      const { id, name } = item;
+      customerMap.value.set(id, name);
+    });
+  }
+};
+
 const getName = (id: string, mapData: Map<string, string>) => {
   return mapData.get(id) ?? "无";
 };
@@ -279,6 +321,7 @@ const remove = async (id: string) => {
 };
 onMounted(async () => {
   await querySupplierOptions();
+  await queryCustomerOptions();
   await queryEmployeeOptions();
   refreshTable();
 });

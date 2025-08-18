@@ -267,7 +267,7 @@ import { indexMethod } from "@@/utils/page";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
-const props = defineProps<{ orderId: string }>();
+const props = defineProps<{ data: any; type: number }>();
 const formRef = ref();
 const productFormRef = ref();
 const selectProps = { value: "id", label: "name" };
@@ -275,7 +275,7 @@ const productOptions = ref<any[]>([]);
 //表单
 const form = ref<Receipt>({
   code: "",
-  orderId: props.orderId,
+  orderId: props.data.orderId,
   warehouseId: "",
   employeeId: userStore.getInfo().id,
   status: ReceiptStatus.NotReceived,
@@ -302,10 +302,12 @@ const defaultProduct: ReceiptDetail = {
   categoryId: "",
   shelfId: "",
   areaId: "",
-  systemQuantity: 0,
-  actualQuantity: 0,
-  difference: 0,
-  description: "",
+  quantity: 0,
+  price: 0,
+  amount: 0,
+  batchNumber: 0,
+  // productionDate?: number;
+  // expirationDate?: number;
 };
 const productForm = ref<ReceiptDetail>(defaultProduct);
 

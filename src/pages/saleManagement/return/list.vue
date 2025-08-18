@@ -187,7 +187,7 @@ const departmentId = ref("");
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "code", label: "编码" },
-  { prop: "customerId", label: "供应商" },
+  { prop: "customerId", label: "客户" },
   { prop: "employeeId", label: "退单人" },
   { prop: "status", label: "状态" },
   { prop: "totalAmount", label: "总金额" },
