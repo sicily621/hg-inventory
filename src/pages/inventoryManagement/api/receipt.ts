@@ -5,7 +5,6 @@ export interface Receipt {
   code: string;
   orderId: string | number;
   employeeId: string | number;
-  warehouseId: string | number;
   description: string;
 }
 
@@ -13,7 +12,6 @@ export interface queryReceiptConditions {
   code: string;
   orderId: string | number;
   employeeId: string | number;
-  warehouseId: string | number;
 }
 
 export const createReceipt = (data: Receipt) => Post(receiptPrefix, data);

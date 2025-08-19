@@ -5,7 +5,6 @@ export interface Shipment {
   code: string;
   orderId: string | number;
   employeeId: string | number;
-  warehouseId: string | number;
   description: string;
 }
 
@@ -13,7 +12,6 @@ export interface queryShipmentConditions {
   code: string;
   orderId: string | number;
   employeeId: string | number;
-  warehouseId: string | number;
 }
 
 export const createShipment = (data: Shipment) => Post(shipmentPrefix, data);

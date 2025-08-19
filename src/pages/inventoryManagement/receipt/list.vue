@@ -13,7 +13,6 @@
               <el-select
                 v-model="searchData.type"
                 placeholder="请选择仓库"
-                @change="refreshTable()"
                 class="w-40"
               >
                 <el-option :key="1" label="采购订单" :value="1" />
@@ -289,8 +288,8 @@ const getStatus = (id: string, list: any[]) => {
   return list.find((item) => item.id === id)?.name ?? "无";
 };
 const save = () => {
-  currentData.value = null;
   createRef.value.confirmSave(() => {
+    currentData.value = null;
     back();
   });
 };

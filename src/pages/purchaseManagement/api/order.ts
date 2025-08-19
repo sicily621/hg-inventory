@@ -1,5 +1,5 @@
 import { orderPrefix } from "../api";
-import { Post, Get, Put, Delete } from "@/http/axios";
+import { Post, Get, Put, Delete, PutForm } from "@/http/axios";
 
 export interface Order {
   id?: string | number;
@@ -48,7 +48,7 @@ export interface queryOrderConditions {
 }
 
 export const createOrder = (data: Order) => Post(orderPrefix, data);
-export const editOrder = (data: Order) => Put(orderPrefix, data);
+export const editOrder = (data: any) => Put(orderPrefix, data);
 export const deleteOrder = (id: string | number) =>
   Delete(orderPrefix + `/${id}`);
 export const findOrderPage = (data: any) => Get(orderPrefix + "/page", data);

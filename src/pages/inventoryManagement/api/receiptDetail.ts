@@ -7,8 +7,10 @@ export interface ReceiptDetail {
   productId: string | number;
   categoryId: string | number;
   shelfId: string | number;
+  warehouseId: string | number;
   areaId: string | number;
   quantity: number;
+  orderQuantity?: number;
   price: number;
   amount: number;
   productionDate?: string;

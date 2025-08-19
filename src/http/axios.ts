@@ -150,6 +150,19 @@ export const Get = (url: string, data: any) => {
     },
   });
 };
+export const PutForm = (url: string, data: any) => {
+  return request({
+    url,
+    method: "put",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    params: data,
+    paramsSerializer: {
+      serialize: (params) => qs.stringify(params), // 使用qs序列化参数
+    },
+  });
+};
 export const Delete = (url: string) => {
   return request({
     url,

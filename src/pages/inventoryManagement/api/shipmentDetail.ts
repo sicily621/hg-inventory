@@ -6,9 +6,11 @@ export interface ShipmentDetail {
   shipmentId?: string | number;
   productId: string | number;
   categoryId: string | number;
+  warehouseId: string | number;
   shelfId: string | number;
   areaId: string | number;
   quantity: number;
+  orderQuantity?: number;
   price: number;
   amount: number;
   batchNumber: number;

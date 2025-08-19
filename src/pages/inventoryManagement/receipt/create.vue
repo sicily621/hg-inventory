@@ -6,159 +6,42 @@
           <div class="zc-header-icon"></div>
           <div class="zc-header-word">入库信息</div>
         </div>
-        <el-divider />
-        <el-form
-          ref="formRef"
-          :model="form"
-          :rules="rules"
-          label-position="top"
-          class="flex relative"
-          label-width="120px"
-          require-asterisk-position="right"
-        >
-          <div class="d-flex width-300">
-            <el-form-item label="编码" prop="code">
-              <el-input
-                v-model="form.code"
-                class="flex-1"
-                placeholder="请输入编码"
-                maxlength="32"
-                required
-              >
-              </el-input>
-            </el-form-item>
-          </div>
-          <div class="d-flex width-300 m-l-8">
-            <el-form-item label="仓库" prop="warehouseId">
-              <el-select
-                v-model="form.warehouseId"
-                placeholder="请选择仓库"
-                class="flex-1"
-                @change="changeWarehouse()"
-              >
-                <el-option
-                  v-for="item in warehouseOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="d-flex width-300 m-l-8">
-            <el-form-item label="描述" prop="description">
-              <el-input
-                v-model="form.description"
-                class="flex-1"
-                placeholder="请输入描述"
-                maxlength="32"
-                required
-              >
-              </el-input>
-            </el-form-item></div></el-form
-      ></el-card>
+      </el-card>
       <div class="flex flex-1">
         <el-card shadow="never">
-          <div class="zc-header-title">
-            <div class="zc-header-word">商品列表</div>
-          </div>
-          <el-divider />
           <el-form
-            ref="productFormRef"
-            :model="productForm"
-            :rules="productRules"
+            ref="formRef"
+            :model="form"
+            :rules="rules"
             label-position="top"
-            class="relative"
+            class="flex flex-col relative"
             label-width="120px"
             require-asterisk-position="right"
           >
-            <div class="flex width-300">
-              <el-form-item class="flex-1" label="区域" prop="areaId">
-                <el-select
-                  v-model="productForm.areaId"
-                  placeholder="请选择区域"
+            <div class="d-flex width-300">
+              <el-form-item label="编码" prop="code">
+                <el-input
+                  v-model="form.code"
                   class="flex-1"
-                  @change="queryShelfOptions"
+                  placeholder="请输入编码"
+                  maxlength="32"
+                  required
                 >
-                  <el-option
-                    v-for="item in areaOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  />
-                </el-select>
-              </el-form-item>
-              <el-form-item class="flex-1 m-l-4" label="货架" prop="shelfId">
-                <el-select
-                  v-model="productForm.shelfId"
-                  placeholder="请选择货架"
-                  class="flex-1"
-                >
-                  <el-option
-                    v-for="item in shelfOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  />
-                </el-select>
+                </el-input>
               </el-form-item>
             </div>
-            <div class="flex width-300">
-              <el-form-item class="flex-1" label="商品分类" prop="categoryId">
-                <el-tree-select
-                  class="w-full"
-                  v-model="productForm.categoryId"
-                  placeholder="请选择商品分类"
-                  :data="categoryOptions"
-                  receipt-strictly
-                  :render-after-expand="false"
-                  :props="selectProps"
-                  @change="queryProductOptions"
-                  disabled
-                />
-              </el-form-item>
-              <el-form-item class="flex-1 m-l-4" label="商品" prop="productId">
-                <el-select
-                  v-model="productForm.productId"
-                  placeholder="请选择商品"
+            <div class="d-flex width-300">
+              <el-form-item label="描述" prop="description">
+                <el-input
+                  v-model="form.description"
                   class="flex-1"
-                  disabled
+                  placeholder="请输入描述"
+                  maxlength="32"
+                  required
                 >
-                  <el-option
-                    v-for="item in productOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  />
-                </el-select>
-              </el-form-item>
-            </div>
-            <el-form-item label="时间范围">
-              <el-date-picker
-                v-model="time"
-                class="width-100"
-                type="daterange"
-                start-placeholder="生产日期"
-                end-placeholder="过期日期"
-                format="YYYY/MM/DD"
-                value-format="YYYY-MM-DD"
-                @change="changeTime"
-              />
-            </el-form-item>
-
-            <div class="flex width-300">
-              <div class="flex justify-end flex-1 items-center">
-                <el-button
-                  v-if="editIndex > -1"
-                  type="primary"
-                  class="m-t-2"
-                  size="small"
-                  @click="addProduct"
-                  >入库</el-button
-                >
-              </div>
-            </div>
-          </el-form>
+                </el-input>
+              </el-form-item></div
+          ></el-form>
         </el-card>
         <el-card class="flex-1" shadow="never">
           <div class="table-wrap">
@@ -183,6 +66,26 @@
               <template #areaId="scope">
                 {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
               </template>
+              <template #status="scope">
+                <el-tag v-if="scope.scope.row.quantity === 0">未入库</el-tag>
+                <el-tag
+                  v-else-if="
+                    scope.scope.row.quantity < scope.scope.row.orderQuantity
+                  "
+                  >部分入库</el-tag
+                >
+                <el-tag
+                  v-else="
+                    scope.scope.row.quantity === scope.scope.row.orderQuantity
+                  "
+                  >全部入库</el-tag
+                >
+              </template>
+              <template #specification="scope">
+                {{
+                  getItem(scope.scope.row.productId, productMap)?.specification
+                }}
+              </template>
               <template #operate="scope">
                 <div class="flex">
                   <el-icon
@@ -199,15 +102,149 @@
         </el-card>
       </div>
     </div>
+    <el-dialog
+      v-model="dialogFormVisible"
+      title="商品入库"
+      width="500"
+      @close="closeModal()"
+    >
+      <el-form
+        ref="productFormRef"
+        :model="productForm"
+        :rules="productRules"
+        label-position="top"
+        class="relative"
+        label-width="120px"
+        require-asterisk-position="right"
+      >
+        <div class="flex width-400">
+          <el-form-item label="仓库" prop="warehouseId" class="flex-1">
+            <el-select
+              v-model="productForm.warehouseId"
+              placeholder="请选择仓库"
+              class="flex-1"
+              @change="changeWarehouse()"
+            >
+              <el-option
+                v-for="item in warehouseOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="flex-1 m-l-4" label="商品分类" prop="categoryId">
+            <el-tree-select
+              class="w-full"
+              v-model="productForm.categoryId"
+              placeholder="请选择商品分类"
+              :data="categoryOptions"
+              receipt-strictly
+              :render-after-expand="false"
+              :props="selectProps"
+              @change="queryProductOptions"
+              disabled
+            />
+          </el-form-item>
+        </div>
+
+        <div class="flex width-400">
+          <el-form-item class="flex-1" label="区域" prop="areaId">
+            <el-select
+              v-model="productForm.areaId"
+              placeholder="请选择区域"
+              class="flex-1"
+              @change="queryShelfOptions"
+            >
+              <el-option
+                v-for="item in areaOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="flex-1 m-l-4" label="商品" prop="productId">
+            <el-select
+              v-model="productForm.productId"
+              placeholder="请选择商品"
+              class="flex-1"
+              disabled
+            >
+              <el-option
+                v-for="item in productOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+        </div>
+        <div class="flex width-400">
+          <el-form-item class="flex-1" label="货架" prop="shelfId">
+            <el-select
+              v-model="productForm.shelfId"
+              placeholder="请选择货架"
+              class="flex-1"
+            >
+              <el-option
+                v-for="item in shelfOptions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item class="flex-1 m-l-4" label="入库数量" prop="quantity">
+            <el-input-number
+              v-model="productForm.quantity"
+              :min="0"
+              :max="productForm.orderQuantity"
+              @change="changeQuantity"
+              class="flex-1"
+            />
+          </el-form-item>
+        </div>
+        <el-form-item label="时间范围">
+          <el-date-picker
+            v-model="time"
+            class="width-100"
+            type="daterange"
+            start-placeholder="生产日期"
+            end-placeholder="过期日期"
+            format="YYYY/MM/DD"
+            value-format="YYYY-MM-DD"
+            @change="changeTime"
+          />
+        </el-form-item>
+        <div class="flex width-400">
+          <div class="flex justify-end flex-1 items-center">
+            <el-button
+              v-if="editIndex > -1"
+              type="primary"
+              class="m-t-2"
+              @click="addProduct"
+              >入库</el-button
+            >
+          </div>
+        </div>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
-import { Receipt, createReceipt, editReceipt } from "../api/receipt";
+import {
+  Receipt,
+  createReceipt,
+  editReceipt,
+  getReceiptList,
+} from "../api/receipt";
 import {
   ReceiptDetail,
   createReceiptDetail,
   deleteReceiptDetail,
+  getReceiptDetailList,
 } from "../api/receiptDetail";
 import { getProductList } from "@/pages/productManagement/api/product";
 import {
@@ -222,6 +259,7 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
+import { OrderStatus, editOrder } from "@/pages/purchaseManagement/api/order";
 import { getOrderDetailList } from "@/pages/purchaseManagement/api/orderDetail";
 import { getReturnDetailList } from "@/pages/saleManagement/api/returnDetail";
 const userStore = useUserStore();
@@ -232,22 +270,35 @@ const formRef = ref();
 const productFormRef = ref();
 const selectProps = { value: "id", label: "name" };
 const productOptions = ref<any[]>([]);
+const dialogFormVisible = ref(false);
+const closeModal = () => {
+  dialogFormVisible.value = false;
+  productForm.value = defaultProduct;
+};
+const openModal = () => {
+  dialogFormVisible.value = true;
+};
 //表单
 const form = ref<Receipt>({
   code: "",
-  orderId: props.data.orderId,
-  warehouseId: "",
+  orderId: props.type === 1 ? props.data.id : props.data.orderId,
   employeeId: userStore.getInfo().id,
   description: "",
 });
 
+if (props.type === 1) {
+  form.value.orderId = props.data.id;
+}
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "categoryId", label: "商品分类" },
   { prop: "productId", label: "商品名称" },
   { prop: "areaId", label: "区域" },
   { prop: "shelfId", label: "货架" },
-  { prop: "quantity", label: "数量" },
+  { prop: "specification", label: "规格" },
+  { prop: "orderQuantity", label: "订单数量" },
+  { prop: "quantity", label: "入库数量" },
+  { prop: "status", label: "状态" },
   { prop: "price", label: "单价" },
   { prop: "amount", label: "金额" },
   { prop: "productionDate", label: "生产日期" },
@@ -262,11 +313,17 @@ const tableData = ref<any[]>([]);
 const defaultProduct: ReceiptDetail = {
   productId: "",
   categoryId: "",
+  warehouseId: "",
   shelfId: "",
   areaId: "",
+  orderQuantity: 0,
   quantity: 0,
   price: 0,
   amount: 0,
+};
+const changeQuantity = () => {
+  productForm.value.amount =
+    +productForm.value.quantity * +productForm.value.price;
 };
 const time = ref<any>("");
 const changeTime = () => {
@@ -292,7 +349,8 @@ const shelfOptions = ref<any[]>([]);
 const areaMap = ref(new Map());
 const queryAreaOptions = async () => {
   const parmas: any = {};
-  if (form.value.warehouseId) parmas.warehouseId = form.value.warehouseId;
+  if (productForm.value.warehouseId)
+    parmas.warehouseId = productForm.value.warehouseId;
   const res = await getAreaList(parmas);
   const { data } = res as any;
   areaOptions.value = data;
@@ -386,8 +444,9 @@ const queryWarehouseOptions = async () => {
   const res = await getWarehouseList({});
   const { data } = res as any;
   warehouseOptions.value = data;
-  data.forEach((item: any) => {
+  data.forEach((item: any, i: number) => {
     const { id } = item;
+    if (i === 0) productForm.value.warehouseId = id;
     warehouseMap.value.set(id, item);
   });
 };
@@ -420,8 +479,8 @@ const addProduct = async () => {
       row.index = tableData.value.length + 1;
       tableData.value.push(row);
     }
-
     productForm.value = defaultProduct;
+    closeModal();
   }
 };
 const getName = (id: string, mapData: Map<string, string>) => {
@@ -431,10 +490,11 @@ const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
 const confirmSave = async (cb?: Function) => {
-  if (tableData.value.length == 0) {
+  const status = checkStatus();
+  if (!status) {
     ElMessage({
       type: "error",
-      message: "库存盘点商品列表不能为空",
+      message: "入库商品列表不能为空",
     });
     return;
   }
@@ -443,14 +503,19 @@ const confirmSave = async (cb?: Function) => {
     const params = { ...form.value };
     const api = params.id ? editReceipt : createReceipt;
     const res = await api(params);
-    const detailList = tableData.value.map((item: any) => {
-      return {
-        ...item,
-        receiptId: (res as any).data.id,
-      };
-    });
+    const detailList = tableData.value
+      .filter((item: any) => item.quantity > 0)
+      .map((item: any) => {
+        return {
+          ...item,
+          receiptId: (res as any).data.id,
+        };
+      });
     await deleteReceiptDetail((res as any).data.id);
     await createReceiptDetail(detailList);
+    if (props.type === 1) {
+      await editOrder({ id: (props as any).data.id, status });
+    }
     ElMessage({
       type: "success",
       message: "保存成功",
@@ -463,8 +528,29 @@ const edit = (row: ReceiptDetail) => {
   const { productionDate, expirationDate } = row;
   time.value = [productionDate, expirationDate];
   productForm.value = { ...row };
+  openModal();
 };
-
+const checkStatus = () => {
+  // 如果没有数据，视为未入库
+  if (!tableData.value || tableData.value.length === 0) {
+    return false;
+  }
+  // 检查是否所有quantity都为0
+  const allZero = tableData.value.every((item) => item.quantity === 0);
+  if (allZero) {
+    return false;
+  }
+  // 检查是否所有quantity都等于orderQuantity
+  const allFull = tableData.value.every(
+    (item) => item.quantity === item.orderQuantity,
+  );
+  if (allFull) {
+    return OrderStatus.FullyReceived;
+  }
+  // 其他情况都是部分入库
+  return OrderStatus.PartiallyReceived;
+};
+const receiptDetailsMap = ref<Map<any, any>>(new Map());
 defineExpose({ confirmSave });
 onMounted(async () => {
   await queryWarehouseOptions();
@@ -480,6 +566,7 @@ onMounted(async () => {
     const result = Object.assign({}, defaultProduct, {
       productId,
       categoryId,
+      orderQuantity: quantity,
       quantity,
       price,
       amount,
@@ -487,6 +574,21 @@ onMounted(async () => {
     });
     return result;
   });
+  const params =
+    props.type === 1
+      ? { orderId: (props as any).data.id }
+      : { orderId: (props as any).data.orderId };
+  const receipt = await getReceiptList(params);
+  if ((receipt as any)?.data?.[0]) {
+    Object.assign(form.value, (receipt as any)?.data?.[0]);
+    const receiptDetails = await getReceiptDetailList(String(form.value.id));
+    if ((receiptDetails as any).data) {
+      receiptDetailsMap.value.clear();
+      (receiptDetails as any).data.map((item: any) => {
+        receiptDetailsMap.value.set(item.productId, item);
+      });
+    }
+  }
 });
 </script>
 <style lang="scss" scoped>
