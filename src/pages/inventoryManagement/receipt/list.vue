@@ -216,7 +216,8 @@ const queryOrder = async () => {
 };
 const queryReturn = async () => {
   return await findReturnPage({
-    status: ReturnStatus.Approved,
+    startStatus: ReturnStatus.Approved,
+    endStatus: ReturnStatus.PartiallyReceived,
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   });

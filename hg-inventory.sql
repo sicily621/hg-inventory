@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : localhost
+ Source Server         : localhost_3306
  Source Server Type    : MySQL
- Source Server Version : 80025 (8.0.25)
+ Source Server Version : 80025
  Source Host           : localhost:3306
  Source Schema         : hg-inventory
 
  Target Server Type    : MySQL
- Target Server Version : 80025 (8.0.25)
+ Target Server Version : 80025
  File Encoding         : 65001
 
- Date: 19/08/2025 18:50:02
+ Date: 19/08/2025 22:57:28
 */
 
 SET NAMES utf8mb4;
@@ -225,7 +225,7 @@ CREATE TABLE `hg_department`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `department_name`(`name` ASC) USING BTREE
+  UNIQUE INDEX `department_name`(`name`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1952987749664636930 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -390,7 +390,8 @@ CREATE TABLE `hg_inventory_receipt`  (
 -- ----------------------------
 -- Records of hg_inventory_receipt
 -- ----------------------------
-INSERT INTO `hg_inventory_receipt` VALUES (1957745416769556482, 'r1', 1957087369869955074, 1950095792504283138, '', '2025-08-19 18:04:15', '2025-08-19 18:04:15', 0);
+INSERT INTO `hg_inventory_receipt` VALUES (1957745416769556482, 'r1', 1957087369869955074, 1950095792504283138, '', '2025-08-19 18:04:15', '2025-08-19 22:38:43', 0);
+INSERT INTO `hg_inventory_receipt` VALUES (1957817629511901186, '22', 1956551594762625026, 1950095792504283138, '', '2025-08-19 22:51:12', '2025-08-19 22:51:12', 0);
 
 -- ----------------------------
 -- Table structure for hg_inventory_receipt_detail
@@ -419,7 +420,13 @@ CREATE TABLE `hg_inventory_receipt_detail`  (
 -- ----------------------------
 -- Records of hg_inventory_receipt_detail
 -- ----------------------------
-INSERT INTO `hg_inventory_receipt_detail` VALUES (1957745416975077378, 1957745416769556482, 1952678553081520129, 1954455665985277953, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 18:04:15', '2025-08-19 18:04:15', 0);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957813056760045569, 1957745416769556482, 1952678553081520129, 1954455089243312130, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:33:02', '2025-08-19 22:33:02', 1);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957813163232452610, 1957745416769556482, 1952678553081520129, 1954455089243312130, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:33:02', '2025-08-19 22:33:02', 1);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957813163232452611, 1957745416769556482, 1952678553081520129, 1954455665985277953, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:33:27', '2025-08-19 22:33:27', 1);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957813885344800769, 1957745416769556482, 1952678553081520129, 1954455089243312130, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:33:02', '2025-08-19 22:33:02', 1);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957814488544436225, 1957745416769556482, 1952678553081520129, 1954455089243312130, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:33:02', '2025-08-19 22:33:02', 0);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957814488544436226, 1957745416769556482, 1952678553081520129, 1954455665985277953, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:38:43', '2025-08-19 22:38:43', 0);
+INSERT INTO `hg_inventory_receipt_detail` VALUES (1957817629641924610, 1957817629511901186, 1952678553081520129, 1954455089243312130, 1.00, 50.00, 50.00, 1952918491823816705, 1952986337115324418, 1953005820022308865, NULL, NULL, NULL, '2025-08-19 22:51:12', '2025-08-19 22:51:12', 0);
 
 -- ----------------------------
 -- Table structure for hg_inventory_shipment
@@ -526,7 +533,7 @@ CREATE TABLE `hg_permission`  (
   `action` int NOT NULL DEFAULT 1 COMMENT '操作类型 1 view、2 add、3 edit、4 delete、5 approve',
   `type` int NOT NULL DEFAULT 1 COMMENT '权限类型 1 菜单级别 2 按钮级别',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `permission_name`(`name` ASC) USING BTREE
+  UNIQUE INDEX `permission_name`(`name`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1957436430557712386 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -684,7 +691,7 @@ CREATE TABLE `hg_purchase_order`  (
 -- ----------------------------
 INSERT INTO `hg_purchase_order` VALUES (1954808533861224449, 1954553304370216962, 'order1', 1953021744750215169, 1950095792504283138, '2025-08-11 15:33:55', '1970-01-01 08:00:00', 7, 230.00, '', 1950095792504283138, '2025-08-11 17:36:16', '2025-08-11 15:34:08', '2025-08-11 22:32:57', 0);
 INSERT INTO `hg_purchase_order` VALUES (1954925305106599937, 1954924574878273538, '006', 1953021744750215169, 1950095792504283138, '2025-08-11 23:17:14', '1970-01-01 08:00:00', 7, 250.00, '', 1950095792504283138, '2025-08-11 23:19:32', '2025-08-11 23:18:08', '2025-08-11 23:21:08', 0);
-INSERT INTO `hg_purchase_order` VALUES (1957087369869955074, 1954911141189513218, 'o1', 1953021744750215169, 1950095792504283138, '2025-08-17 22:29:15', '1970-01-01 08:00:00', 5, 100.00, '', NULL, NULL, '2025-08-17 22:29:25', '2025-08-19 18:04:15', 0);
+INSERT INTO `hg_purchase_order` VALUES (1957087369869955074, 1954911141189513218, 'o1', 1953021744750215169, 1950095792504283138, '2025-08-17 22:29:15', '1970-01-01 08:00:00', 6, 100.00, '', NULL, NULL, '2025-08-17 22:29:25', '2025-08-19 22:38:43', 0);
 
 -- ----------------------------
 -- Table structure for hg_purchase_order_detail
@@ -713,6 +720,53 @@ INSERT INTO `hg_purchase_order_detail` VALUES (1954925305303732225, 195492530510
 INSERT INTO `hg_purchase_order_detail` VALUES (1954925305303732226, 1954925305106599937, 1954455665985277953, 1952678553081520129, 3.00, 50.00, 150.00, '2025-08-11 23:18:08', '2025-08-11 23:18:08', 0);
 INSERT INTO `hg_purchase_order_detail` VALUES (1957087370008367105, 1957087369869955074, 1954455089243312130, 1952678553081520129, 1.00, 50.00, 50.00, '2025-08-17 22:29:25', '2025-08-17 22:29:25', 0);
 INSERT INTO `hg_purchase_order_detail` VALUES (1957087370008367106, 1957087369869955074, 1954455665985277953, 1952678553081520129, 1.00, 50.00, 50.00, '2025-08-17 22:29:25', '2025-08-17 22:29:25', 0);
+
+-- ----------------------------
+-- Table structure for hg_purchase_receipt
+-- ----------------------------
+DROP TABLE IF EXISTS `hg_purchase_receipt`;
+CREATE TABLE `hg_purchase_receipt`  (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '入库单号',
+  `order_id` bigint NOT NULL COMMENT '关联采购订单ID',
+  `employee_id` bigint NOT NULL COMMENT '操作员工ID',
+  `receipt_date` datetime NOT NULL COMMENT '入库日期',
+  `warehouse_id` bigint NOT NULL COMMENT '仓库ID',
+  `status` int NULL DEFAULT 1 COMMENT '状态(1-待审核,2-已完成)',
+  `remark` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `del_flag` int NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '采购入库表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of hg_purchase_receipt
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for hg_purchase_receipt_detail
+-- ----------------------------
+DROP TABLE IF EXISTS `hg_purchase_receipt_detail`;
+CREATE TABLE `hg_purchase_receipt_detail`  (
+  `detail_id` bigint NOT NULL AUTO_INCREMENT,
+  `receipt_id` bigint NOT NULL COMMENT '入库单ID',
+  `product_id` bigint NOT NULL COMMENT '商品ID',
+  `quantity` decimal(10, 2) NOT NULL COMMENT '入库数量',
+  `price` decimal(10, 2) NOT NULL COMMENT '入库单价',
+  `amount` decimal(10, 2) NOT NULL COMMENT '金额',
+  `shelf_id` bigint NULL DEFAULT NULL COMMENT '存放货架ID',
+  `batch_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '批次号',
+  `production_date` date NULL DEFAULT NULL COMMENT '生产日期',
+  `expiration_date` date NULL DEFAULT NULL COMMENT '过期日期',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `del_flag` int NULL DEFAULT 0,
+  PRIMARY KEY (`detail_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '采购入库明细表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of hg_purchase_receipt_detail
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for hg_purchase_return
@@ -781,8 +835,8 @@ CREATE TABLE `hg_role`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `role_name`(`name` ASC) USING BTREE,
-  UNIQUE INDEX `role_code`(`code` ASC) USING BTREE
+  UNIQUE INDEX `role_name`(`name`) USING BTREE,
+  UNIQUE INDEX `role_code`(`code`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1952580037491453954 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -1004,7 +1058,7 @@ CREATE TABLE `hg_sales_return`  (
   `order_id` bigint NOT NULL COMMENT '关联销售订单ID',
   `employee_id` bigint NOT NULL COMMENT '操作员工ID',
   `customer_id` bigint NOT NULL COMMENT '客户ID',
-  `status` tinyint NULL DEFAULT 1 COMMENT '状态(1-待审核,2-已审核,3-已完成)',
+  `status` tinyint NULL DEFAULT 1 COMMENT '状态(1-待审核,2-已审核,3-已驳回,4-部分到货，5全部到货)',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '备注',
   `total_amount` decimal(10, 2) NULL DEFAULT NULL COMMENT '总金额',
   `approver_id` bigint NULL DEFAULT NULL COMMENT '审核人ID',
@@ -1018,7 +1072,7 @@ CREATE TABLE `hg_sales_return`  (
 -- ----------------------------
 -- Records of hg_sales_return
 -- ----------------------------
-INSERT INTO `hg_sales_return` VALUES (1956555441757331458, 'r1', 1956551594762625026, 1950095792504283138, 1953018819353198594, 2, '', 50.00, 1950095792504283138, '2025-08-18 21:37:23', '2025-08-16 11:15:43', '2025-08-18 21:37:23', 0);
+INSERT INTO `hg_sales_return` VALUES (1956555441757331458, 'r1', 1956551594762625026, 1950095792504283138, 1953018819353198594, 5, '', 50.00, 1950095792504283138, '2025-08-18 21:37:23', '2025-08-16 11:15:43', '2025-08-19 22:51:12', 0);
 
 -- ----------------------------
 -- Table structure for hg_sales_return_detail
@@ -1082,7 +1136,7 @@ CREATE TABLE `hg_supplier`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `del_flag` int NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `supplier_code`(`code` ASC) USING BTREE
+  UNIQUE INDEX `supplier_code`(`code`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1953021744750215170 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '供应商表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------

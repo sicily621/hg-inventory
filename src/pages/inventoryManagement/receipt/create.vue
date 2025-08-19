@@ -18,7 +18,7 @@
             label-width="120px"
             require-asterisk-position="right"
           >
-            <div class="d-flex width-300">
+            <div class="d-flex width-250">
               <el-form-item label="编码" prop="code">
                 <el-input
                   v-model="form.code"
@@ -30,7 +30,7 @@
                 </el-input>
               </el-form-item>
             </div>
-            <div class="d-flex width-300">
+            <div class="d-flex width-250">
               <el-form-item label="描述" prop="description">
                 <el-input
                   v-model="form.description"
@@ -224,7 +224,7 @@
               type="primary"
               class="m-t-2"
               @click="addProduct"
-              >入库</el-button
+              >确定</el-button
             >
           </div>
         </div>
@@ -261,6 +261,7 @@ import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
 import { OrderStatus, editOrder } from "@/pages/purchaseManagement/api/order";
 import { getOrderDetailList } from "@/pages/purchaseManagement/api/orderDetail";
+import { ReturnStatus, editReturn } from "@/pages/saleManagement/api/return";
 import { getReturnDetailList } from "@/pages/saleManagement/api/returnDetail";
 const userStore = useUserStore();
 const pageSize = ref(1000);
@@ -506,15 +507,19 @@ const confirmSave = async (cb?: Function) => {
     const detailList = tableData.value
       .filter((item: any) => item.quantity > 0)
       .map((item: any) => {
-        return {
+        const result = {
           ...item,
           receiptId: (res as any).data.id,
         };
+        delete result["id"];
+        return result;
       });
     await deleteReceiptDetail((res as any).data.id);
     await createReceiptDetail(detailList);
     if (props.type === 1) {
       await editOrder({ id: (props as any).data.id, status });
+    } else {
+      await editReturn({ id: (props as any).data.id, status });
     }
     ElMessage({
       type: "success",
@@ -536,44 +541,26 @@ const checkStatus = () => {
     return false;
   }
   // 检查是否所有quantity都为0
-  const allZero = tableData.value.every((item) => item.quantity === 0);
+  const allZero = tableData.value.every((item) => +item.quantity === 0);
   if (allZero) {
     return false;
   }
   // 检查是否所有quantity都等于orderQuantity
   const allFull = tableData.value.every(
-    (item) => item.quantity === item.orderQuantity,
+    (item) => +item.quantity === +item.orderQuantity,
   );
   if (allFull) {
-    return OrderStatus.FullyReceived;
+    return props.type === 1
+      ? OrderStatus.FullyReceived
+      : ReturnStatus.FullyReceived;
   }
   // 其他情况都是部分入库
-  return OrderStatus.PartiallyReceived;
+  return props.type === 1
+    ? OrderStatus.PartiallyReceived
+    : ReturnStatus.PartiallyReceived;
 };
 const receiptDetailsMap = ref<Map<any, any>>(new Map());
-defineExpose({ confirmSave });
-onMounted(async () => {
-  await queryWarehouseOptions();
-  await queryAreaOptions();
-  await queryShelfOptions();
-  await queryEmployeeOptions();
-  await queryCategoryOptions();
-  await queryProductOptions();
-  const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
-  const res = await api((props as any).data.id);
-  tableData.value = (res as any)?.data.map((item: any, i: number) => {
-    const { productId, categoryId, quantity, price, amount } = item;
-    const result = Object.assign({}, defaultProduct, {
-      productId,
-      categoryId,
-      orderQuantity: quantity,
-      quantity,
-      price,
-      amount,
-      index: i + 1,
-    });
-    return result;
-  });
+const queryReceipt = async () => {
   const params =
     props.type === 1
       ? { orderId: (props as any).data.id }
@@ -589,12 +576,44 @@ onMounted(async () => {
       });
     }
   }
+};
+defineExpose({ confirmSave });
+onMounted(async () => {
+  await queryWarehouseOptions();
+  await queryAreaOptions();
+  await queryShelfOptions();
+  await queryEmployeeOptions();
+  await queryCategoryOptions();
+  await queryProductOptions();
+  await queryReceipt();
+  const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
+  const res = await api((props as any).data.id);
+  tableData.value = (res as any)?.data.map((item: any, i: number) => {
+    const { productId, categoryId, quantity, price, amount } = item;
+    const receiptDetail = receiptDetailsMap.value.get(productId);
+    const result = Object.assign({}, defaultProduct, {
+      productId,
+      categoryId,
+      orderQuantity: quantity,
+      quantity: 0,
+      price,
+      amount,
+      index: i + 1,
+    });
+    if (receiptDetail) {
+      Object.assign(result, receiptDetail);
+    }
+    return result;
+  });
 });
 </script>
 <style lang="scss" scoped>
 @use "@@/assets/styles/size.scss" as *;
 .width-300 {
   width: zrem(300);
+}
+.width-250 {
+  width: zrem(250);
 }
 .avatar-upload {
   font-size: zrem(20);
