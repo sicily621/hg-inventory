@@ -275,7 +275,7 @@ import {
 } from "@/pages/purchaseManagement/api/return";
 import { getReturnDetailList } from "@/pages/purchaseManagement/api/returnDetail";
 import {
-  receipt,
+  shipment,
   getInventoryList,
 } from "@/pages/inventoryManagement/api/inventory";
 import {
@@ -578,7 +578,7 @@ const confirmSave = async (cb?: Function) => {
       })
       .filter((item: any) => item.quantity > 0)
       .map((item: any) => item);
-    await receipt(list);
+    await shipment(list);
     await deleteReceiptDetail((res as any).data.id);
     await createReceiptDetail(detailList);
     if (props.type === 1) {
