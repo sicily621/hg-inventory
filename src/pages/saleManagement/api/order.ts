@@ -50,8 +50,9 @@ export interface queryOrderConditions {
 }
 
 export const createOrder = (data: Order) => Post(orderPrefix, data);
-export const editOrder = (data: Order) => Put(orderPrefix, data);
+export const editOrder = (data: any) => Put(orderPrefix, data);
 export const deleteOrder = (id: string | number) =>
   Delete(orderPrefix + `/${id}`);
 export const findOrderPage = (data: any) => Get(orderPrefix + "/page", data);
-export const getOrderList = () => Get(`${orderPrefix}/list`, null);
+export const getOrderList = (data: any = null) =>
+  Get(`${orderPrefix}/list`, data);

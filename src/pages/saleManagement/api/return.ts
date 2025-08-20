@@ -24,8 +24,8 @@ export enum ReturnStatus {
 
 export const ReturnStatusList = [
   { id: 1, name: "待审核" },
-  { id: 2, name: "已审核" },
-  { id: 3, name: "已驳回" },
+  { id: 2, name: "已驳回" },
+  { id: 3, name: "已审核" },
   { id: 4, name: "部分收货" },
   { id: 5, name: "全部收货" },
 ];
@@ -45,4 +45,5 @@ export const editReturn = (data: any) => Put(returnPrefix, data);
 export const deleteReturn = (id: string | number) =>
   Delete(returnPrefix + `/${id}`);
 export const findReturnPage = (data: any) => Get(returnPrefix + "/page", data);
-export const getReturnList = () => Get(`${returnPrefix}/list`, null);
+export const getReturnList = (data: any = null) =>
+  Get(`${returnPrefix}/list`, data);

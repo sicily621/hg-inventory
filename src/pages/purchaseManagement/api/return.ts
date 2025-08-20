@@ -16,16 +16,18 @@ export interface Return {
 
 export enum ReturnStatus {
   Pending = 1,
-  Approved = 2,
-  Rejected = 3,
-  Finished = 4,
+  Rejected = 2,
+  Approved = 3,
+  PartiallyReceived = 4,
+  FullyReceived = 5,
 }
 
 export const ReturnStatusList = [
   { id: 1, name: "待审核" },
-  { id: 2, name: "已审核" },
-  { id: 3, name: "已驳回" },
-  { id: 4, name: "已完成" },
+  { id: 2, name: "已驳回" },
+  { id: 3, name: "已审核" },
+  { id: 4, name: "部分收货" },
+  { id: 5, name: "全部收货" },
 ];
 
 export interface queryReturnConditions {
@@ -39,8 +41,9 @@ export interface queryReturnConditions {
 }
 
 export const createReturn = (data: Return) => Post(returnPrefix, data);
-export const editReturn = (data: Return) => Put(returnPrefix, data);
+export const editReturn = (data: any) => Put(returnPrefix, data);
 export const deleteReturn = (id: string | number) =>
   Delete(returnPrefix + `/${id}`);
 export const findReturnPage = (data: any) => Get(returnPrefix + "/page", data);
-export const getReturnList = () => Get(`${returnPrefix}/list`, null);
+export const getReturnList = (data: any = null) =>
+  Get(`${returnPrefix}/list`, data);

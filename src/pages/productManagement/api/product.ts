@@ -25,3 +25,5 @@ export const deleteProduct = (id: string | number) =>
 export const findProductPage = (data: any) =>
   Get(productPrefix + "/page", data);
 export const getProductList = (data: any) => Get(`${productPrefix}/list`, data);
+export const findProductListByIds = (ids: string) =>
+  Get(productPrefix + `/getByIds/${ids}`, null);

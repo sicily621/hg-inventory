@@ -25,4 +25,5 @@ export enum ModuleCode {
   InventoryHistory = "inventoryHistory",
   InventoryCheck = "inventoryCheck",
   InventoryReceipt = "inventoryReceipt",
+  InventoryShipment = "inventoryShipment",
 }

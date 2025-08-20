@@ -6,11 +6,7 @@ export interface Inventory {
   warehouseId: string | number;
   shelfId: string | number;
   areaId: string | number;
-  currentQuantity: number;
-  availableQuantity: number;
-  lockedQuantity: number;
-  minQuantity: number;
-  maxQuantity: number;
+  quantity: number;
 }
 
 export interface queryInventoryConditions {
@@ -21,6 +17,10 @@ export interface queryInventoryConditions {
 }
 
 export const createInventory = (data: Inventory) => Post(inventoryPrefix, data);
+export const receipt = (data: Inventory[]) =>
+  Post(inventoryPrefix + "/add", data);
+export const shipment = (data: Inventory[]) =>
+  Post(inventoryPrefix + "/subtract", data);
 export const editInventory = (data: Inventory) => Put(inventoryPrefix, data);
 export const deleteInventory = (id: string | number) =>
   Delete(inventoryPrefix + `/${id}`);

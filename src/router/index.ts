@@ -447,6 +447,16 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           moduleCode: ModuleCode.InventoryReceipt,
         },
       },
+      {
+        path: "shipment",
+        component: () =>
+          import("@/pages/inventoryManagement/shipment/list.vue"),
+        name: ModuleCode.InventoryShipment,
+        meta: {
+          title: "出库",
+          moduleCode: ModuleCode.InventoryShipment,
+        },
+      },
     ],
   },
   {

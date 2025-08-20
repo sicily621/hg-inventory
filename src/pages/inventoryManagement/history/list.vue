@@ -165,7 +165,6 @@ const columns = ref([
   { prop: "type", label: "操作类型" },
   { prop: "quantity", label: "变动数量" },
   { prop: "employeeId", label: "操作人" },
-  { prop: "description", label: "描述" },
 ]);
 
 //分页

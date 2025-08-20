@@ -7,7 +7,7 @@ export interface History {
   shelfId: string | number;
   areaId: string | number;
   type: HistoryType;
-  documentId: string | number;
+  documentId?: string | number;
   quantity: number;
   employeeId: string | number;
   description: string;
@@ -37,6 +37,8 @@ export interface queryHistoryConditions {
 }
 
 export const createHistory = (data: History) => Post(historyPrefix, data);
+export const batchSaveHistory = (data: History[]) =>
+  Post(historyPrefix + "/batchSave", data);
 export const editHistory = (data: History) => Put(historyPrefix, data);
 export const deleteHistory = (id: string | number) =>
   Delete(historyPrefix + `/${id}`);

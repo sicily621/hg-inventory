@@ -12,11 +12,11 @@
             <el-form-item prop="type" label="类型">
               <el-select
                 v-model="searchData.type"
-                placeholder="请选择仓库"
+                placeholder="请选择类型"
                 class="w-40"
               >
-                <el-option :key="1" label="采购订单" :value="1" />
-                <el-option :key="2" label="销售退单" :value="2" />
+                <el-option :key="1" label="销售订单" :value="1" />
+                <el-option :key="2" label="采购退单" :value="2" />
               </el-select>
             </el-form-item>
           </el-form>
@@ -144,13 +144,13 @@ import {
   findOrderPage,
   OrderStatus,
   OrderStatusList,
-} from "@/pages/purchaseManagement/api/order";
+} from "@/pages/saleManagement/api/order";
 import { getCustomerList } from "@/pages/saleManagement/api/customer";
 import {
   findReturnPage,
   ReturnStatus,
   ReturnStatusList,
-} from "@/pages/saleManagement/api/return";
+} from "@/pages/purchaseManagement/api/return";
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
@@ -173,12 +173,12 @@ const columns = computed(() => {
     { prop: "index", label: "序号", width: "100", type: 1 },
     { prop: "code", label: "编码" },
     {
-      prop: searchData.type === 1 ? "supplierId" : "customerId",
-      label: searchData.type === 1 ? "供应商" : "客户",
+      prop: searchData.type === 1 ? "customerId" : "supplierId",
+      label: searchData.type === 1 ? "客户" : "供应商",
     },
     {
       prop: "employeeId",
-      label: searchData.type === 1 ? "采购员工" : "退单员工",
+      label: searchData.type === 1 ? "销售员工" : "退单员工",
     },
     ...list,
     { prop: "status", label: "状态" },

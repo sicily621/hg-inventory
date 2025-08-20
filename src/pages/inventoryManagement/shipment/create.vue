@@ -4,7 +4,7 @@
       <el-card>
         <div class="zc-header-title">
           <div class="zc-header-icon"></div>
-          <div class="zc-header-word">入库信息</div>
+          <div class="zc-header-word">出库信息</div>
         </div>
       </el-card>
       <div class="flex flex-1">
@@ -68,18 +68,18 @@
                 {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
               </template>
               <template #status="scope">
-                <el-tag v-if="scope.scope.row.quantity === 0">未入库</el-tag>
+                <el-tag v-if="scope.scope.row.quantity === 0">未出库</el-tag>
                 <el-tag
                   v-else-if="
                     scope.scope.row.quantity < scope.scope.row.orderQuantity
                   "
-                  >部分入库</el-tag
+                  >部分出库</el-tag
                 >
                 <el-tag
                   v-else="
                     scope.scope.row.quantity === scope.scope.row.orderQuantity
                   "
-                  >全部入库</el-tag
+                  >全部出库</el-tag
                 >
               </template>
               <template #specification="scope">
@@ -105,7 +105,7 @@
     </div>
     <el-dialog
       v-model="dialogFormVisible"
-      title="商品入库"
+      title="商品出库"
       width="500"
       @close="closeModal()"
     >
@@ -195,28 +195,36 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item class="flex-1 m-l-4" label="入库数量" prop="quantity">
+          <el-form-item class="flex-1 m-l-4" label="出库数量" prop="quantity">
             <el-input-number
               v-model="productForm.quantity"
               :min="0"
-              :max="productForm.orderQuantity"
+              :max="max"
               @change="changeQuantity"
               class="flex-1"
             />
           </el-form-item>
         </div>
-        <el-form-item label="时间范围">
-          <el-date-picker
-            v-model="time"
-            class="width-100"
-            type="daterange"
-            start-placeholder="生产日期"
-            end-placeholder="过期日期"
-            format="YYYY/MM/DD"
-            value-format="YYYY-MM-DD"
-            @change="changeTime"
-          />
-        </el-form-item>
+        <div class="flex width-400">
+          <el-form-item class="flex-1" label="时间范围">
+            <el-date-picker
+              v-model="time"
+              class="flex-1"
+              type="daterange"
+              start-placeholder="生产日期"
+              end-placeholder="过期日期"
+              format="YYYY/MM/DD"
+              value-format="YYYY-MM-DD"
+              @change="changeTime"
+            />
+          </el-form-item>
+          <el-form-item class="flex-1 m-l-4" label="库存数量">
+            <div class="flex flex-center w-full">
+              <el-tag class="fz20 p-5">{{ inventory }}</el-tag>
+            </div>
+          </el-form-item>
+        </div>
+
         <div class="flex width-400">
           <div class="flex justify-end flex-1 items-center">
             <el-button
@@ -233,7 +241,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import {
   Receipt,
   createReceipt,
@@ -259,12 +267,23 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
-import { OrderStatus, editOrder } from "@/pages/purchaseManagement/api/order";
-import { getOrderDetailList } from "@/pages/purchaseManagement/api/orderDetail";
-import { ReturnStatus, editReturn } from "@/pages/saleManagement/api/return";
-import { getReturnDetailList } from "@/pages/saleManagement/api/returnDetail";
-import { receipt } from "@/pages/inventoryManagement/api/inventory";
-import { batchSaveHistory, History, HistoryType } from "../api/history";
+import { OrderStatus, editOrder } from "@/pages/saleManagement/api/order";
+import { getOrderDetailList } from "@/pages/saleManagement/api/orderDetail";
+import {
+  ReturnStatus,
+  editReturn,
+} from "@/pages/purchaseManagement/api/return";
+import { getReturnDetailList } from "@/pages/purchaseManagement/api/returnDetail";
+import {
+  receipt,
+  getInventoryList,
+} from "@/pages/inventoryManagement/api/inventory";
+import {
+  batchSaveHistory,
+  History,
+  HistoryType,
+  getHistoryList,
+} from "../api/history";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -307,7 +326,7 @@ const columns = computed(() => {
     { prop: "shelfId", label: "货架" },
     { prop: "specification", label: "规格" },
     { prop: "orderQuantity", label: "订单数量" },
-    { prop: "quantity", label: "入库数量" },
+    { prop: "quantity", label: "出库数量" },
     { prop: "status", label: "状态" },
     { prop: "price", label: "单价" },
     { prop: "amount", label: "金额" },
@@ -400,6 +419,7 @@ const queryShelfOptions = async () => {
     shelfOptions.value = [{ name: "无", id: 0 }];
   }
 };
+
 function buildCategoryTree(categorys: Category[]) {
   const map = new Map();
   categoryMap.value.clear();
@@ -491,7 +511,15 @@ const addProduct = async () => {
       row.index = tableData.value.length + 1;
       tableData.value.push(row);
     }
+    if (
+      max.value &&
+      productForm.value?.orderQuantity &&
+      max.value < productForm.value?.orderQuantity
+    ) {
+      ElMessage.error("当前商品在所选货架库存不足");
+    }
     productForm.value = defaultProduct;
+
     closeModal();
   }
 };
@@ -501,12 +529,23 @@ const getName = (id: string, mapData: Map<string, string>) => {
 const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
+const inventory = ref(0);
+const queryInventory = async () => {
+  const { productId, warehouseId, shelfId, areaId } = productForm.value;
+  const params = { productId, warehouseId, shelfId, areaId };
+  const res = await getInventoryList(params);
+  if ((res as any)?.data?.[0]) {
+    inventory.value = (res as any)?.data?.[0].quantity;
+  } else {
+    inventory.value = 0;
+  }
+};
 const confirmSave = async (cb?: Function) => {
   const status = checkStatus();
   if (!status) {
     ElMessage({
       type: "error",
-      message: "入库商品列表不能为空",
+      message: "出库商品列表不能为空",
     });
     return;
   }
@@ -549,7 +588,7 @@ const confirmSave = async (cb?: Function) => {
     }
     const historyList = list.map((item) => {
       item.type =
-        props.type === 1 ? HistoryType.PurchaseIn : HistoryType.SaleReturn;
+        props.type === 1 ? HistoryType.SaleOut : HistoryType.PurchaseReturn;
       item.employeeId = userStore.getInfo().id;
       return item;
     });
@@ -569,7 +608,7 @@ const edit = (row: ReceiptDetail) => {
   openModal();
 };
 const checkStatus = () => {
-  // 如果没有数据，视为未入库
+  // 如果没有数据，视为未出库
   if (!tableData.value || tableData.value.length === 0) {
     return false;
   }
@@ -587,7 +626,7 @@ const checkStatus = () => {
       ? OrderStatus.FullyReceived
       : ReturnStatus.FullyReceived;
   }
-  // 其他情况都是部分入库
+  // 其他情况都是部分出库
   return props.type === 1
     ? OrderStatus.PartiallyReceived
     : ReturnStatus.PartiallyReceived;
@@ -611,6 +650,24 @@ const queryReceipt = async () => {
     }
   }
 };
+watch(
+  [
+    () => productForm.value.warehouseId,
+    () => productForm.value.areaId,
+    () => productForm.value.shelfId,
+    () => productForm.value.productId,
+  ],
+  () => {
+    queryInventory();
+  },
+);
+const max = computed(() => {
+  if (productForm.value.orderQuantity) {
+    return Math.min(inventory.value, +productForm.value.orderQuantity);
+  } else {
+    inventory.value;
+  }
+});
 defineExpose({ confirmSave });
 onMounted(async () => {
   await queryWarehouseOptions();
@@ -618,6 +675,7 @@ onMounted(async () => {
   await queryShelfOptions();
   await queryEmployeeOptions();
   await queryCategoryOptions();
+  await queryInventory();
   await queryReceipt();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
   const res = await api((props as any).data.id);

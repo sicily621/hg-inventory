@@ -105,21 +105,8 @@
             <template #shelfId="scope">
               {{ getItem(scope.scope.row.shelfId, shelfMap)?.name }}
             </template>
-            <template #minQuantity="scope">
-              <el-input-number
-                v-model="scope.scope.row.minQuantity"
-                :min="1"
-                class="flex-1"
-                @change="changeRow(scope.scope.row)"
-              />
-            </template>
-            <template #maxQuantity="scope">
-              <el-input-number
-                v-model="scope.scope.row.maxQuantity"
-                :min="scope.scope.row.minQuantity"
-                @change="changeRow(scope.scope.row)"
-                class="flex-1"
-              />
+            <template #areaId="scope">
+              {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
             </template>
           </baseTable>
         </div>
@@ -164,12 +151,9 @@ const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "productId", label: "商品" },
   { prop: "warehouseId", label: "仓库" },
+  { prop: "areaId", label: "区域" },
   { prop: "shelfId", label: "货架" },
-  { prop: "currentQuantity", label: "当前库存数量" },
-  { prop: "availableQuantity", label: "可用库存数量" },
-  { prop: "lockedQuantity", label: "锁定数量" },
-  { prop: "minQuantity", label: "最低库存预警值" },
-  { prop: "maxQuantity", label: "最高库存预警值" },
+  { prop: "quantity", label: "库存数量" },
 ]);
 
 //分页
@@ -181,14 +165,6 @@ const pageChange = (page: any) => {
   refreshTable();
 };
 const tableData = ref<Inventory[]>([]);
-const changeRow = async (row: Inventory) => {
-  await editInventory(row);
-  ElMessage({
-    type: "success",
-    message: "修改成功",
-  });
-  refreshTable();
-};
 const searchFormRef = ref("searchFormRef");
 
 const searchData = reactive<queryInventoryConditions>({
