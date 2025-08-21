@@ -15,6 +15,7 @@ export interface ReceiptDetail {
   amount: number;
   productionDate?: string;
   expirationDate?: string;
+  batchNumber: number;
 }
 
 export const createReceiptDetail = (data: ReceiptDetail[]) =>

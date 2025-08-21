@@ -353,6 +353,7 @@ const defaultProduct: ReceiptDetail = {
   quantity: 0,
   price: 0,
   amount: 0,
+  batchNumber: 0,
 };
 const changeQuantity = () => {
   productForm.value.amount =

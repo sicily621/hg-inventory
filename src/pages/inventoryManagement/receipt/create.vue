@@ -45,12 +45,17 @@
           ></el-form>
         </el-card>
         <el-card class="flex-1" shadow="never">
+          <el-tabs v-model="tabActiveIndex">
+            <el-tab-pane label="订单详情" :name="1"></el-tab-pane>
+            <el-tab-pane label="入库详情" :name="2"></el-tab-pane>
+          </el-tabs>
           <div class="table-wrap">
             <baseTable
               :columns="columns"
               :table-data="tableData"
               class="h-full"
               :indexMethod="indexMethod(currentPage, pageSize)"
+              v-if="tabActiveIndex === 1"
             >
               <template #categoryId="scope">
                 {{ getName(scope.scope.row.categoryId, categoryMap) }}
@@ -90,11 +95,60 @@
               <template #operate="scope">
                 <div class="flex">
                   <el-icon
+                    v-if="
+                      scope.scope.row.quantity < scope.scope.row.orderQuantity
+                    "
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="create(scope.scope.row)"
+                  >
+                    <Edit />
+                  </el-icon>
+                </div>
+              </template>
+            </baseTable>
+            <baseTable
+              v-if="tabActiveIndex === 2"
+              :columns="columns2"
+              :table-data="tableData2"
+              class="h-full"
+              :indexMethod="indexMethod(currentPage, pageSize)"
+            >
+              <template #categoryId="scope">
+                {{ getName(scope.scope.row.categoryId, categoryMap) }}
+              </template>
+              <template #productId="scope">
+                {{ getItem(scope.scope.row.productId, productMap)?.name }}
+              </template>
+              <template #warehouseId="scope">
+                {{ getItem(scope.scope.row.warehouseId, warehouseMap)?.name }}
+              </template>
+              <template #shelfId="scope">
+                {{ getItem(scope.scope.row.shelfId, shelfMap)?.name }}
+              </template>
+              <template #areaId="scope">
+                {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
+              </template>
+              <template #specification="scope">
+                {{
+                  getItem(scope.scope.row.productId, productMap)?.specification
+                }}
+              </template>
+              <template #operate="scope">
+                <div class="flex" v-if="!scope.scope.row?.id">
+                  <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
                     @click="edit(scope.scope.row)"
                   >
                     <Edit />
+                  </el-icon>
+                  <el-icon
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="remove(scope.scope.row)"
+                  >
+                    <Delete />
                   </el-icon>
                 </div>
               </template>
@@ -199,7 +253,7 @@
             <el-input-number
               v-model="productForm.quantity"
               :min="0"
-              :max="productForm.orderQuantity"
+              :max="max"
               @change="changeQuantity"
               class="flex-1"
             />
@@ -219,11 +273,7 @@
         </el-form-item>
         <div class="flex width-400">
           <div class="flex justify-end flex-1 items-center">
-            <el-button
-              v-if="editIndex > -1"
-              type="primary"
-              class="m-t-2"
-              @click="addProduct"
+            <el-button type="primary" class="m-t-2" @click="addProduct"
               >确定</el-button
             >
           </div>
@@ -256,6 +306,7 @@ import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { getAreaList } from "@/pages/warehouseManagement/api/area";
 import { getShelfList } from "@/pages/warehouseManagement/api/shelf";
 import baseTable from "@@/components/baseTable/baseTable.vue";
+import mergeRowTable from "@@/components/mergeRowTable/mergeRowTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
@@ -279,6 +330,7 @@ const closeModal = () => {
   productForm.value = defaultProduct;
 };
 const openModal = () => {
+  max.value = getMax();
   dialogFormVisible.value = true;
 };
 const disabled = computed(() => {
@@ -286,6 +338,7 @@ const disabled = computed(() => {
     ? props.data.status === OrderStatus.FullyReceived
     : props.data.status === ReturnStatus.FullyReceived;
 });
+const tabActiveIndex = ref(1);
 //表单
 const form = ref<Receipt>({
   code: "",
@@ -302,28 +355,39 @@ const columns = computed(() => {
     { prop: "index", label: "序号", width: "100", type: 1 },
     { prop: "categoryId", label: "商品分类" },
     { prop: "productId", label: "商品名称" },
-    { prop: "warehouseId", label: "仓库" },
-    { prop: "areaId", label: "区域" },
-    { prop: "shelfId", label: "货架" },
     { prop: "specification", label: "规格" },
     { prop: "orderQuantity", label: "订单数量" },
     { prop: "quantity", label: "入库数量" },
     { prop: "status", label: "状态" },
     { prop: "price", label: "单价" },
     { prop: "amount", label: "金额" },
-    { prop: "productionDate", label: "生产日期" },
-    { prop: "expirationDate", label: "过期日期" },
   ];
   if (!disabled.value) {
     result.push({ prop: "operate", label: "操作", width: 80 });
   }
   return result;
 });
+const columns2 = ref([
+  { prop: "index", label: "序号", width: "100", type: 1 },
+  { prop: "categoryId", label: "商品分类" },
+  { prop: "productId", label: "商品名称" },
+  { prop: "specification", label: "规格" },
+  { prop: "batchNumber", label: "批次号" },
+  { prop: "quantity", label: "入库数量" },
+  { prop: "warehouseId", label: "仓库" },
+  { prop: "areaId", label: "区域" },
+  { prop: "shelfId", label: "货架" },
+  { prop: "productionDate", label: "生产日期" },
+  { prop: "expirationDate", label: "过期日期" },
+  { prop: "createTime", label: "入库时间" },
+  { prop: "operate", label: "操作", width: 80 },
+]);
 const changeWarehouse = async () => {
   await queryAreaOptions();
   await queryShelfOptions();
 };
 const tableData = ref<any[]>([]);
+const tableData2 = ref<any[]>([]);
 const defaultProduct: ReceiptDetail = {
   productId: "",
   categoryId: "",
@@ -334,6 +398,7 @@ const defaultProduct: ReceiptDetail = {
   quantity: 0,
   price: 0,
   amount: 0,
+  batchNumber: 1,
 };
 const changeQuantity = () => {
   productForm.value.amount =
@@ -347,7 +412,22 @@ const changeTime = () => {
   }
 };
 const productForm = ref<ReceiptDetail>(defaultProduct);
-
+const max = ref(0);
+const getMax = () => {
+  const receiptQuantity = receiptDetailsMap.value.get(
+    productForm.value.productId,
+  );
+  const orderQuantity = orderQuantityMap.value.get(productForm.value.productId);
+  if (editIndex.value > -1) {
+    return +orderQuantity;
+  } else {
+    if (productForm.value.orderQuantity) {
+      return +productForm.value.orderQuantity - receiptQuantity;
+    } else {
+      return 0;
+    }
+  }
+};
 const rules = reactive({
   code: [{ required: true, message: "不能为空" }],
   warehouseId: [{ required: true, message: "不能为空" }],
@@ -476,6 +556,7 @@ const queryEmployeeOptions = async () => {
     });
   }
 };
+const editIndex0 = ref(-1);
 const editIndex = ref(-1);
 const addProduct = async () => {
   const valid = await productFormRef.value.validate();
@@ -483,13 +564,22 @@ const addProduct = async () => {
     const row: any = {
       ...productForm.value,
     };
-    if (editIndex.value > -1) {
-      row.index = editIndex.value + 1;
-      tableData.value[editIndex.value] = row;
-      editIndex.value = -1;
-    } else {
-      row.index = tableData.value.length + 1;
-      tableData.value.push(row);
+    if (row.quantity > 0) {
+      if (editIndex.value > -1) {
+        row.index = editIndex.value + 1;
+        tableData2.value[editIndex.value] = row;
+        editIndex.value = -1;
+      } else {
+        row.index = tableData2.value.length + 1;
+        tableData2.value.push(row);
+      }
+    }
+    if (editIndex0.value > -1) {
+      const receiptQuantity = receiptDetailsMap.value.get(row.productId);
+      const value = (receiptQuantity ?? 0) + row.quantity;
+      receiptDetailsMap.value.set(row.productId, value);
+      tableData.value[editIndex0.value].quantity += row.quantity;
+      editIndex0.value = -1;
     }
     productForm.value = defaultProduct;
     closeModal();
@@ -515,30 +605,25 @@ const confirmSave = async (cb?: Function) => {
     const params = { ...form.value };
     const api = params.id ? editReceipt : createReceipt;
     const res = await api(params);
-    const detailList = tableData.value
-      .filter((item: any) => item.quantity > 0)
+    const detailList = tableData2.value
+      .filter((item) => !item.id)
       .map((item: any) => {
         const result = {
           ...item,
           receiptId: (res as any).data.id,
         };
-        delete result["id"];
         return result;
       });
-    const list = detailList
-      .map((item: any) => {
-        const { productId, warehouseId, shelfId, areaId, quantity } = item;
-        const cache: any = receiptDetailsMap.value.get(item.productId);
-        return {
-          productId,
-          warehouseId,
-          shelfId,
-          areaId,
-          quantity: cache?.quantity ? quantity - cache?.quantity : quantity,
-        };
-      })
-      .filter((item: any) => item.quantity > 0)
-      .map((item: any) => item);
+    const list: any[] = detailList.map((item: any) => {
+      const { productId, warehouseId, shelfId, areaId, quantity } = item;
+      return {
+        productId,
+        warehouseId,
+        shelfId,
+        areaId,
+        quantity,
+      };
+    });
     await receipt(list);
     await deleteReceiptDetail((res as any).data.id);
     await createReceiptDetail(detailList);
@@ -561,12 +646,41 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
+const create = (row: ReceiptDetail) => {
+  editIndex0.value = (row as any).index - 1;
+  const { productionDate, expirationDate } = row;
+  time.value = [productionDate, expirationDate];
+  productForm.value = { ...row };
+  delete productForm.value["id"];
+  openModal();
+};
 const edit = (row: ReceiptDetail) => {
   editIndex.value = (row as any).index - 1;
   const { productionDate, expirationDate } = row;
   time.value = [productionDate, expirationDate];
   productForm.value = { ...row };
   openModal();
+};
+const remove = (row: ReceiptDetail) => {
+  const index = (row as any).index - 1;
+  tableData2.value.splice(index, 1);
+  tableData2.value.map((item, i) => {
+    item.index = i + 1;
+    return item;
+  });
+  const receiptQuantity = receiptDetailsMap.value.get(row.productId);
+  receiptDetailsMap.value.set(
+    row.productId,
+    (receiptQuantity ?? 0) - Number(row.quantity),
+  );
+  const index0 = tableData.value.findIndex(
+    (item) => item.productId === row.productId,
+  );
+  if (index0 > -1) {
+    tableData.value[index0].quantity = receiptDetailsMap.value.get(
+      row.productId,
+    );
+  }
 };
 const checkStatus = () => {
   // 如果没有数据，视为未入库
@@ -593,6 +707,7 @@ const checkStatus = () => {
     : ReturnStatus.PartiallyReceived;
 };
 const receiptDetailsMap = ref<Map<any, any>>(new Map());
+const receiptDetailsRawMap = ref<Map<any, any>>(new Map());
 const queryReceipt = async () => {
   const params =
     props.type === 1
@@ -604,13 +719,30 @@ const queryReceipt = async () => {
     const receiptDetails = await getReceiptDetailList(String(form.value.id));
     if ((receiptDetails as any).data) {
       receiptDetailsMap.value.clear();
+      receiptDetailsRawMap.value.clear();
       (receiptDetails as any).data.map((item: any) => {
         item.quantity = +item.quantity;
-        receiptDetailsMap.value.set(item.productId, item);
+        const cache = receiptDetailsMap.value.get(item.productId);
+        if (cache) {
+          receiptDetailsMap.value.set(item.productId, cache + item.quantity);
+        } else {
+          receiptDetailsMap.value.set(item.productId, item.quantity);
+        }
+        receiptDetailsRawMap.value.set(
+          item.productId,
+          receiptDetailsMap.value.get(item.productId),
+        );
       });
+      tableData2.value = (receiptDetails as any).data.map(
+        (item: any, i: number) => {
+          item.index = i + 1;
+          return item;
+        },
+      );
     }
   }
 };
+const orderQuantityMap = ref<Map<any, any>>(new Map());
 defineExpose({ confirmSave });
 onMounted(async () => {
   await queryWarehouseOptions();
@@ -621,21 +753,20 @@ onMounted(async () => {
   await queryReceipt();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
   const res = await api((props as any).data.id);
+  orderQuantityMap.value.clear();
   tableData.value = (res as any)?.data.map((item: any, i: number) => {
     const { productId, categoryId, quantity, price, amount } = item;
-    const receiptDetail = receiptDetailsMap.value.get(productId);
+    const receiptQuantity = receiptDetailsMap.value.get(productId);
     const result = Object.assign({}, defaultProduct, {
       productId,
       categoryId,
       orderQuantity: quantity,
-      quantity: 0,
+      quantity: receiptQuantity ?? 0,
       price,
       amount,
       index: i + 1,
     });
-    if (receiptDetail) {
-      Object.assign(result, receiptDetail);
-    }
+    orderQuantityMap.value.set(productId, result.orderQuantity);
     return result;
   });
   await queryProductOptions();
