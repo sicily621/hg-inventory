@@ -33,8 +33,8 @@ export const OrderStatusList = [
   { id: 2, name: "已审核" },
   { id: 3, name: "已驳回" },
   { id: 4, name: "客户已确认" },
-  { id: 5, name: "部分收货" },
-  { id: 6, name: "全部收货" },
+  { id: 5, name: "部分出库" },
+  { id: 6, name: "全部出库" },
   { id: 7, name: "已退单" },
 ];
 

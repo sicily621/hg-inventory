@@ -29,21 +29,6 @@
                 >
                 </el-input>
               </el-form-item>
-              <el-form-item label="供应商" prop="supplierId">
-                <el-select
-                  v-model="form.supplierId"
-                  placeholder="请选择供应商"
-                  class="w-full"
-                  disabled
-                >
-                  <el-option
-                    v-for="item in supplierOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  />
-                </el-select>
-              </el-form-item>
               <el-form-item label="总金额" prop="totalAmount">
                 <el-tag class="fz22 p-5" type="danger"
                   >￥{{ totalAmount }}</el-tag
@@ -70,6 +55,9 @@
               class="h-full"
               :indexMethod="indexMethod(currentPage, pageSize)"
             >
+              <template #supplierId="scope">
+                {{ getItem(scope.scope.row.supplierId, supplierMap) }}
+              </template>
               <template #categoryId="scope">
                 {{ getItem(scope.scope.row.categoryId, categoryMap) }}
               </template>
@@ -149,11 +137,15 @@ const form = ref<Return>({
   orderId: String(props.data.id),
   code: "",
   employeeId: userStore.getInfo().id,
-  supplierId: props.data.supplierId,
   status: ReturnStatus.Pending,
   description: "",
   approverId: "",
   totalAmount: 0,
+  receipt:
+    props.data.status == OrderStatus.PartiallyReceived ||
+    props.data.status == OrderStatus.FullyReceived
+      ? 1
+      : 0,
 });
 const rules = reactive({
   code: [{ required: true, message: "不能为空" }],
@@ -161,6 +153,7 @@ const rules = reactive({
 });
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
+  { prop: "supplierId", label: "供应商" },
   { prop: "categoryId", label: "分类" },
   { prop: "productId", label: "名称" },
   { prop: "specification", label: "规格" },
@@ -179,12 +172,17 @@ const totalAmount = computed(() => {
   });
   return result;
 });
-
+const supplierMap = ref<Map<string, string>>(new Map());
 const supplierOptions = ref<any[]>([]);
 const querySupplierOptions = async () => {
   const res = await getSupplierList();
   if ((res as any)?.data?.length) {
     supplierOptions.value = (res as any).data;
+    supplierMap.value.clear();
+    supplierOptions.value.map((item: any) => {
+      const { id, name } = item;
+      supplierMap.value.set(id, name);
+    });
   }
 };
 function buildCategoryTree(categorys: Category[]) {
@@ -248,7 +246,8 @@ const confirmSave = async (cb?: Function) => {
     const params = { ...form.value, totalAmount: totalAmount.value };
     const res = await createReturn(params);
     const detailList: ReturnDetail[] = tableData.value.map((item: any) => {
-      const { productId, categoryId, price, quantity, amount } = item;
+      const { productId, categoryId, price, quantity, amount, supplierId } =
+        item;
       return {
         productId,
         categoryId,
@@ -256,6 +255,7 @@ const confirmSave = async (cb?: Function) => {
         quantity,
         returnId: (res as any).data.id,
         amount,
+        supplierId,
       };
     });
     await deleteReturnDetail((res as any).data.id);

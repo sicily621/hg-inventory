@@ -45,12 +45,17 @@
           ></el-form>
         </el-card>
         <el-card class="flex-1" shadow="never">
+          <el-tabs v-model="tabActiveIndex">
+            <el-tab-pane label="订单详情" :name="1"></el-tab-pane>
+            <el-tab-pane label="出库详情" :name="2"></el-tab-pane>
+          </el-tabs>
           <div class="table-wrap">
             <baseTable
               :columns="columns"
               :table-data="tableData"
               class="h-full"
               :indexMethod="indexMethod(currentPage, pageSize)"
+              v-if="tabActiveIndex === 1"
             >
               <template #categoryId="scope">
                 {{ getName(scope.scope.row.categoryId, categoryMap) }}
@@ -90,11 +95,60 @@
               <template #operate="scope">
                 <div class="flex">
                   <el-icon
+                    v-if="
+                      scope.scope.row.quantity < scope.scope.row.orderQuantity
+                    "
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="create(scope.scope.row)"
+                  >
+                    <Edit />
+                  </el-icon>
+                </div>
+              </template>
+            </baseTable>
+            <baseTable
+              v-if="tabActiveIndex === 2"
+              :columns="columns2"
+              :table-data="tableData2"
+              class="h-full"
+              :indexMethod="indexMethod(currentPage, pageSize)"
+            >
+              <template #categoryId="scope">
+                {{ getName(scope.scope.row.categoryId, categoryMap) }}
+              </template>
+              <template #productId="scope">
+                {{ getItem(scope.scope.row.productId, productMap)?.name }}
+              </template>
+              <template #warehouseId="scope">
+                {{ getItem(scope.scope.row.warehouseId, warehouseMap)?.name }}
+              </template>
+              <template #shelfId="scope">
+                {{ getItem(scope.scope.row.shelfId, shelfMap)?.name }}
+              </template>
+              <template #areaId="scope">
+                {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
+              </template>
+              <template #specification="scope">
+                {{
+                  getItem(scope.scope.row.productId, productMap)?.specification
+                }}
+              </template>
+              <template #operate="scope">
+                <div class="flex" v-if="!scope.scope.row?.id">
+                  <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
                     @click="edit(scope.scope.row)"
                   >
                     <Edit />
+                  </el-icon>
+                  <el-icon
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="remove(scope.scope.row)"
+                  >
+                    <Delete />
                   </el-icon>
                 </div>
               </template>
@@ -140,7 +194,7 @@
               v-model="productForm.categoryId"
               placeholder="请选择商品分类"
               :data="categoryOptions"
-              receipt-strictly
+              shipment-strictly
               :render-after-expand="false"
               :props="selectProps"
               disabled
@@ -206,32 +260,15 @@
           </el-form-item>
         </div>
         <div class="flex width-400">
-          <el-form-item class="flex-1" label="时间范围">
-            <el-date-picker
-              v-model="time"
-              class="flex-1"
-              type="daterange"
-              start-placeholder="生产日期"
-              end-placeholder="过期日期"
-              format="YYYY/MM/DD"
-              value-format="YYYY-MM-DD"
-              @change="changeTime"
-            />
-          </el-form-item>
           <el-form-item class="flex-1 m-l-4" label="库存数量">
             <div class="flex flex-center w-full">
               <el-tag class="fz20 p-5">{{ inventory }}</el-tag>
             </div>
           </el-form-item>
         </div>
-
         <div class="flex width-400">
           <div class="flex justify-end flex-1 items-center">
-            <el-button
-              v-if="editIndex > -1"
-              type="primary"
-              class="m-t-2"
-              @click="addProduct"
+            <el-button type="primary" class="m-t-2" @click="addProduct"
               >确定</el-button
             >
           </div>
@@ -241,19 +278,19 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import {
-  Receipt,
-  createReceipt,
-  editReceipt,
-  getReceiptList,
-} from "../api/receipt";
+  Shipment,
+  createShipment,
+  editShipment,
+  getShipmentList,
+} from "../api/shipment";
 import {
-  ReceiptDetail,
-  createReceiptDetail,
-  deleteReceiptDetail,
-  getReceiptDetailList,
-} from "../api/receiptDetail";
+  ShipmentDetail,
+  createShipmentDetail,
+  deleteShipmentDetail,
+  getShipmentDetailList,
+} from "../api/shipmentDetail";
 import { findProductListByIds } from "@/pages/productManagement/api/product";
 import {
   Category,
@@ -264,6 +301,7 @@ import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { getAreaList } from "@/pages/warehouseManagement/api/area";
 import { getShelfList } from "@/pages/warehouseManagement/api/shelf";
 import baseTable from "@@/components/baseTable/baseTable.vue";
+import mergeRowTable from "@@/components/mergeRowTable/mergeRowTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
@@ -278,12 +316,7 @@ import {
   shipment,
   getInventoryList,
 } from "@/pages/inventoryManagement/api/inventory";
-import {
-  batchSaveHistory,
-  History,
-  HistoryType,
-  getHistoryList,
-} from "../api/history";
+import { batchSaveHistory, History, HistoryType } from "../api/history";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -298,6 +331,7 @@ const closeModal = () => {
   productForm.value = defaultProduct;
 };
 const openModal = () => {
+  max.value = getMax();
   dialogFormVisible.value = true;
 };
 const disabled = computed(() => {
@@ -305,8 +339,9 @@ const disabled = computed(() => {
     ? props.data.status === OrderStatus.FullyReceived
     : props.data.status === ReturnStatus.FullyReceived;
 });
+const tabActiveIndex = ref(1);
 //表单
-const form = ref<Receipt>({
+const form = ref<Shipment>({
   code: "",
   orderId: props.type === 1 ? props.data.id : props.data.orderId,
   employeeId: userStore.getInfo().id,
@@ -321,29 +356,40 @@ const columns = computed(() => {
     { prop: "index", label: "序号", width: "100", type: 1 },
     { prop: "categoryId", label: "商品分类" },
     { prop: "productId", label: "商品名称" },
-    { prop: "warehouseId", label: "仓库" },
-    { prop: "areaId", label: "区域" },
-    { prop: "shelfId", label: "货架" },
     { prop: "specification", label: "规格" },
     { prop: "orderQuantity", label: "订单数量" },
     { prop: "quantity", label: "出库数量" },
     { prop: "status", label: "状态" },
     { prop: "price", label: "单价" },
     { prop: "amount", label: "金额" },
-    { prop: "productionDate", label: "生产日期" },
-    { prop: "expirationDate", label: "过期日期" },
   ];
   if (!disabled.value) {
     result.push({ prop: "operate", label: "操作", width: 80 });
   }
   return result;
 });
+const columns2 = ref([
+  { prop: "index", label: "序号", width: "100", type: 1 },
+  { prop: "categoryId", label: "商品分类" },
+  { prop: "productId", label: "商品名称" },
+  { prop: "specification", label: "规格" },
+  { prop: "batchNumber", label: "批次号" },
+  { prop: "quantity", label: "出库数量" },
+  { prop: "warehouseId", label: "仓库" },
+  { prop: "areaId", label: "区域" },
+  { prop: "shelfId", label: "货架" },
+  { prop: "productionDate", label: "生产日期" },
+  { prop: "expirationDate", label: "过期日期" },
+  { prop: "createTime", label: "出库时间" },
+  { prop: "operate", label: "操作", width: 80 },
+]);
 const changeWarehouse = async () => {
   await queryAreaOptions();
   await queryShelfOptions();
 };
 const tableData = ref<any[]>([]);
-const defaultProduct: ReceiptDetail = {
+const tableData2 = ref<any[]>([]);
+const defaultProduct: ShipmentDetail = {
   productId: "",
   categoryId: "",
   warehouseId: "",
@@ -353,21 +399,55 @@ const defaultProduct: ReceiptDetail = {
   quantity: 0,
   price: 0,
   amount: 0,
-  batchNumber: 0,
+  batchNumber: 1,
 };
 const changeQuantity = () => {
   productForm.value.amount =
     +productForm.value.quantity * +productForm.value.price;
 };
-const time = ref<any>("");
-const changeTime = () => {
-  if (time.value?.[0] && time.value?.[1]) {
-    productForm.value.productionDate = `${time.value?.[0]} 00:00:00`;
-    productForm.value.expirationDate = `${time.value?.[1]} 23:59:59`;
+
+const productForm = ref<ShipmentDetail>(defaultProduct);
+const max = ref(0);
+const inventory = ref(0);
+const queryInventory = async () => {
+  const { productId, warehouseId, shelfId, areaId } = productForm.value;
+  const params = { productId, warehouseId, shelfId, areaId };
+  const res = await getInventoryList(params);
+  if ((res as any)?.data?.[0]) {
+    inventory.value = +(res as any)?.data?.[0].quantity;
+  } else {
+    inventory.value = 0;
+  }
+  max.value = getMax();
+};
+watch(
+  [
+    () => productForm.value.warehouseId,
+    () => productForm.value.areaId,
+    () => productForm.value.shelfId,
+    () => productForm.value.productId,
+  ],
+  () => {
+    queryInventory();
+  },
+);
+const getMax = () => {
+  const shipmentQuantity =
+    shipmentDetailsMap.value.get(productForm.value.productId) ?? 0;
+  const orderQuantity = orderQuantityMap.value.get(productForm.value.productId);
+  if (editIndex.value > -1) {
+    return Math.min(inventory.value, +orderQuantity);
+  } else {
+    if (productForm.value.orderQuantity) {
+      return Math.min(
+        inventory.value,
+        +productForm.value.orderQuantity - shipmentQuantity,
+      );
+    } else {
+      return 0;
+    }
   }
 };
-const productForm = ref<ReceiptDetail>(defaultProduct);
-
 const rules = reactive({
   code: [{ required: true, message: "不能为空" }],
   warehouseId: [{ required: true, message: "不能为空" }],
@@ -420,7 +500,6 @@ const queryShelfOptions = async () => {
     shelfOptions.value = [{ name: "无", id: 0 }];
   }
 };
-
 function buildCategoryTree(categorys: Category[]) {
   const map = new Map();
   categoryMap.value.clear();
@@ -497,6 +576,7 @@ const queryEmployeeOptions = async () => {
     });
   }
 };
+const editIndex0 = ref(-1);
 const editIndex = ref(-1);
 const addProduct = async () => {
   const valid = await productFormRef.value.validate();
@@ -504,23 +584,36 @@ const addProduct = async () => {
     const row: any = {
       ...productForm.value,
     };
-    if (editIndex.value > -1) {
-      row.index = editIndex.value + 1;
-      tableData.value[editIndex.value] = row;
-      editIndex.value = -1;
-    } else {
-      row.index = tableData.value.length + 1;
-      tableData.value.push(row);
+    if (row.quantity > 0) {
+      if (editIndex.value > -1) {
+        row.index = editIndex.value + 1;
+        tableData2.value[editIndex.value] = row;
+        editIndex.value = -1;
+      } else {
+        row.index = tableData2.value.length + 1;
+        tableData2.value.push(row);
+      }
     }
-    if (
-      max.value &&
-      productForm.value?.orderQuantity &&
-      max.value < productForm.value?.orderQuantity
-    ) {
-      ElMessage.error("当前商品在所选货架库存不足");
+    if (editIndex0.value === -1) {
+      const index = tableData.value.findIndex(
+        (item: any) => item.productId === row.productId,
+      );
+      const cache = tableData2.value
+        .filter((item) => item.productId === row.productId)
+        .reduce((prev, cur) => {
+          return prev + cur.quantity;
+        }, 0);
+      shipmentDetailsMap.value.set(row.productId, cache);
+      tableData.value[index].quantity = cache;
+    }
+    if (editIndex0.value > -1) {
+      const shipmentQuantity = shipmentDetailsMap.value.get(row.productId);
+      const value = (shipmentQuantity ?? 0) + row.quantity;
+      shipmentDetailsMap.value.set(row.productId, value);
+      tableData.value[editIndex0.value].quantity += row.quantity;
+      editIndex0.value = -1;
     }
     productForm.value = defaultProduct;
-
     closeModal();
   }
 };
@@ -530,83 +623,38 @@ const getName = (id: string, mapData: Map<string, string>) => {
 const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
-const inventory = ref(0);
-const queryInventory = async () => {
-  const { productId, warehouseId, shelfId, areaId } = productForm.value;
-  const params = { productId, warehouseId, shelfId, areaId };
-  const res = await getInventoryList(params);
-  if ((res as any)?.data?.[0]) {
-    inventory.value = (res as any)?.data?.[0].quantity;
-  } else {
-    inventory.value = 0;
-  }
+
+const create = (row: ShipmentDetail) => {
+  editIndex0.value = (row as any).index - 1;
+  productForm.value = { ...row };
+  delete productForm.value["id"];
+  openModal();
 };
-const confirmSave = async (cb?: Function) => {
-  const status = checkStatus();
-  if (!status) {
-    ElMessage({
-      type: "error",
-      message: "出库商品列表不能为空",
-    });
-    return;
-  }
-  const valid = await formRef.value.validate();
-  if (valid) {
-    const params = { ...form.value };
-    const api = params.id ? editReceipt : createReceipt;
-    const res = await api(params);
-    const detailList = tableData.value
-      .filter((item: any) => item.quantity > 0)
-      .map((item: any) => {
-        const result = {
-          ...item,
-          receiptId: (res as any).data.id,
-        };
-        delete result["id"];
-        return result;
-      });
-    const list = detailList
-      .map((item: any) => {
-        const { productId, warehouseId, shelfId, areaId, quantity } = item;
-        const cache: any = receiptDetailsMap.value.get(item.productId);
-        return {
-          productId,
-          warehouseId,
-          shelfId,
-          areaId,
-          quantity: cache?.quantity ? quantity - cache?.quantity : quantity,
-        };
-      })
-      .filter((item: any) => item.quantity > 0)
-      .map((item: any) => item);
-    await shipment(list);
-    await deleteReceiptDetail((res as any).data.id);
-    await createReceiptDetail(detailList);
-    if (props.type === 1) {
-      await editOrder({ id: (props as any).data.id, status });
-    } else {
-      await editReturn({ id: (props as any).data.id, status });
-    }
-    const historyList = list.map((item) => {
-      item.type =
-        props.type === 1 ? HistoryType.SaleOut : HistoryType.PurchaseReturn;
-      item.employeeId = userStore.getInfo().id;
-      return item;
-    });
-    await batchSaveHistory(historyList);
-    ElMessage({
-      type: "success",
-      message: "保存成功",
-    });
-    cb && cb();
-  }
-};
-const edit = (row: ReceiptDetail) => {
+const edit = (row: ShipmentDetail) => {
   editIndex.value = (row as any).index - 1;
-  const { productionDate, expirationDate } = row;
-  time.value = [productionDate, expirationDate];
   productForm.value = { ...row };
   openModal();
+};
+const remove = (row: ShipmentDetail) => {
+  const index = (row as any).index - 1;
+  tableData2.value.splice(index, 1);
+  tableData2.value.map((item, i) => {
+    item.index = i + 1;
+    return item;
+  });
+  const shipmentQuantity = shipmentDetailsMap.value.get(row.productId);
+  shipmentDetailsMap.value.set(
+    row.productId,
+    (shipmentQuantity ?? 0) - Number(row.quantity),
+  );
+  const index0 = tableData.value.findIndex(
+    (item) => item.productId === row.productId,
+  );
+  if (index0 > -1) {
+    tableData.value[index0].quantity = shipmentDetailsMap.value.get(
+      row.productId,
+    );
+  }
 };
 const checkStatus = () => {
   // 如果没有数据，视为未出库
@@ -632,43 +680,97 @@ const checkStatus = () => {
     ? OrderStatus.PartiallyReceived
     : ReturnStatus.PartiallyReceived;
 };
-const receiptDetailsMap = ref<Map<any, any>>(new Map());
-const queryReceipt = async () => {
+const shipmentDetailsMap = ref<Map<any, any>>(new Map());
+const shipmentDetailsRawMap = ref<Map<any, any>>(new Map());
+const queryShipment = async () => {
   const params =
     props.type === 1
       ? { orderId: (props as any).data.id }
       : { orderId: (props as any).data.orderId };
-  const receipt = await getReceiptList(params);
-  if ((receipt as any)?.data?.[0]) {
-    Object.assign(form.value, (receipt as any)?.data?.[0]);
-    const receiptDetails = await getReceiptDetailList(String(form.value.id));
-    if ((receiptDetails as any).data) {
-      receiptDetailsMap.value.clear();
-      (receiptDetails as any).data.map((item: any) => {
+  const shipment = await getShipmentList(params);
+  if ((shipment as any)?.data?.[0]) {
+    Object.assign(form.value, (shipment as any)?.data?.[0]);
+    const shipmentDetails = await getShipmentDetailList(String(form.value.id));
+    if ((shipmentDetails as any).data) {
+      shipmentDetailsMap.value.clear();
+      shipmentDetailsRawMap.value.clear();
+      (shipmentDetails as any).data.map((item: any) => {
         item.quantity = +item.quantity;
-        receiptDetailsMap.value.set(item.productId, item);
+        const cache = shipmentDetailsMap.value.get(item.productId);
+        if (cache) {
+          shipmentDetailsMap.value.set(item.productId, cache + item.quantity);
+        } else {
+          shipmentDetailsMap.value.set(item.productId, item.quantity);
+        }
+        shipmentDetailsRawMap.value.set(
+          item.productId,
+          shipmentDetailsMap.value.get(item.productId),
+        );
       });
+      tableData2.value = (shipmentDetails as any).data.map(
+        (item: any, i: number) => {
+          item.index = i + 1;
+          return item;
+        },
+      );
     }
   }
 };
-watch(
-  [
-    () => productForm.value.warehouseId,
-    () => productForm.value.areaId,
-    () => productForm.value.shelfId,
-    () => productForm.value.productId,
-  ],
-  () => {
-    queryInventory();
-  },
-);
-const max = computed(() => {
-  if (productForm.value.orderQuantity) {
-    return Math.min(inventory.value, +productForm.value.orderQuantity);
-  } else {
-    inventory.value;
+const confirmSave = async (cb?: Function) => {
+  const status = checkStatus();
+  if (!status) {
+    ElMessage({
+      type: "error",
+      message: "出库商品列表不能为空",
+    });
+    return;
   }
-});
+  const valid = await formRef.value.validate();
+  if (valid) {
+    const params = { ...form.value };
+    const api = params.id ? editShipment : createShipment;
+    const res = await api(params);
+    const detailList = tableData2.value
+      .filter((item) => !item.id)
+      .map((item: any) => {
+        const result = {
+          ...item,
+          shipmentId: (res as any).data.id,
+        };
+        return result;
+      });
+    const list: any[] = detailList.map((item: any) => {
+      const { productId, warehouseId, shelfId, areaId, quantity } = item;
+      return {
+        productId,
+        warehouseId,
+        shelfId,
+        areaId,
+        quantity,
+      };
+    });
+    await shipment(list);
+    await createShipmentDetail(detailList);
+    if (props.type === 1) {
+      await editOrder({ id: (props as any).data.id, status });
+    } else {
+      await editReturn({ id: (props as any).data.id, status });
+    }
+    const historyList = list.map((item) => {
+      item.type =
+        props.type === 1 ? HistoryType.SaleOut : HistoryType.PurchaseReturn;
+      item.employeeId = userStore.getInfo().id;
+      return item;
+    });
+    await batchSaveHistory(historyList);
+    ElMessage({
+      type: "success",
+      message: "保存成功",
+    });
+    cb && cb();
+  }
+};
+const orderQuantityMap = ref<Map<any, any>>(new Map());
 defineExpose({ confirmSave });
 onMounted(async () => {
   await queryWarehouseOptions();
@@ -676,25 +778,23 @@ onMounted(async () => {
   await queryShelfOptions();
   await queryEmployeeOptions();
   await queryCategoryOptions();
-  await queryInventory();
-  await queryReceipt();
+  await queryShipment();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
   const res = await api((props as any).data.id);
+  orderQuantityMap.value.clear();
   tableData.value = (res as any)?.data.map((item: any, i: number) => {
     const { productId, categoryId, quantity, price, amount } = item;
-    const receiptDetail = receiptDetailsMap.value.get(productId);
+    const shipmentQuantity = shipmentDetailsMap.value.get(productId);
     const result = Object.assign({}, defaultProduct, {
       productId,
       categoryId,
-      orderQuantity: quantity,
-      quantity: 0,
+      orderQuantity: Number(quantity),
+      quantity: shipmentQuantity ?? 0,
       price,
       amount,
       index: i + 1,
     });
-    if (receiptDetail) {
-      Object.assign(result, receiptDetail);
-    }
+    orderQuantityMap.value.set(productId, result.orderQuantity);
     return result;
   });
   await queryProductOptions();

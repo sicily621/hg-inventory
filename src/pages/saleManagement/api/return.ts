@@ -26,8 +26,8 @@ export const ReturnStatusList = [
   { id: 1, name: "待审核" },
   { id: 2, name: "已驳回" },
   { id: 3, name: "已审核" },
-  { id: 4, name: "部分收货" },
-  { id: 5, name: "全部收货" },
+  { id: 4, name: "部分入库" },
+  { id: 5, name: "全部入库" },
 ];
 
 export interface queryReturnConditions {

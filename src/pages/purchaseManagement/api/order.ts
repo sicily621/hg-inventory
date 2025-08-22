@@ -5,7 +5,7 @@ export interface Order {
   id?: string | number;
   demandId: string | number;
   code: string;
-  supplierId: string | number;
+
   employeeId: string | number;
   expectedDate: number;
   actualDate: number;
@@ -31,14 +31,13 @@ export const OrderStatusList = [
   { id: 2, name: "已审核" },
   { id: 3, name: "已驳回" },
   { id: 4, name: "供应商已确认" },
-  { id: 5, name: "部分收货" },
-  { id: 6, name: "全部收货" },
+  { id: 5, name: "部分入库" },
+  { id: 6, name: "全部入库" },
   { id: 7, name: "已退单" },
 ];
 
 export interface queryOrderConditions {
   code: string;
-  supplierId: string | number;
   employeeId: string | number;
   startTime: string;
   endTime: string;

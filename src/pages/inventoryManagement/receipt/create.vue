@@ -414,9 +414,8 @@ const changeTime = () => {
 const productForm = ref<ReceiptDetail>(defaultProduct);
 const max = ref(0);
 const getMax = () => {
-  const receiptQuantity = receiptDetailsMap.value.get(
-    productForm.value.productId,
-  );
+  const receiptQuantity =
+    receiptDetailsMap.value.get(productForm.value.productId) ?? 0;
   const orderQuantity = orderQuantityMap.value.get(productForm.value.productId);
   if (editIndex.value > -1) {
     return +orderQuantity;
@@ -574,6 +573,18 @@ const addProduct = async () => {
         tableData2.value.push(row);
       }
     }
+    if (editIndex0.value === -1) {
+      const index = tableData.value.findIndex(
+        (item: any) => item.productId === row.productId,
+      );
+      const cache = tableData2.value
+        .filter((item) => item.productId === row.productId)
+        .reduce((prev, cur) => {
+          return prev + cur.quantity;
+        }, 0);
+      receiptDetailsMap.value.set(row.productId, cache);
+      tableData.value[index].quantity = cache;
+    }
     if (editIndex0.value > -1) {
       const receiptQuantity = receiptDetailsMap.value.get(row.productId);
       const value = (receiptQuantity ?? 0) + row.quantity;
@@ -591,61 +602,7 @@ const getName = (id: string, mapData: Map<string, string>) => {
 const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
-const confirmSave = async (cb?: Function) => {
-  const status = checkStatus();
-  if (!status) {
-    ElMessage({
-      type: "error",
-      message: "入库商品列表不能为空",
-    });
-    return;
-  }
-  const valid = await formRef.value.validate();
-  if (valid) {
-    const params = { ...form.value };
-    const api = params.id ? editReceipt : createReceipt;
-    const res = await api(params);
-    const detailList = tableData2.value
-      .filter((item) => !item.id)
-      .map((item: any) => {
-        const result = {
-          ...item,
-          receiptId: (res as any).data.id,
-        };
-        return result;
-      });
-    const list: any[] = detailList.map((item: any) => {
-      const { productId, warehouseId, shelfId, areaId, quantity } = item;
-      return {
-        productId,
-        warehouseId,
-        shelfId,
-        areaId,
-        quantity,
-      };
-    });
-    await receipt(list);
-    await deleteReceiptDetail((res as any).data.id);
-    await createReceiptDetail(detailList);
-    if (props.type === 1) {
-      await editOrder({ id: (props as any).data.id, status });
-    } else {
-      await editReturn({ id: (props as any).data.id, status });
-    }
-    const historyList = list.map((item) => {
-      item.type =
-        props.type === 1 ? HistoryType.PurchaseIn : HistoryType.SaleReturn;
-      item.employeeId = userStore.getInfo().id;
-      return item;
-    });
-    await batchSaveHistory(historyList);
-    ElMessage({
-      type: "success",
-      message: "保存成功",
-    });
-    cb && cb();
-  }
-};
+
 const create = (row: ReceiptDetail) => {
   editIndex0.value = (row as any).index - 1;
   const { productionDate, expirationDate } = row;
@@ -742,6 +699,60 @@ const queryReceipt = async () => {
     }
   }
 };
+const confirmSave = async (cb?: Function) => {
+  const status = checkStatus();
+  if (!status) {
+    ElMessage({
+      type: "error",
+      message: "入库商品列表不能为空",
+    });
+    return;
+  }
+  const valid = await formRef.value.validate();
+  if (valid) {
+    const params = { ...form.value };
+    const api = params.id ? editReceipt : createReceipt;
+    const res = await api(params);
+    const detailList = tableData2.value
+      .filter((item) => !item.id)
+      .map((item: any) => {
+        const result = {
+          ...item,
+          receiptId: (res as any).data.id,
+        };
+        return result;
+      });
+    const list: any[] = detailList.map((item: any) => {
+      const { productId, warehouseId, shelfId, areaId, quantity } = item;
+      return {
+        productId,
+        warehouseId,
+        shelfId,
+        areaId,
+        quantity,
+      };
+    });
+    await receipt(list);
+    await createReceiptDetail(detailList);
+    if (props.type === 1) {
+      await editOrder({ id: (props as any).data.id, status });
+    } else {
+      await editReturn({ id: (props as any).data.id, status });
+    }
+    const historyList = list.map((item) => {
+      item.type =
+        props.type === 1 ? HistoryType.PurchaseIn : HistoryType.SaleReturn;
+      item.employeeId = userStore.getInfo().id;
+      return item;
+    });
+    await batchSaveHistory(historyList);
+    ElMessage({
+      type: "success",
+      message: "保存成功",
+    });
+    cb && cb();
+  }
+};
 const orderQuantityMap = ref<Map<any, any>>(new Map());
 defineExpose({ confirmSave });
 onMounted(async () => {
@@ -760,7 +771,7 @@ onMounted(async () => {
     const result = Object.assign({}, defaultProduct, {
       productId,
       categoryId,
-      orderQuantity: quantity,
+      orderQuantity: Number(quantity),
       quantity: receiptQuantity ?? 0,
       price,
       amount,

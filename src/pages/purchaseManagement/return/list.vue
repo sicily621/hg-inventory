@@ -102,6 +102,9 @@
                 {{ getStatus(scope.scope.row.status, ReturnStatusList) }}
               </el-tag>
             </template>
+            <template #receipt="scope">
+              {{ scope.scope.row.receipt ? "是" : "否" }}
+            </template>
             <template #totalAmount="scope">
               <el-tag type="danger">￥{{ scope.scope.row.totalAmount }}</el-tag>
             </template>
@@ -187,13 +190,13 @@ const departmentId = ref("");
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "code", label: "编码" },
-  { prop: "supplierId", label: "供应商" },
   { prop: "employeeId", label: "退单人" },
   { prop: "status", label: "状态" },
   { prop: "totalAmount", label: "总金额" },
   { prop: "description", label: "备注" },
   { prop: "approverId", label: "审批人" },
   { prop: "approvalTime", label: "审批时间" },
+  { prop: "receipt", label: "是否入库" },
   { prop: "operate", label: "操作", width: 100 },
 ]);
 

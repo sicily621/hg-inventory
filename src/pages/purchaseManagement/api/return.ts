@@ -6,12 +6,12 @@ export interface Return {
   orderId: string | number;
   code: string;
   employeeId: string | number;
-  supplierId: string | number;
   status: ReturnStatus;
   totalAmount: number;
   description: string;
   approverId?: string | number;
   approvalTime?: number;
+  receipt: number;
 }
 
 export enum ReturnStatus {
@@ -26,8 +26,8 @@ export const ReturnStatusList = [
   { id: 1, name: "待审核" },
   { id: 2, name: "已驳回" },
   { id: 3, name: "已审核" },
-  { id: 4, name: "部分收货" },
-  { id: 5, name: "全部收货" },
+  { id: 4, name: "部分出库" },
+  { id: 5, name: "全部出库" },
 ];
 
 export interface queryReturnConditions {

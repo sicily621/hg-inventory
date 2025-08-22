@@ -39,20 +39,6 @@
                   :disabled-date="isBefore"
                 />
               </el-form-item>
-              <el-form-item label="供应商" prop="supplierId">
-                <el-select
-                  v-model="form.supplierId"
-                  placeholder="请选择供应商"
-                  class="w-full"
-                >
-                  <el-option
-                    v-for="item in supplierOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  />
-                </el-select>
-              </el-form-item>
               <el-form-item label="总金额" prop="totalAmount">
                 <el-tag class="fz22 p-5" type="danger"
                   >￥{{ totalAmount }}</el-tag
@@ -79,6 +65,21 @@
               class="h-full"
               :indexMethod="indexMethod(currentPage, pageSize)"
             >
+              <template #supplierId="scope">
+                <el-select
+                  v-model="scope.scope.row.supplierId"
+                  placeholder="请选择供应商"
+                  class="w-full"
+                >
+                  <el-option
+                    v-for="item in supplierOptions"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
+              </template>
+
               <template #categoryId="scope">
                 {{ getItem(scope.scope.row.categoryId, categoryMap) }}
               </template>
@@ -159,7 +160,6 @@ const changeQuantity = (row: any) => {
 const form = ref<Order>({
   demandId: "",
   code: "",
-  supplierId: "",
   employeeId: userStore.getInfo().id,
   expectedDate: Date.now(),
   actualDate: 0,
@@ -176,6 +176,7 @@ const rules = reactive({
 });
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
+  { prop: "supplierId", label: "供应商", width: "200" },
   { prop: "categoryId", label: "分类" },
   { prop: "productId", label: "名称" },
   { prop: "specification", label: "规格" },
@@ -266,7 +267,8 @@ const confirmSave = async (cb?: Function) => {
     const params = { ...form.value, totalAmount: totalAmount.value };
     const res = await createOrder(params);
     const detailList: OrderDetail[] = tableData.value.map((item: any) => {
-      const { productId, categoryId, price, quantity, amount } = item;
+      const { productId, categoryId, price, quantity, amount, supplierId } =
+        item;
       return {
         productId,
         categoryId,
@@ -274,6 +276,7 @@ const confirmSave = async (cb?: Function) => {
         quantity,
         orderId: (res as any).data.id,
         amount,
+        supplierId,
       };
     });
     await deleteOrderDetail((res as any).data.id);
@@ -298,7 +301,12 @@ onMounted(async () => {
     tableData.value = (res as any)?.data.map((item: any) => {
       const { quantity, productId } = item;
       const price = getItem(productId, productMap.value)?.purchasePrice;
-      return { ...item, amount: quantity * price, price };
+      return {
+        ...item,
+        amount: quantity * price,
+        price,
+        supplierId: supplierOptions.value[0]?.id,
+      };
     });
   }
 });

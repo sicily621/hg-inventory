@@ -36,20 +36,6 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item label="供应商" prop="supplierId">
-              <el-select
-                v-model="searchData.supplierId"
-                placeholder="请选择供应商"
-                class="w-40"
-              >
-                <el-option
-                  v-for="item in supplierOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
             <el-form-item prop="status" label="状态">
               <el-select
                 v-model="searchData.status"
@@ -224,7 +210,6 @@ const departmentId = ref("");
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "code", label: "编码" },
-  { prop: "supplierId", label: "供应商" },
   { prop: "employeeId", label: "采购人" },
   { prop: "expectedDate", label: "期望到货日期" },
   { prop: "actualDate", label: "实际到货日期" },
@@ -260,7 +245,6 @@ const searchFormRef = ref("searchFormRef");
 
 const searchData = reactive<queryOrderConditions>({
   code: "",
-  supplierId: "",
   employeeId: "",
   startTime: "",
   endTime: "",
@@ -287,7 +271,6 @@ function refreshTable() {
     size: pageSize.value,
   };
   if (searchData.code) params.code = searchData.code;
-  if (searchData.supplierId) params.supplierId = searchData.supplierId;
   if (searchData.employeeId) params.employeeId = searchData.employeeId;
   if (searchData.status) params.status = searchData.status;
   if (time.value?.[0] && time.value?.[1]) {

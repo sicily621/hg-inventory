@@ -155,6 +155,7 @@ import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
+import { receipt } from "../api/inventory";
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
@@ -233,6 +234,7 @@ const queryReturn = async () => {
     endStatus: ReturnStatus.FullyReceived,
     currentPage: currentPage.value + 1,
     size: pageSize.value,
+    receipt: 1,
   });
 };
 function refreshTable() {

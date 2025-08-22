@@ -38,20 +38,6 @@
                   :disabled-date="isBefore"
                 />
               </el-form-item>
-              <el-form-item label="供应商" prop="supplierId">
-                <el-select
-                  v-model="form.supplierId"
-                  placeholder="请选择供应商"
-                  class="w-full"
-                >
-                  <el-option
-                    v-for="item in supplierOptions"
-                    :key="item.id"
-                    :label="item.name"
-                    :value="item.id"
-                  />
-                </el-select>
-              </el-form-item>
               <el-form-item label="总金额" prop="totalAmount">
                 <el-tag class="fz22 p-5" type="danger"
                   >￥{{ totalAmount }}</el-tag
@@ -93,6 +79,9 @@
               class="h-full"
               :indexMethod="indexMethod(currentPage, pageSize)"
             >
+              <template #supplierId="scope">
+                {{ getItem(scope.scope.row.supplierId, supplierMap) }}
+              </template>
               <template #categoryId="scope">
                 {{ getItem(scope.scope.row.categoryId, categoryMap) }}
               </template>
@@ -167,6 +156,7 @@ const isBefore = (date: Date) => {
 const form = ref<Order>(props.data);
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
+  { prop: "supplierId", label: "供应商" },
   { prop: "categoryId", label: "分类" },
   { prop: "productId", label: "名称" },
   { prop: "specification", label: "规格" },
@@ -184,12 +174,17 @@ const totalAmount = computed(() => {
   });
   return result;
 });
-
+const supplierMap = ref<Map<string, string>>(new Map());
 const supplierOptions = ref<any[]>([]);
 const querySupplierOptions = async () => {
   const res = await getSupplierList();
   if ((res as any)?.data?.length) {
     supplierOptions.value = (res as any).data;
+    supplierMap.value.clear();
+    supplierOptions.value.map((item: any) => {
+      const { id, name } = item;
+      supplierMap.value.set(id, name);
+    });
   }
 };
 function buildCategoryTree(categorys: Category[]) {

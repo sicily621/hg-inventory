@@ -3,6 +3,7 @@ import { Post, Get, Delete } from "@/http/axios";
 export interface OrderDetail {
   id?: string | number;
   orderId: string | number;
+  supplierId: string | number;
   productId: string | number;
   categoryId: string | number;
   quantity: number;
