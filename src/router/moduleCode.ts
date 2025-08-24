@@ -26,4 +26,6 @@ export enum ModuleCode {
   InventoryCheck = "inventoryCheck",
   InventoryReceipt = "inventoryReceipt",
   InventoryShipment = "inventoryShipment",
+  AccountManagement = "accountManagement",
+  Account = "account",
 }

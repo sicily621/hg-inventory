@@ -293,7 +293,6 @@ import {
 import {
   ReceiptDetail,
   createReceiptDetail,
-  deleteReceiptDetail,
   getReceiptDetailList,
 } from "../api/receiptDetail";
 import { findProductListByIds } from "@/pages/productManagement/api/product";
@@ -306,7 +305,14 @@ import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { getAreaList } from "@/pages/warehouseManagement/api/area";
 import { getShelfList } from "@/pages/warehouseManagement/api/shelf";
 import baseTable from "@@/components/baseTable/baseTable.vue";
-import mergeRowTable from "@@/components/mergeRowTable/mergeRowTable.vue";
+import {
+  RelatedEntityType,
+  AccountType,
+  createAccount,
+  AccountStatus,
+  getAccountByOrderId,
+  batchAccount,
+} from "@/pages/accountManagement/api/account";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
@@ -732,6 +738,65 @@ const confirmSave = async (cb?: Function) => {
         quantity,
       };
     });
+    const accountMap = new Map();
+    tableData.value
+      .filter((item) => {
+        const relatedEntityId =
+          props.type === 1 ? item.supplierId : props.data.customerId;
+        const index = accountList.value.findIndex((item) => {
+          return (
+            item.relatedEntityId === relatedEntityId &&
+            item.type ===
+              (props.type === 1
+                ? AccountType.PurchasePayMent
+                : AccountType.SalesRefund)
+          );
+        });
+        return (
+          item.quantity > 0 &&
+          item.orderQuantity == item.quantity &&
+          index == -1
+        );
+      })
+      .filter((item) => {
+        if (props.type === 1) {
+          const index = tableData.value.findIndex((otherItem) => {
+            return (
+              otherItem.supplierId === item.supplierId &&
+              otherItem.orderQuantity > otherItem.quantity
+            );
+          });
+          return index === -1;
+        } else {
+          return true;
+        }
+      })
+      .map((item) => {
+        const relatedEntityId =
+          props.type === 1 ? item.supplierId : props.data.customerId;
+        const prevAccount = accountMap.get(relatedEntityId)?.amount ?? 0;
+        const account = {
+          orderId: props.type === 1 ? props.data.id : props.data.orderId,
+          type:
+            props.type === 1
+              ? AccountType.PurchasePayMent
+              : AccountType.SalesRefund,
+          relatedEntityType:
+            props.type === 1
+              ? RelatedEntityType.Suppiler
+              : RelatedEntityType.Customer,
+          relatedEntityId,
+          amount: prevAccount + Number(item.amount),
+          employeeId: userStore.getInfo().id,
+          status: AccountStatus.Pending,
+          description: "",
+        };
+        accountMap.set(relatedEntityId, account);
+      });
+    let accounts = [];
+    for (const value of accountMap.values()) {
+      accounts.push(value);
+    }
     await receipt(list);
     await createReceiptDetail(detailList);
     if (props.type === 1) {
@@ -746,6 +811,8 @@ const confirmSave = async (cb?: Function) => {
       return item;
     });
     await batchSaveHistory(historyList);
+    //生成账单条件：一个订单下一个供应商所有商品都全部入库
+    await batchAccount(accounts);
     ElMessage({
       type: "success",
       message: "保存成功",
@@ -754,6 +821,13 @@ const confirmSave = async (cb?: Function) => {
   }
 };
 const orderQuantityMap = ref<Map<any, any>>(new Map());
+const orderMap = ref<Map<any, any>>(new Map());
+const accountList = ref<any[]>([]);
+const queryAccount = async () => {
+  const orderId = props.type === 1 ? props.data.id : props.data.orderId;
+  const res = await getAccountByOrderId(orderId);
+  accountList.value = (res as any).data;
+};
 defineExpose({ confirmSave });
 onMounted(async () => {
   await queryWarehouseOptions();
@@ -777,10 +851,14 @@ onMounted(async () => {
       amount,
       index: i + 1,
     });
+    if (props.type === 1) {
+      result.supplierId = item.supplierId;
+    }
     orderQuantityMap.value.set(productId, result.orderQuantity);
     return result;
   });
   await queryProductOptions();
+  await queryAccount();
 });
 </script>
 <style lang="scss" scoped>
@@ -802,3 +880,4 @@ onMounted(async () => {
   }
 }
 </style>
+@/pages/accountManagement/api/account

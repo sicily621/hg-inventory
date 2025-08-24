@@ -338,6 +338,27 @@ export const dynamicRoutes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: "/accountManagement",
+    component: Layouts,
+    redirect: "/accountManagement/account",
+    meta: {
+      title: "账单管理",
+      elIcon: "Goods",
+      moduleCode: ModuleCode.AccountManagement,
+    },
+    children: [
+      {
+        path: "account",
+        component: () => import("@/pages/accountManagement/account/list.vue"),
+        name: ModuleCode.Account,
+        meta: {
+          title: "账单管理",
+          moduleCode: ModuleCode.Account,
+        },
+      },
+    ],
+  },
 ];
 
 /** 路由实例 */

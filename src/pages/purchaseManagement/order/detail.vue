@@ -123,7 +123,6 @@ import {
   getCategoryList,
 } from "@/pages/productManagement/api/category";
 import { Order, OrderStatus, editOrder, OrderStatusList } from "../api/order";
-
 import { getOrderDetailList } from "../api/orderDetail";
 import { getSupplierList } from "../api/supplier";
 import baseTable from "@@/components/baseTable/baseTable.vue";

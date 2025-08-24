@@ -317,6 +317,14 @@ import {
   getInventoryList,
 } from "@/pages/inventoryManagement/api/inventory";
 import { batchSaveHistory, History, HistoryType } from "../api/history";
+import {
+  RelatedEntityType,
+  AccountType,
+  createAccount,
+  AccountStatus,
+  getAccountByOrderId,
+  batchAccount,
+} from "@/pages/accountManagement/api/account";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -749,6 +757,65 @@ const confirmSave = async (cb?: Function) => {
         quantity,
       };
     });
+    const accountMap = new Map();
+    tableData.value
+      .filter((item) => {
+        const relatedEntityId =
+          props.type === 2 ? item.supplierId : props.data.customerId;
+        const index = accountList.value.findIndex((item) => {
+          return (
+            item.relatedEntityId === relatedEntityId &&
+            item.type ===
+              (props.type === 1
+                ? AccountType.SalesRevenue
+                : AccountType.PurchaseRefund)
+          );
+        });
+        return (
+          item.quantity > 0 &&
+          item.orderQuantity == item.quantity &&
+          index == -1
+        );
+      })
+      .filter((item) => {
+        if (props.type === 2) {
+          const index = tableData.value.findIndex((otherItem) => {
+            return (
+              otherItem.supplierId === item.supplierId &&
+              otherItem.orderQuantity > otherItem.quantity
+            );
+          });
+          return index === -1;
+        } else {
+          return true;
+        }
+      })
+      .map((item) => {
+        const relatedEntityId =
+          props.type === 2 ? item.supplierId : props.data.customerId;
+        const prevAccount = accountMap.get(relatedEntityId)?.amount ?? 0;
+        const account = {
+          orderId: props.type === 1 ? props.data.id : props.data.orderId,
+          type:
+            props.type === 1
+              ? AccountType.SalesRevenue
+              : AccountType.PurchaseRefund,
+          relatedEntityType:
+            props.type === 2
+              ? RelatedEntityType.Suppiler
+              : RelatedEntityType.Customer,
+          relatedEntityId,
+          amount: prevAccount + Number(item.amount),
+          employeeId: userStore.getInfo().id,
+          status: AccountStatus.Pending,
+          description: "",
+        };
+        accountMap.set(relatedEntityId, account);
+      });
+    let accounts = [];
+    for (const value of accountMap.values()) {
+      accounts.push(value);
+    }
     await shipment(list);
     await createShipmentDetail(detailList);
     if (props.type === 1) {
@@ -763,6 +830,8 @@ const confirmSave = async (cb?: Function) => {
       return item;
     });
     await batchSaveHistory(historyList);
+    //生成账单条件：一个订单下一个供应商所有商品都全部入库
+    await batchAccount(accounts);
     ElMessage({
       type: "success",
       message: "保存成功",
@@ -771,6 +840,13 @@ const confirmSave = async (cb?: Function) => {
   }
 };
 const orderQuantityMap = ref<Map<any, any>>(new Map());
+const orderMap = ref<Map<any, any>>(new Map());
+const accountList = ref<any[]>([]);
+const queryAccount = async () => {
+  const orderId = props.type === 1 ? props.data.id : props.data.orderId;
+  const res = await getAccountByOrderId(orderId);
+  accountList.value = (res as any).data;
+};
 defineExpose({ confirmSave });
 onMounted(async () => {
   await queryWarehouseOptions();
@@ -795,9 +871,15 @@ onMounted(async () => {
       index: i + 1,
     });
     orderQuantityMap.value.set(productId, result.orderQuantity);
+    if (props.type === 2) {
+      result.supplierId = item.supplierId;
+    }
+    orderQuantityMap.value.set(productId, result.orderQuantity);
     return result;
   });
+
   await queryProductOptions();
+  await queryAccount();
 });
 </script>
 <style lang="scss" scoped>
@@ -819,3 +901,4 @@ onMounted(async () => {
   }
 }
 </style>
+@/pages/accountManagement/api/account
