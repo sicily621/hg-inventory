@@ -158,7 +158,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/warehouseManagement/warehouse",
     meta: {
       title: "仓库管理",
-      elIcon: "Goods",
+      elIcon: "HomeFilled",
       moduleCode: ModuleCode.WarehouseManagement,
     },
     children: [
@@ -198,7 +198,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/saleManagement/customer",
     meta: {
       title: "销售管理",
-      elIcon: "Goods",
+      elIcon: "DataLine",
       moduleCode: ModuleCode.WarehouseManagement,
     },
     children: [
@@ -237,7 +237,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/purchaseManagement/supplier",
     meta: {
       title: "采购管理",
-      elIcon: "Goods",
+      elIcon: "FirstAidKit",
       moduleCode: ModuleCode.PurchaseManagement,
     },
     children: [
@@ -285,7 +285,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/inventoryManagement/inventory",
     meta: {
       title: "库存管理",
-      elIcon: "Goods",
+      elIcon: "Tickets",
       moduleCode: ModuleCode.InventoryManagement,
     },
     children: [
@@ -344,7 +344,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     redirect: "/accountManagement/account",
     meta: {
       title: "账单管理",
-      elIcon: "Goods",
+      elIcon: "Coin",
       moduleCode: ModuleCode.AccountManagement,
     },
     children: [
@@ -354,6 +354,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
         name: ModuleCode.Account,
         meta: {
           title: "账单管理",
+          elIcon: "Coin",
           moduleCode: ModuleCode.Account,
         },
       },

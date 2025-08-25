@@ -107,10 +107,11 @@ createCode();
 <template>
   <div class="login-container">
     <ThemeSwitch v-if="settingsStore.showThemeSwitch" class="theme-switch" />
-    <Owl :close-eyes="isFocus" />
+    <!-- <Owl :close-eyes="isFocus" /> -->
     <div class="login-card">
-      <div class="title">
-        <img src="@@/assets/images/layouts/logo-text-2.png" />
+      <div class="title flex flex-center">
+        <img src="@@/assets/images/layouts/logo.png" />
+        <span>慧谷商贸进销存系统</span>
       </div>
       <div class="content">
         <el-form
@@ -185,6 +186,7 @@ createCode();
 </template>
 
 <style lang="scss" scoped>
+@use "@@/assets/styles/size.scss" as *;
 .login-container {
   display: flex;
   flex-direction: column;
@@ -210,8 +212,21 @@ createCode();
       justify-content: center;
       align-items: center;
       height: 150px;
+      font-size: zrem(24);
       img {
-        height: 100%;
+        height: zrem(36);
+      }
+      span {
+        margin-left: zrem(10);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-image: linear-gradient(
+          to bottom,
+          var(--el-color-primary-dark-2),
+          var(--el-color-primary)
+        );
+        font-weight: 600;
       }
     }
     .content {
