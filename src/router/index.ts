@@ -77,7 +77,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     component: Layouts,
     redirect: "/employeeManagement/employee",
     meta: {
-      title: "员工管理",
+      title: "组织权限",
       elIcon: "User",
       moduleCode: ModuleCode.EmployeeManagement,
     },
