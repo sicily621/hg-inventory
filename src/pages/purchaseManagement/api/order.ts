@@ -23,7 +23,9 @@ export enum OrderStatus {
   Confirmed = 4,
   PartiallyReceived = 5,
   FullyReceived = 6,
-  Returned = 7,
+  PartiallyReturned = 7,
+  Returned = 8,
+  Finished = 9,
 }
 
 export const OrderStatusList = [
@@ -33,7 +35,9 @@ export const OrderStatusList = [
   { id: 4, name: "供应商已确认" },
   { id: 5, name: "部分入库" },
   { id: 6, name: "全部入库" },
-  { id: 7, name: "已退单" },
+  { id: 7, name: "部分退单" },
+  { id: 8, name: "全部退单" },
+  { id: 9, name: "已完成" },
 ];
 
 export interface queryOrderConditions {

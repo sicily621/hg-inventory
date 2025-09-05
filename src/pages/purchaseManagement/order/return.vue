@@ -77,18 +77,15 @@
                   v-model="scope.scope.row.quantity"
                   :min="0"
                   :max="scope.scope.row.quantityOrder"
+                  :step="scope.scope.row.quantityOrder"
+                  step-strictly
                   class="flex-1"
                   @change="changeQuantity(scope.scope.row)"
                 />
               </template>
 
               <template #price="scope">
-                <el-tag type="primary"
-                  >￥{{
-                    getItem(scope.scope.row.productId, productMap)
-                      ?.purchasePrice
-                  }}</el-tag
-                >
+                <el-tag type="primary">￥{{ scope.scope.row.price }}</el-tag>
               </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
@@ -233,6 +230,12 @@ const queryProductOptions = async () => {
 const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
+const getStatus = () => {
+  const allReturn = tableData.value.every((item) => {
+    return +item.quantity == +item.quantityOrder;
+  });
+  return allReturn ? OrderStatus.Returned : OrderStatus.PartiallyReturned;
+};
 const confirmSave = async (cb?: Function) => {
   if (totalAmount.value == 0) {
     ElMessage({
@@ -260,7 +263,7 @@ const confirmSave = async (cb?: Function) => {
     });
     await deleteReturnDetail((res as any).data.id);
     await createReturnDetail(detailList);
-    const order = { ...props.data, status: OrderStatus.Returned };
+    const order = { ...props.data, status: getStatus() };
     await editOrder(order);
     ElMessage({
       type: "success",

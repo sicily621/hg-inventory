@@ -245,19 +245,14 @@ const getName = (id: string, mapData: Map<string, string>) => {
 const employeeMap = ref(new Map());
 const queryEmployeeOptions = async () => {
   const params: any = {};
-  if (departmentId.value) params.departmentId = departmentId.value;
   const res = await getEmployeeList(params);
   employeeMap.value.clear();
-  employeeOptions.value = [];
   if ((res as any)?.data?.length) {
     (res as any)?.data.map((item: any) => {
       const { id, username: name } = item;
       employeeMap.value.set(id, name);
-      employeeOptions.value.push({ id, name });
     });
   }
-  const all = { id: 0, name: "全部" };
-  employeeOptions.value.unshift(all);
   searchData.employeeId = 0;
 };
 const supplierMap = ref<Map<string, string>>(new Map());

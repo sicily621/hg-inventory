@@ -88,6 +88,8 @@
                 <el-input-number
                   v-model="scope.scope.row.quantity"
                   :min="0"
+                  :step="scope.scope.row.quantityOrder"
+                  step-strictly
                   :max="scope.scope.row.quantityOrder"
                   class="flex-1"
                   @change="changeQuantity(scope.scope.row)"

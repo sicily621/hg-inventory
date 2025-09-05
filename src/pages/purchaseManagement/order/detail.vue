@@ -98,12 +98,7 @@
               </template>
 
               <template #price="scope">
-                <el-tag type="primary"
-                  >￥{{
-                    getItem(scope.scope.row.productId, productMap)
-                      ?.purchasePrice
-                  }}</el-tag
-                >
+                <el-tag type="primary">￥{{ scope.scope.row.price }}</el-tag>
               </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>

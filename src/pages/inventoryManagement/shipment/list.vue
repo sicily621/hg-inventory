@@ -92,7 +92,8 @@
                   <Edit
                     v-if="
                       searchData.type === 1
-                        ? scope.scope.row.status < OrderStatus.FullyReceived
+                        ? scope.scope.row.status <=
+                          OrderStatus.PartiallyReturned
                         : scope.scope.row.status < ReturnStatus.FullyReceived
                     "
                   />
@@ -223,7 +224,7 @@ watchDebounced(
 const queryOrder = async () => {
   return await findOrderPage({
     startStatus: OrderStatus.Confirmed,
-    endStatus: OrderStatus.FullyReceived,
+    endStatus: OrderStatus.PartiallyReturned,
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   });

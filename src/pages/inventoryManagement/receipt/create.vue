@@ -46,8 +46,8 @@
         </el-card>
         <el-card class="flex-1" shadow="never">
           <el-tabs v-model="tabActiveIndex">
-            <el-tab-pane label="订单详情" :name="1"></el-tab-pane>
-            <el-tab-pane label="入库详情" :name="2"></el-tab-pane>
+            <el-tab-pane label="待入库" :name="1"></el-tab-pane>
+            <el-tab-pane label="已入库" :name="2"></el-tab-pane>
           </el-tabs>
           <div class="table-wrap">
             <baseTable
@@ -57,6 +57,9 @@
               :indexMethod="indexMethod(currentPage, pageSize)"
               v-if="tabActiveIndex === 1"
             >
+              <template #supplierId="scope">
+                {{ getItem(scope.scope.row.supplierId, supplierMap) }}
+              </template>
               <template #categoryId="scope">
                 {{ getName(scope.scope.row.categoryId, categoryMap) }}
               </template>
@@ -96,7 +99,9 @@
                 <div class="flex">
                   <el-icon
                     v-if="
-                      scope.scope.row.quantity < scope.scope.row.orderQuantity
+                      scope.scope.row.quantity <
+                        scope.scope.row.orderQuantity &&
+                      scope.scope.row.returnQuantity == 0
                     "
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
@@ -322,6 +327,9 @@ import { ReturnStatus, editReturn } from "@/pages/saleManagement/api/return";
 import { getReturnDetailList } from "@/pages/saleManagement/api/returnDetail";
 import { receipt } from "@/pages/inventoryManagement/api/inventory";
 import { batchSaveHistory, History, HistoryType } from "../api/history";
+import { getReturnList } from "@/pages/purchaseManagement/api/return";
+import { getReturnDetailList as getPurchaseReturnDetailList } from "@/pages/purchaseManagement/api/returnDetail";
+import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -368,6 +376,10 @@ const columns = computed(() => {
     { prop: "price", label: "单价" },
     { prop: "amount", label: "金额" },
   ];
+  if (props.type === 1) {
+    // result.splice(5, 0, { prop: "returnQuantity", label: "退货数量" });
+    result.splice(3, 0, { prop: "supplierId", label: "供应商" });
+  }
   if (!disabled.value) {
     result.push({ prop: "operate", label: "操作", width: 80 });
   }
@@ -431,6 +443,19 @@ const getMax = () => {
     } else {
       return 0;
     }
+  }
+};
+const supplierMap = ref<Map<string, string>>(new Map());
+const supplierOptions = ref<any[]>([]);
+const querySupplierOptions = async () => {
+  const res = await getSupplierList();
+  if ((res as any)?.data?.length) {
+    supplierOptions.value = (res as any).data;
+    supplierMap.value.clear();
+    supplierOptions.value.map((item: any) => {
+      const { id, name } = item;
+      supplierMap.value.set(id, name);
+    });
   }
 };
 const rules = reactive({
@@ -754,7 +779,9 @@ const confirmSave = async (cb?: Function) => {
         });
         return (
           item.quantity > 0 &&
-          item.orderQuantity == item.quantity &&
+          (props.type === 1
+            ? item.orderQuantity - item.returnQuantity == item.quantity
+            : item.orderQuantity == item.quantity) &&
           index == -1
         );
       })
@@ -763,7 +790,7 @@ const confirmSave = async (cb?: Function) => {
           const index = tableData.value.findIndex((otherItem) => {
             return (
               otherItem.supplierId === item.supplierId &&
-              otherItem.orderQuantity > otherItem.quantity
+              otherItem.orderQuantity - item.returnQuantity > otherItem.quantity
             );
           });
           return index === -1;
@@ -829,7 +856,9 @@ const queryAccount = async () => {
   accountList.value = (res as any).data;
 };
 defineExpose({ confirmSave });
+const returnDetailsMap = ref<Map<any, any>>(new Map());
 onMounted(async () => {
+  await querySupplierOptions();
   await queryWarehouseOptions();
   await queryAreaOptions();
   await queryShelfOptions();
@@ -837,26 +866,51 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryReceipt();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
+  if (props.type === 1) {
+    const res = await getReturnList({
+      orderId: (props as any).data.orderId,
+    });
+    returnDetailsMap.value.clear();
+    if ((res as any).data[0]) {
+      const returnDetails = await getPurchaseReturnDetailList(
+        (res as any).data[0].id,
+      );
+      (returnDetails as any).data.map((item: any) => {
+        item.quantity = +item.quantity;
+        returnDetailsMap.value.set(item.productId, item.quantity);
+      });
+    }
+  }
   const res = await api((props as any).data.id);
   orderQuantityMap.value.clear();
-  tableData.value = (res as any)?.data.map((item: any, i: number) => {
-    const { productId, categoryId, quantity, price, amount } = item;
-    const receiptQuantity = receiptDetailsMap.value.get(productId);
-    const result = Object.assign({}, defaultProduct, {
-      productId,
-      categoryId,
-      orderQuantity: Number(quantity),
-      quantity: receiptQuantity ?? 0,
-      price,
-      amount,
-      index: i + 1,
+  tableData.value = (res as any)?.data
+    .filter((item: any) => {
+      if (props.type === 1) {
+        return !returnDetailsMap.value.get(item.productId);
+      } else {
+        return true;
+      }
+    })
+    .map((item: any, i: number) => {
+      const { productId, categoryId, quantity, price, amount } = item;
+      const receiptQuantity = receiptDetailsMap.value.get(productId);
+      const result: any = Object.assign({}, defaultProduct, {
+        productId,
+        categoryId,
+        orderQuantity: Number(quantity),
+        quantity: receiptQuantity ?? 0,
+        price,
+        amount,
+        index: i + 1,
+      });
+      if (props.type === 1) {
+        result.supplierId = item.supplierId;
+        result.returnQuantity = returnDetailsMap.value.get(item.productId) ?? 0;
+      }
+      orderQuantityMap.value.set(productId, result.orderQuantity);
+      return result;
     });
-    if (props.type === 1) {
-      result.supplierId = item.supplierId;
-    }
-    orderQuantityMap.value.set(productId, result.orderQuantity);
-    return result;
-  });
+
   await queryProductOptions();
   await queryAccount();
 });

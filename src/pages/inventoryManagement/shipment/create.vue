@@ -46,8 +46,8 @@
         </el-card>
         <el-card class="flex-1" shadow="never">
           <el-tabs v-model="tabActiveIndex">
-            <el-tab-pane label="订单详情" :name="1"></el-tab-pane>
-            <el-tab-pane label="出库详情" :name="2"></el-tab-pane>
+            <el-tab-pane label="待出库" :name="1"></el-tab-pane>
+            <el-tab-pane label="已出库" :name="2"></el-tab-pane>
           </el-tabs>
           <div class="table-wrap">
             <baseTable
@@ -59,6 +59,9 @@
             >
               <template #categoryId="scope">
                 {{ getName(scope.scope.row.categoryId, categoryMap) }}
+              </template>
+              <template #supplierId="scope">
+                {{ getItem(scope.scope.row.supplierId, supplierMap) }}
               </template>
               <template #productId="scope">
                 {{ getItem(scope.scope.row.productId, productMap)?.name }}
@@ -128,6 +131,9 @@
               </template>
               <template #areaId="scope">
                 {{ getItem(scope.scope.row.areaId, areaMap)?.name }}
+              </template>
+              <template #supplierId="scope">
+                {{ getItem(scope.scope.row.supplierId, supplierMap) }}
               </template>
               <template #specification="scope">
                 {{
@@ -291,6 +297,8 @@ import {
   deleteShipmentDetail,
   getShipmentDetailList,
 } from "../api/shipmentDetail";
+import { getReceiptList } from "../api/receipt";
+import { getReceiptDetailList } from "../api/receiptDetail";
 import { findProductListByIds } from "@/pages/productManagement/api/product";
 import {
   Category,
@@ -325,6 +333,7 @@ import {
   getAccountByOrderId,
   batchAccount,
 } from "@/pages/accountManagement/api/account";
+import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -365,12 +374,19 @@ const columns = computed(() => {
     { prop: "categoryId", label: "商品分类" },
     { prop: "productId", label: "商品名称" },
     { prop: "specification", label: "规格" },
-    { prop: "orderQuantity", label: "订单数量" },
+    {
+      prop: "orderQuantity",
+      label: "订单数量",
+    },
     { prop: "quantity", label: "出库数量" },
     { prop: "status", label: "状态" },
     { prop: "price", label: "单价" },
     { prop: "amount", label: "金额" },
   ];
+  if (props.type === 2) {
+    result.splice(5, 0, { prop: "receiptQuantity", label: "已入库数量" });
+    result.splice(3, 0, { prop: "supplierId", label: "供应商" });
+  }
   if (!disabled.value) {
     result.push({ prop: "operate", label: "操作", width: 80 });
   }
@@ -466,6 +482,19 @@ const productRules = reactive({
   shelfId: [{ required: true, message: "不能为空" }],
   areaId: [{ required: true, message: "不能为空" }],
 });
+const supplierMap = ref<Map<string, string>>(new Map());
+const supplierOptions = ref<any[]>([]);
+const querySupplierOptions = async () => {
+  const res = await getSupplierList();
+  if ((res as any)?.data?.length) {
+    supplierOptions.value = (res as any).data;
+    supplierMap.value.clear();
+    supplierOptions.value.map((item: any) => {
+      const { id, name } = item;
+      supplierMap.value.set(id, name);
+    });
+  }
+};
 const areaOptions = ref<any[]>([]);
 const shelfOptions = ref<any[]>([]);
 const areaMap = ref(new Map());
@@ -675,9 +704,13 @@ const checkStatus = () => {
     return false;
   }
   // 检查是否所有quantity都等于orderQuantity
-  const allFull = tableData.value.every(
-    (item) => +item.quantity === +item.orderQuantity,
-  );
+  const allFull = tableData.value.every((item) => {
+    if (props.type === 1) {
+      return +item.quantity === +item.orderQuantity;
+    } else {
+      return +item.receiptQuantity === +item.quantity;
+    }
+  });
   if (allFull) {
     return props.type === 1
       ? OrderStatus.FullyReceived
@@ -772,9 +805,10 @@ const confirmSave = async (cb?: Function) => {
           );
         });
         return (
-          item.quantity > 0 &&
-          item.orderQuantity == item.quantity &&
-          index == -1
+          (props.type === 1
+            ? item.orderQuantity == item.quantity && item.quantity > 0
+            : item.receiptQuantity == item.quantity &&
+              item.orderQuantity > 0) && index == -1
         );
       })
       .filter((item) => {
@@ -782,7 +816,7 @@ const confirmSave = async (cb?: Function) => {
           const index = tableData.value.findIndex((otherItem) => {
             return (
               otherItem.supplierId === item.supplierId &&
-              otherItem.orderQuantity > otherItem.quantity
+              otherItem.receiptQuantity !== otherItem.quantity
             );
           });
           return index === -1;
@@ -848,7 +882,9 @@ const queryAccount = async () => {
   accountList.value = (res as any).data;
 };
 defineExpose({ confirmSave });
+const receiptDetailsMap = ref<Map<any, any>>(new Map());
 onMounted(async () => {
+  await querySupplierOptions();
   await queryWarehouseOptions();
   await queryAreaOptions();
   await queryShelfOptions();
@@ -857,11 +893,24 @@ onMounted(async () => {
   await queryShipment();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
   const res = await api((props as any).data.id);
+  if (props.type === 2) {
+    const res = await getReceiptList({
+      orderId: (props as any).data.orderId,
+    });
+    const receiptDetails = await getReceiptDetailList((res as any).data[0].id);
+    if ((res as any).data[0]) {
+      receiptDetailsMap.value.clear();
+      (receiptDetails as any).data.map((item: any) => {
+        item.quantity = +item.quantity;
+        receiptDetailsMap.value.set(item.productId, item.quantity);
+      });
+    }
+  }
   orderQuantityMap.value.clear();
   tableData.value = (res as any)?.data.map((item: any, i: number) => {
     const { productId, categoryId, quantity, price, amount } = item;
     const shipmentQuantity = shipmentDetailsMap.value.get(productId);
-    const result = Object.assign({}, defaultProduct, {
+    const result: any = Object.assign({}, defaultProduct, {
       productId,
       categoryId,
       orderQuantity: Number(quantity),
@@ -873,6 +922,7 @@ onMounted(async () => {
     orderQuantityMap.value.set(productId, result.orderQuantity);
     if (props.type === 2) {
       result.supplierId = item.supplierId;
+      result.receiptQuantity = receiptDetailsMap.value.get(item.productId) ?? 0;
     }
     orderQuantityMap.value.set(productId, result.orderQuantity);
     return result;

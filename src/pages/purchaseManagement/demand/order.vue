@@ -101,14 +101,12 @@
                   @change="changeQuantity(scope.scope.row)"
                 />
               </template>
-
               <template #price="scope">
-                <el-tag type="primary"
-                  >￥{{
-                    getItem(scope.scope.row.productId, productMap)
-                      ?.purchasePrice
-                  }}</el-tag
-                >
+                <el-input-number
+                  v-model="scope.scope.row.price"
+                  :min="1"
+                  @change="changeQuantity(scope.scope.row)"
+                />
               </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
