@@ -27,7 +27,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     // 类型声明
-    "types": ["element-plus/global", "vue", "node"],
+    "types": ["vitest/globals", "element-plus/global", "vue", "node"],
 
     "baseUrl": ".",
     "paths": {
@@ -41,6 +41,7 @@
     "src/**/*.tsx",
     "src/**/*.vue", // 关键：包含 Vue 单文件组件
     "src/pages/**/*.vue",
-    "types/**/*.d.ts"
+    "types/**/*.d.ts",
+    "tests/**/*.test.ts"
   ]
 }
