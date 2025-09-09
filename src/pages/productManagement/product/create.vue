@@ -179,16 +179,20 @@ function buildCategoryTree(categorys: Category[]) {
 const categoryOptions = ref<any[]>([{ name: "无", id: 0 }]);
 
 const confirmSave = async (cb?: Function) => {
-  const valid = await formRef.value.validate();
-  if (valid) {
-    const params = { ...form.value };
-    const api = params.id ? editProduct : createProduct;
-    await api(params);
-    ElMessage({
-      type: "success",
-      message: "保存成功",
-    });
-    cb && cb();
+  try {
+    const valid = await formRef.value.validate();
+    if (valid) {
+      const params = { ...form.value };
+      const api = params.id ? editProduct : createProduct;
+      await api(params);
+      ElMessage({
+        type: "success",
+        message: "保存成功",
+      });
+      cb && cb();
+    }
+  } catch (error) {
+    return false;
   }
 };
 const queryCategoryOptions = async () => {
