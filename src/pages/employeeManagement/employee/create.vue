@@ -268,26 +268,30 @@ const handleFileChange: UploadProps["onChange"] = (file: any) => {
 };
 const resetPwd = () => {};
 const confirmSave = async (cb?: Function) => {
-  const valid = await formRef.value.validate();
-  if (valid) {
-    const params = { ...form.value };
-    if (params.id) {
-      if (params?.password?.length) {
-        params.password = md5(params.password);
+  try {
+    const valid = await formRef.value.validate();
+    if (valid) {
+      const params = { ...form.value };
+      if (params.id) {
+        if (params?.password?.length) {
+          params.password = md5(params.password);
+        } else {
+          delete params["password"];
+        }
       } else {
-        delete params["password"];
+        params.password = md5(defaultPwd);
       }
-    } else {
-      params.password = md5(defaultPwd);
+      if (!form.value.avatarFile) delete params["avatarFile"];
+      const api = params.id ? editEmployee : createEmployee;
+      await api(params);
+      ElMessage({
+        type: "success",
+        message: "保存成功",
+      });
+      cb && cb();
     }
-    if (!form.value.avatarFile) delete params["avatarFile"];
-    const api = params.id ? editEmployee : createEmployee;
-    await api(params);
-    ElMessage({
-      type: "success",
-      message: "保存成功",
-    });
-    cb && cb();
+  } catch (e) {
+    return false;
   }
 };
 const queryDepartmentOptions = async () => {

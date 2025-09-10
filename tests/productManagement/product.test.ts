@@ -1,7 +1,6 @@
-// src/components/__tests__/ProductForm.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import ProductForm from "@/pages/productManagement/product/create.vue"; // 请根据你的实际路径调整
+import ProductForm from "@/pages/productManagement/product/create.vue";
 
 // Mock API 模块
 vi.mock("@/pages/productManagement/api/category", () => ({
