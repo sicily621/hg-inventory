@@ -9,9 +9,9 @@ import { usePermissionStore } from "@/pinia/stores/permission";
 import { getRolePermissionRelationsByRoleId } from "@/pages/employeeManagement/api/rolePermissionRelations";
 import { getPermissionListByIds } from "@/pages/employeeManagement/api/permission";
 import { loginApi } from "./apis";
-import Owl from "./components/Owl.vue";
 import { useFocus } from "./composables/useFocus";
 import md5 from "js-md5";
+import { onMounted } from "vue";
 
 const router = useRouter();
 
@@ -99,9 +99,197 @@ function createCode() {
   //   codeUrl.value = res.data
   // })
 }
+// 画布引用
+const captchaCanvas = ref(null);
+// 用户输入
+const userInput = ref("");
+// 当前验证码
+let currentCode = "";
+
+// 自定义字符集（中英文数字混合）
+const charPool = [
+  // 数字
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  // 大写字母
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+  "U",
+  "V",
+  "W",
+  "X",
+  "Y",
+  "Z",
+  // 小写字母
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
+  "g",
+  "h",
+  "i",
+  "j",
+  "k",
+  "l",
+  "m",
+  "n",
+  "o",
+  "p",
+  "q",
+  "r",
+  "s",
+  "t",
+  "u",
+  "v",
+  "w",
+  "x",
+  "y",
+  "z",
+];
+
+// 生成随机验证码
+const generateCode = (length = 4) => {
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charPool.length);
+    code += charPool[randomIndex];
+  }
+  currentCode = code;
+  return code;
+};
+
+// 绘制验证码
+const drawCaptcha = () => {
+  if (!captchaCanvas.value) return;
+
+  const canvas = captchaCanvas.value;
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // 清空画布
+  ctx.clearRect(0, 0, width, height);
+
+  // 绘制背景
+  ctx.fillStyle = "#f3f3f3";
+  ctx.fillRect(0, 0, width, height);
+
+  // 生成验证码
+  const code = generateCode(4);
+
+  // 设置字体
+  ctx.font = 'bold 28px "Microsoft YaHei", Arial, sans-serif';
+
+  // 绘制每个字符
+  for (let i = 0; i < code.length; i++) {
+    // 随机颜色
+    ctx.fillStyle = `rgb(${Math.random() * 80 + 50}, ${Math.random() * 80 + 50}, ${Math.random() * 80 + 50})`;
+
+    // 随机旋转角度
+    const rotate = (Math.random() - 0.5) * 0.5; // -0.25 到 0.25 弧度
+
+    // 计算位置
+    const x = 30 + i * 40;
+    const y = height / 2 + 10;
+
+    // 保存当前状态
+    ctx.save();
+
+    // 平移并旋转
+    ctx.translate(x, y);
+    ctx.rotate(rotate);
+
+    // 绘制字符
+    ctx.fillText(code[i], 0, 0);
+
+    // 恢复状态
+    ctx.restore();
+  }
+
+  // 绘制干扰线
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = `rgb(${Math.random() * 150 + 50}, ${Math.random() * 150 + 50}, ${Math.random() * 150 + 50})`;
+    ctx.lineWidth = Math.random() * 2 + 1;
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * width, Math.random() * height);
+    ctx.lineTo(Math.random() * width, Math.random() * height);
+    ctx.stroke();
+  }
+
+  // 绘制干扰点
+  for (let i = 0; i < 30; i++) {
+    ctx.fillStyle = `rgb(${Math.random() * 100 + 100}, ${Math.random() * 100 + 100}, ${Math.random() * 100 + 100})`;
+    ctx.beginPath();
+    ctx.arc(
+      Math.random() * width,
+      Math.random() * height,
+      Math.random() * 2,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+  }
+};
+
+// 刷新验证码
+const refreshCaptcha = () => {
+  drawCaptcha();
+};
+
+// 验证验证码
+const checkCaptcha = () => {
+  if (!loginFormData.code) {
+    alert("请输入验证码");
+    return;
+  }
+
+  // 不区分大小写验证
+  const isMatch =
+    loginFormData.code.toLowerCase() === currentCode.toLowerCase();
+
+  if (isMatch) {
+    alert("验证通过");
+    refreshCaptcha();
+    loginFormData.code = "";
+  } else {
+    alert("验证码错误，请重新输入");
+  }
+};
 
 // 初始化验证码
 createCode();
+// 组件挂载时绘制验证码
+onMounted(() => {
+  drawCaptcha();
+});
 </script>
 
 <template>
@@ -156,18 +344,14 @@ createCode();
               @focus="handleFocus"
             >
               <template #append>
-                <el-image :src="codeUrl" draggable="false" @click="createCode">
-                  <template #placeholder>
-                    <el-icon>
-                      <Picture />
-                    </el-icon>
-                  </template>
-                  <template #error>
-                    <el-icon>
-                      <Loading />
-                    </el-icon>
-                  </template>
-                </el-image>
+                <canvas
+                  ref="captchaCanvas"
+                  @click="refreshCaptcha"
+                  class="captcha-canvas"
+                  width="200"
+                  height="60"
+                  title="点击刷新"
+                ></canvas>
               </template>
             </el-input>
           </el-form-item>
