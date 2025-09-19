@@ -158,13 +158,15 @@ import { getRoleList } from "../api/role";
 import type { UploadProps } from "element-plus";
 import md5 from "js-md5";
 import { ElMessage } from "element-plus";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const props = defineProps<{ data: Employee | null }>();
 const formRef = ref();
 const defaultPwd = "Admin@123456";
 const selectProps = { value: "id", label: "name" };
 //表单
 const form = ref<Employee>({
-  code: "",
+  code: `${ModuleCode.Employee}${formatTimeToString()}`,
   username: "",
   password: "",
   realName: "",

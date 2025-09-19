@@ -87,6 +87,8 @@
 import { ref, reactive, onMounted } from "vue";
 import { Supplier, createSupplier, editSupplier } from "../api/supplier";
 import { ElMessage } from "element-plus";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const props = defineProps<{ data: Supplier | null }>();
 const formRef = ref();
 //表单
@@ -95,7 +97,7 @@ const form = ref<Supplier>({
   phone: "",
   email: "",
   address: "",
-  code: "",
+  code: `${ModuleCode.Supplier}${formatTimeToString()}`,
   contactPerson: "",
 });
 //合并props

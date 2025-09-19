@@ -87,14 +87,15 @@ import {
 } from "../api/rolePermissionRelations";
 import { Permission, getPermissionList } from "../api/permission";
 import { ElMessage } from "element-plus";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const props = defineProps<{ data: Role | null }>();
 const formRef = ref();
 const selectProps = { value: "id", label: "name" };
-const relationsFormRef = ref();
 //表单
 const form = ref<Role>({
   name: "",
-  code: "",
+  code: `${ModuleCode.Role}${formatTimeToString()}`,
   description: "",
   status: 1,
 });

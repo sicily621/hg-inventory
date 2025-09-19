@@ -334,6 +334,8 @@ import {
   batchAccount,
 } from "@/pages/accountManagement/api/account";
 import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -359,7 +361,7 @@ const disabled = computed(() => {
 const tabActiveIndex = ref(1);
 //表单
 const form = ref<Shipment>({
-  code: "",
+  code: `${ModuleCode.InventoryShipment}${formatTimeToString()}`,
   orderId: props.type === 1 ? props.data.id : props.data.orderId,
   employeeId: userStore.getInfo().id,
   description: "",

@@ -67,11 +67,13 @@ import { ref, reactive, onMounted } from "vue";
 import { Warehouse, createWarehouse, editWarehouse } from "../api/warehouse";
 import { ElMessage } from "element-plus";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const props = defineProps<{ data: Warehouse | null }>();
 const formRef = ref();
 //表单
 const form = ref<Warehouse>({
-  code: "",
+  code: `${ModuleCode.Warehouse}${formatTimeToString()}`,
   name: "",
   area: 0,
   managerId: "",

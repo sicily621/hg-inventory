@@ -15,4 +15,5 @@ export type LoginResponseData = ApiResponseData<{
   departmentId: string;
   roleId: string;
   username: string;
+  tokenTimeout: number;
 }>;

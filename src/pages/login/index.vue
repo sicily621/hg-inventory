@@ -148,16 +148,17 @@ function handleLogin() {
     params.password = md5(params.password);
     loginApi(params)
       .then(({ data }) => {
-        const { id, token, departmentId, roleId, username } = data;
-        userStore.setToken(token);
-        userStore.setInfo({ id, departmentId, roleId, username });
+        const { id, token, departmentId, roleId, username, tokenTimeout } =
+          data;
+        userStore.setToken(token, tokenTimeout);
+        userStore.setInfo({ id, departmentId, roleId, username, tokenTimeout });
         if (roleId) {
           getRolePermissionRelationsByRoleId(roleId).then((res) => {
             const permissions = (res as any).data.map(
               (item: any) => item.permissionId,
             );
             getPermissionListByIds(permissions).then((res: any) => {
-              permissionStore.setPermissions(res.data);
+              permissionStore.setPermissions(res.data, tokenTimeout);
               router.push("/");
             });
           });

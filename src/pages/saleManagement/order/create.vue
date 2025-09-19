@@ -294,6 +294,7 @@ import { Plus } from "@element-plus/icons-vue";
 import { usePermissionStore } from "@/pinia/stores/permission";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 import { ModuleCode } from "@/router/moduleCode";
+import { formatTimeToString } from "@@/utils/datetime";
 const permissionStore = usePermissionStore();
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.SalesOrder,
@@ -380,7 +381,7 @@ const closeModal = () => {
 };
 //表单
 const form = ref<Order>({
-  code: "",
+  code: `${ModuleCode.SalesOrder}${formatTimeToString()}`,
   customerId: "",
   employeeId: userStore.getInfo().id,
   expectedDate: Date.now(),

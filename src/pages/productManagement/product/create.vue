@@ -121,12 +121,14 @@ import { ref, reactive, onMounted } from "vue";
 import { Product, createProduct, editProduct } from "../api/product";
 import { Category, getCategoryList } from "../api/category";
 import { ElMessage } from "element-plus";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const props = defineProps<{ data: Product | null }>();
 const formRef = ref();
 const selectProps = { value: "id", label: "name" };
 //表单
 const form = ref<Product>({
-  code: "",
+  code: `${ModuleCode.Product}${formatTimeToString()}`,
   name: "",
   categoryId: "",
   purchasePrice: 0,

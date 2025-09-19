@@ -14,7 +14,7 @@ import { routerConfig } from "@/router/config";
 import { useSettingsStore } from "./settings";
 import { useTagsViewStore } from "./tags-view";
 
-export const useUserStore = defineStore("user", () => {
+export const useUserStore: any = defineStore("user", () => {
   const token = ref<string>(getToken() || "");
   interface userInfo {
     id: string;
@@ -42,12 +42,12 @@ export const useUserStore = defineStore("user", () => {
   const settingsStore = useSettingsStore();
 
   // 设置 Token
-  const setToken = (value: string) => {
-    _setToken(value);
+  const setToken = (value: string, time: number) => {
+    _setToken(value, time);
     token.value = value;
   };
-  const setInfo = (value: userInfo) => {
-    setUserInfo(JSON.stringify(value));
+  const setInfo = (value: userInfo, time: number) => {
+    setUserInfo(JSON.stringify(value), time);
     userInfo.value = value;
     username.value = value.username;
   };
@@ -71,7 +71,7 @@ export const useUserStore = defineStore("user", () => {
   const changeRoles = (role: string) => {
     const newToken = `token-${role}`;
     token.value = newToken;
-    _setToken(newToken);
+    //_setToken(newToken);
     // 用刷新页面代替重新登录
     location.reload();
   };

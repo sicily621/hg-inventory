@@ -126,12 +126,14 @@ import { getWarehouseList } from "../api/warehouse";
 import { indexMethod } from "@@/utils/page";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 
 const dialogFormVisible = ref(false);
 const isEdit = ref(false);
 const form = reactive<Shelf>({
   name: "",
-  code: "",
+  code: `${ModuleCode.Shelf}${formatTimeToString()}`,
   areaId: "",
   layerCount: 0,
   maxCapacity: 0,
@@ -144,7 +146,7 @@ const rules = reactive({
 const closeModal = () => {
   delete form["id"];
   form.name = "";
-  form.code = "";
+  form.code = `${ModuleCode.Shelf}${formatTimeToString()}`;
   form.layerCount = 0;
   form.maxCapacity = 0;
   dialogFormVisible.value = false;
@@ -169,7 +171,6 @@ const add = async () => {
   }
 };
 const treeRef = ref();
-const createRef = ref();
 
 // 左侧树列表
 const virtualRootId = "root";
@@ -309,7 +310,7 @@ const remove = async (id: string) => {
   refreshTable();
 };
 const queryWarehouseOptions = async () => {
-  const res = await getWarehouseList();
+  const res = await getWarehouseList({});
   if ((res as any)?.data?.length) {
     rawParkData.value = (res as any)?.data.map((node: any, index: number) => {
       const { id, name } = node;

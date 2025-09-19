@@ -25,14 +25,16 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
+                  disabled
                 >
                 </el-input>
               </el-form-item>
-              <el-form-item label="供应商" prop="customerId">
+              <el-form-item label="客户" prop="customerId">
                 <el-select
                   v-model="form.customerId"
-                  placeholder="请选择供应商"
+                  placeholder="请选择客户"
                   class="w-full"
+                  disabled
                 >
                   <el-option
                     v-for="item in customerOptions"

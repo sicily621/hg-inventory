@@ -117,6 +117,8 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Order }>();
@@ -132,7 +134,7 @@ const userStore = useUserStore();
 //表单
 const form = ref<Return>({
   orderId: String(props.data.id),
-  code: "",
+  code: `${ModuleCode.PurchaseReturn}${formatTimeToString()}`,
   employeeId: userStore.getInfo().id,
   status: ReturnStatus.Pending,
   description: "",

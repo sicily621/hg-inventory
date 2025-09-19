@@ -138,7 +138,8 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
-
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Demand }>();
@@ -157,7 +158,7 @@ const changeQuantity = (row: any) => {
 //表单
 const form = ref<Order>({
   demandId: "",
-  code: "",
+  code: `${ModuleCode.PurchaseOrder}${formatTimeToString()}`,
   employeeId: userStore.getInfo().id,
   expectedDate: Date.now(),
   actualDate: 0,

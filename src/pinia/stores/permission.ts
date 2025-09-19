@@ -14,7 +14,7 @@ import {
   getUserInfo,
 } from "@@/utils/cache/cookies";
 
-export const usePermissionStore = defineStore("permission", () => {
+export const usePermissionStore: any = defineStore("permission", () => {
   const cachePermission = getPermission()
     ? JSON.parse(getPermission() || "")
     : null;
@@ -72,8 +72,8 @@ export const usePermissionStore = defineStore("permission", () => {
   const setAllRoutes = () => {
     set(dynamicRoutes);
   };
-  const setPermissions = (data: Permission[]) => {
-    setPermission(JSON.stringify(data));
+  const setPermissions = (data: Permission[], time: number) => {
+    setPermission(JSON.stringify(data), time);
     permissions.value = data;
   };
   const getPermissions = () => {
@@ -98,11 +98,3 @@ export const usePermissionStore = defineStore("permission", () => {
     hasPermission,
   };
 });
-
-/**
- * @description 在 SPA 应用中可用于在 pinia 实例被激活前使用 store
- * @description 在 SSR 应用中可用于在 setup 外使用 store
- */
-export function usePermissionStoreOutside() {
-  return usePermissionStore(pinia);
-}

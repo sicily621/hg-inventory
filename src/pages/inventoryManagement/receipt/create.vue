@@ -330,6 +330,8 @@ import { batchSaveHistory, History, HistoryType } from "../api/history";
 import { getReturnList } from "@/pages/purchaseManagement/api/return";
 import { getReturnDetailList as getPurchaseReturnDetailList } from "@/pages/purchaseManagement/api/returnDetail";
 import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -355,7 +357,7 @@ const disabled = computed(() => {
 const tabActiveIndex = ref(1);
 //表单
 const form = ref<Receipt>({
-  code: "",
+  code: `${ModuleCode.InventoryReceipt}${formatTimeToString()}`,
   orderId: props.type === 1 ? props.data.id : props.data.orderId,
   employeeId: userStore.getInfo().id,
   description: "",

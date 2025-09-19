@@ -260,6 +260,8 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
+import { formatTimeToString } from "@@/utils/datetime";
+import { ModuleCode } from "@/router/moduleCode";
 const userStore = useUserStore();
 const pageSize = ref(1000);
 const currentPage = ref(0);
@@ -270,7 +272,7 @@ const selectProps = { value: "id", label: "name" };
 const productOptions = ref<any[]>([]);
 //表单
 const form = ref<Check>({
-  code: "",
+  code: `${ModuleCode.InventoryCheck}${formatTimeToString()}`,
   warehouseId: "",
   employeeId: userStore.getInfo().id,
   status: CheckStatus.InProgress,

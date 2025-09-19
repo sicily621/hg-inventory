@@ -29,10 +29,10 @@
                 >
                 </el-input>
               </el-form-item>
-              <el-form-item label="供应商" prop="customerId">
+              <el-form-item label="客户" prop="customerId">
                 <el-select
                   v-model="form.customerId"
-                  placeholder="请选择供应商"
+                  placeholder="请选择客户"
                   class="w-full"
                   disabled
                 >
@@ -134,6 +134,8 @@ import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
+import { ModuleCode } from "@/router/moduleCode";
+import { formatTimeToString } from "@@/utils/datetime";
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Order }>();
@@ -149,7 +151,7 @@ const userStore = useUserStore();
 //表单
 const form = ref<Return>({
   orderId: String(props.data.id),
-  code: "",
+  code: `${ModuleCode.SalesReturn}${formatTimeToString()}`,
   employeeId: userStore.getInfo().id,
   customerId: props.data.customerId,
   status: ReturnStatus.Pending,

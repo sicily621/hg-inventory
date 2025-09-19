@@ -7,8 +7,10 @@ export function getToken() {
   return Cookies.get(CacheKey.TOKEN);
 }
 
-export function setToken(token: string) {
-  Cookies.set(CacheKey.TOKEN, token);
+export function setToken(token: string, value: number) {
+  const expiresDate = new Date();
+  expiresDate.setTime(expiresDate.getTime() + value * 1000);
+  Cookies.set(CacheKey.TOKEN, token, { expires: expiresDate });
 }
 
 export function removeToken() {
@@ -19,8 +21,10 @@ export function getUserInfo() {
   return Cookies.get(CacheKey.USER_INFO);
 }
 
-export function setUserInfo(userInfo: any) {
-  Cookies.set(CacheKey.USER_INFO, userInfo);
+export function setUserInfo(userInfo: any, value: number) {
+  const expiresDate = new Date();
+  expiresDate.setTime(expiresDate.getTime() + value * 1000);
+  Cookies.set(CacheKey.USER_INFO, userInfo, { expires: expiresDate });
 }
 
 export function removeUserInfo() {
@@ -28,13 +32,13 @@ export function removeUserInfo() {
 }
 
 export function getPermission() {
-  return Cookies.get(CacheKey.PERMISSION);
+  return sessionStorage.getItem(CacheKey.PERMISSION);
 }
 
-export function setPermission(permisson: any) {
-  Cookies.set(CacheKey.PERMISSION, permisson);
+export function setPermission(permisson: any, value: number) {
+  sessionStorage.setItem(CacheKey.PERMISSION, permisson);
 }
 
 export function removePermission() {
-  Cookies.remove(CacheKey.PERMISSION);
+  sessionStorage.removeItem(CacheKey.PERMISSION);
 }
