@@ -249,8 +249,15 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-
-defineExpose({ confirmSave });
+const approve = async (cb?: Function) => {
+  form.value.status = ReturnStatus.Approved;
+  await confirmSave(cb);
+};
+const rejected = async (cb?: Function) => {
+  form.value.status = ReturnStatus.Rejected;
+  await confirmSave(cb);
+};
+defineExpose({ confirmSave, approve, rejected });
 onMounted(async () => {
   await querySupplierOptions();
   await queryCategoryOptions();

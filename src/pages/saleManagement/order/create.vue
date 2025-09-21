@@ -26,6 +26,7 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -34,7 +35,7 @@
                   v-model="form.status"
                   placeholder="请选择状态"
                   class="w-full"
-                  :disabled="disabledApprove"
+                  :disabled="true"
                 >
                   <el-option
                     v-for="item in OrderStatusList"
@@ -52,6 +53,7 @@
                   placeholder="请输入期望交货时间"
                   :default-time="defaultTime"
                   :disabled-date="isBefore"
+                  :disabled="onlyView"
                 />
               </el-form-item>
               <el-form-item label="客户" prop="customerId">
@@ -59,6 +61,7 @@
                   v-model="form.customerId"
                   placeholder="请选择客户"
                   class="w-full"
+                  :disabled="onlyView"
                 >
                   <el-option
                     v-for="item in customerOptions"
@@ -75,6 +78,7 @@
                   :step="0.1"
                   :min="0"
                   :max="totalAmount"
+                  :disabled="onlyView"
                 />
               </el-form-item>
               <div class="flex">
@@ -93,6 +97,7 @@
               <el-form-item label="备注" prop="description"
                 ><el-input
                   v-model="form.description"
+                  :disabled="onlyView"
                   class="flex-1"
                   placeholder="请输入备注"
                   maxlength="32"
@@ -108,6 +113,7 @@
             <el-button
               type="primary"
               :icon="Plus"
+              v-if="!onlyView"
               @click="dialogFormVisible = true"
               >新增商品</el-button
             >
@@ -134,7 +140,9 @@
                 }}
               </template>
               <template #quantity="scope">
+                <span v-if="onlyView">{{ scope.scope.row.quantity }}</span>
                 <el-input-number
+                  v-else
                   v-model="scope.scope.row.quantity"
                   :min="1"
                   @change="changeQuantity(scope.scope.row)"
@@ -198,7 +206,8 @@
               placeholder="请选择商品分类"
               :data="categoryOptions"
               check-strictly
-              :render-after-expand="false"
+              :render-after-expand="true"
+              :default-expand-all="true"
               :props="selectProps"
               @change="queryProductOptions"
             />
@@ -291,21 +300,25 @@ import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
 import { indexMethod } from "@@/utils/page";
 import { Plus } from "@element-plus/icons-vue";
-import { usePermissionStore } from "@/pinia/stores/permission";
-import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 import { ModuleCode } from "@/router/moduleCode";
 import { formatTimeToString } from "@@/utils/datetime";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 const permissionStore = usePermissionStore();
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.SalesOrder,
   PermissionAction.Approve,
 );
-const disabledApprove = computed(() => {
-  return !enableApprove;
-});
+// const disabledApprove = computed(() => {
+//   return !enableApprove;
+// });
+
 const pageSize = ref(1000);
 const currentPage = ref(0);
-const props = defineProps<{ data: Order | null }>();
+const props = defineProps<{ data: Order | null; isApprove: boolean }>();
+const onlyView = computed(() => {
+  return form.value.status !== OrderStatus.Pending || props.isApprove;
+});
 const formRef = ref();
 const defaultTime = new Date();
 const userStore = useUserStore();
@@ -360,6 +373,17 @@ const addProduct = async () => {
       unit: unit.value,
       amount: +quantity * +price,
     };
+    const hasAdd = tableData.value.find((item: any, i: number) => {
+      if (editIndex.value > -1) {
+        return item.productId === row.productId && i != editIndex.value;
+      } else {
+        return item.productId === row.productId;
+      }
+    });
+    if (hasAdd) {
+      ElMessage.error("商品列表中的商品不能重复");
+      return;
+    }
     if (editIndex.value > -1) {
       row.index = editIndex.value + 1;
       tableData.value[editIndex.value] = row;
@@ -400,17 +424,22 @@ const rules = reactive({
   expectedDate: [{ required: true, message: "不能为空" }],
   totalAmount: [{ required: true, message: "不能为空" }],
 });
-const columns = ref([
-  { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "categoryId", label: "分类" },
-  { prop: "productId", label: "名称" },
-  { prop: "specification", label: "规格" },
-  { prop: "unit", label: "计量单位" },
-  { prop: "quantity", label: "数量" },
-  { prop: "price", label: "销售价" },
-  { prop: "amount", label: "金额" },
-  { prop: "operate", label: "操作", width: 80 },
-]);
+const columns = computed(() => {
+  const result: any[] = [
+    { prop: "index", label: "序号", width: "100", type: 1 },
+    { prop: "categoryId", label: "分类" },
+    { prop: "productId", label: "名称" },
+    { prop: "specification", label: "规格" },
+    { prop: "unit", label: "计量单位" },
+    { prop: "quantity", label: "数量" },
+    { prop: "price", label: "销售价" },
+    { prop: "amount", label: "金额" },
+  ];
+  if (!onlyView.value) {
+    result.push({ prop: "operate", label: "操作", width: 80 });
+  }
+  return result;
+});
 const edit = (row: any) => {
   editIndex.value = row.index - 1;
   productForm.value = { ...row };
@@ -443,6 +472,7 @@ const queryCustomerOptions = async () => {
   const res = await getCustomerList();
   if ((res as any)?.data?.length) {
     customerOptions.value = (res as any).data;
+    form.value.customerId = customerOptions.value?.[0]?.id;
   }
 };
 function buildCategoryTree(categorys: Category[]) {
@@ -472,11 +502,29 @@ function buildCategoryTree(categorys: Category[]) {
     .filter((dept: Category) => dept.parentId === 0)
     .map((dept: Category) => map.get(dept.id));
 }
+function findDeepestFirstChildRecursive(deptTree: any[]) {
+  // 边界：无树或无第一个根节点
+  if (!Array.isArray(deptTree) || deptTree.length === 0) {
+    return null;
+  }
+
+  const firstRoot = deptTree[0];
+  // 递归终止条件：当前节点无children，就是最深层节点
+  if (!firstRoot.children || firstRoot.children.length === 0) {
+    return firstRoot;
+  }
+
+  // 递归：传入当前节点的第一个子节点（继续向下找）
+  return findDeepestFirstChildRecursive([firstRoot.children[0]]);
+}
+
 const categoryMap = ref(new Map());
 const queryCategoryOptions = async () => {
   const res = await getCategoryList();
   if ((res as any)?.data?.length) {
     categoryOptions.value = buildCategoryTree((res as any)?.data || []);
+    const firstNode = findDeepestFirstChildRecursive(categoryOptions.value);
+    productForm.value.categoryId = firstNode.id;
   }
 };
 const productMap = ref(new Map());
@@ -484,9 +532,12 @@ const queryProductOptions = async () => {
   const res = await getProductList({});
   const { data } = res as any;
   productOptions.value = data;
-  data.forEach((item: any) => {
+  data.forEach((item: any, i: number) => {
     const { id } = item;
     productMap.value.set(id, item);
+    if (i === 0) {
+      productForm.value.productId = id;
+    }
   });
 };
 
@@ -538,8 +589,19 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-
-defineExpose({ confirmSave });
+const approve = async (cb?: Function) => {
+  form.value.status = OrderStatus.Approved;
+  await confirmSave(cb);
+};
+const rejected = async (cb?: Function) => {
+  form.value.status = OrderStatus.Rejected;
+  await confirmSave(cb);
+};
+const confirm = async (cb?: Function) => {
+  form.value.status = OrderStatus.Confirmed;
+  await confirmSave(cb);
+};
+defineExpose({ confirmSave, approve, rejected, confirm });
 onMounted(async () => {
   await queryCustomerOptions();
   await queryCategoryOptions();

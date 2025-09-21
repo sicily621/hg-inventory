@@ -46,8 +46,8 @@
         </el-card>
         <el-card class="flex-1" shadow="never">
           <el-tabs v-model="tabActiveIndex">
-            <el-tab-pane label="待出库" :name="1"></el-tab-pane>
-            <el-tab-pane label="已出库" :name="2"></el-tab-pane>
+            <el-tab-pane label="订单详情" :name="1"></el-tab-pane>
+            <el-tab-pane label="出库详情" :name="2"></el-tab-pane>
           </el-tabs>
           <div class="table-wrap">
             <baseTable
@@ -378,7 +378,7 @@ const columns = computed(() => {
     { prop: "specification", label: "规格" },
     {
       prop: "orderQuantity",
-      label: "订单数量",
+      label: props.type === 1 ? "订单数量" : "退单数量",
     },
     { prop: "quantity", label: "出库数量" },
     { prop: "status", label: "状态" },
@@ -929,7 +929,6 @@ onMounted(async () => {
     orderQuantityMap.value.set(productId, result.orderQuantity);
     return result;
   });
-
   await queryProductOptions();
   await queryAccount();
 });

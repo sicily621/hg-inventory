@@ -46,8 +46,11 @@
         </el-card>
         <el-card class="flex-1" shadow="never">
           <el-tabs v-model="tabActiveIndex">
-            <el-tab-pane label="待入库" :name="1"></el-tab-pane>
-            <el-tab-pane label="已入库" :name="2"></el-tab-pane>
+            <el-tab-pane
+              :label="props.type === 1 ? '订单详情' : '退单详情'"
+              :name="1"
+            ></el-tab-pane>
+            <el-tab-pane label="入库详情" :name="2"></el-tab-pane>
           </el-tabs>
           <div class="table-wrap">
             <baseTable
@@ -99,9 +102,7 @@
                 <div class="flex">
                   <el-icon
                     v-if="
-                      scope.scope.row.quantity <
-                        scope.scope.row.orderQuantity &&
-                      scope.scope.row.returnQuantity == 0
+                      scope.scope.row.quantity < scope.scope.row.orderQuantity
                     "
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
@@ -372,7 +373,10 @@ const columns = computed(() => {
     { prop: "categoryId", label: "商品分类" },
     { prop: "productId", label: "商品名称" },
     { prop: "specification", label: "规格" },
-    { prop: "orderQuantity", label: "订单数量" },
+    {
+      prop: "orderQuantity",
+      label: props.type === 1 ? "订单数量" : "退单数量",
+    },
     { prop: "quantity", label: "入库数量" },
     { prop: "status", label: "状态" },
     { prop: "price", label: "单价" },
@@ -868,50 +872,27 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryReceipt();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
-  if (props.type === 1) {
-    const res = await getReturnList({
-      orderId: (props as any).data.orderId,
-    });
-    returnDetailsMap.value.clear();
-    if ((res as any).data[0]) {
-      const returnDetails = await getPurchaseReturnDetailList(
-        (res as any).data[0].id,
-      );
-      (returnDetails as any).data.map((item: any) => {
-        item.quantity = +item.quantity;
-        returnDetailsMap.value.set(item.productId, item.quantity);
-      });
-    }
-  }
   const res = await api((props as any).data.id);
   orderQuantityMap.value.clear();
-  tableData.value = (res as any)?.data
-    .filter((item: any) => {
-      if (props.type === 1) {
-        return !returnDetailsMap.value.get(item.productId);
-      } else {
-        return true;
-      }
-    })
-    .map((item: any, i: number) => {
-      const { productId, categoryId, quantity, price, amount } = item;
-      const receiptQuantity = receiptDetailsMap.value.get(productId);
-      const result: any = Object.assign({}, defaultProduct, {
-        productId,
-        categoryId,
-        orderQuantity: Number(quantity),
-        quantity: receiptQuantity ?? 0,
-        price,
-        amount,
-        index: i + 1,
-      });
-      if (props.type === 1) {
-        result.supplierId = item.supplierId;
-        result.returnQuantity = returnDetailsMap.value.get(item.productId) ?? 0;
-      }
-      orderQuantityMap.value.set(productId, result.orderQuantity);
-      return result;
+  tableData.value = (res as any)?.data.map((item: any, i: number) => {
+    const { productId, categoryId, quantity, price, amount } = item;
+    const receiptQuantity = receiptDetailsMap.value.get(productId);
+    const result: any = Object.assign({}, defaultProduct, {
+      productId,
+      categoryId,
+      orderQuantity: Number(quantity),
+      quantity: receiptQuantity ?? 0,
+      price,
+      amount,
+      index: i + 1,
     });
+    if (props.type === 1) {
+      result.supplierId = item.supplierId;
+      result.returnQuantity = returnDetailsMap.value.get(item.productId) ?? 0;
+    }
+    orderQuantityMap.value.set(productId, result.orderQuantity);
+    return result;
+  });
 
   await queryProductOptions();
   await queryAccount();

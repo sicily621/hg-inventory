@@ -54,7 +54,7 @@
                   v-model="form.status"
                   placeholder="请选择状态"
                   class="w-full"
-                  :disabled="disabledApprove"
+                  disabled
                 >
                   <el-option
                     v-for="item in ReturnStatusList"
@@ -68,6 +68,7 @@
                 ><el-input
                   v-model="form.description"
                   class="flex-1"
+                  disabled
                   placeholder="请输入备注"
                   maxlength="32"
                   required
@@ -146,9 +147,9 @@ const enableApprove = permissionStore.hasPermission(
   ModuleCode.SalesReturn,
   PermissionAction.Approve,
 );
-const disabledApprove = computed(() => {
-  return !enableApprove;
-});
+// const disabledApprove = computed(() => {
+//   return !enableApprove;
+// });
 const pageSize = ref(1000);
 const currentPage = ref(0);
 const props = defineProps<{ data: Return }>();
@@ -234,6 +235,7 @@ const queryProductOptions = async () => {
 const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
+
 const confirmSave = async (cb?: Function) => {
   if (tableData.value.length == 0) {
     ElMessage({
@@ -261,8 +263,15 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-
-defineExpose({ confirmSave });
+const approve = async (cb?: Function) => {
+  form.value.status = ReturnStatus.Approved;
+  await confirmSave(cb);
+};
+const rejected = async (cb?: Function) => {
+  form.value.status = ReturnStatus.Rejected;
+  await confirmSave(cb);
+};
+defineExpose({ confirmSave, approve, rejected });
 onMounted(async () => {
   await queryCustomerOptions();
   await queryCategoryOptions();

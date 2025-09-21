@@ -114,12 +114,24 @@
             <template #operate="scope">
               <div class="flex">
                 <el-icon
+                  v-if="
+                    scope.scope.row.status == ReturnStatus.Pending &&
+                    enableApprove
+                  "
+                  @click="toApprove(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
+                  title="审批"
+                  ><DocumentChecked
+                /></el-icon>
+                <el-icon
+                  v-if="scope.scope.row.status !== ReturnStatus.Pending"
                   @click="edit(scope.scope.row)"
-                >
-                  <Edit />
-                </el-icon>
+                  class="fz16 pointer m-r-5 cursor-pointer"
+                  text
+                  title="查看"
+                  ><View
+                /></el-icon>
               </div>
             </template>
           </baseTable>
@@ -143,9 +155,14 @@
         v-if="currentData && processFlag === 1"
       ></Detail>
       <el-card class="footer flex flex-justify-end flex-items-center">
-        <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
-          >保存</el-button
-        >
+        <template v-if="isApprove">
+          <el-button type="primary" @click="approve" class="p-l-6 p-r-6 m-r-3">
+            审批
+          </el-button>
+          <el-button type="warning" @click="rejected" class="p-l-6 p-r-6 m-r-3">
+            驳回
+          </el-button>
+        </template>
         <el-button @click="back" class="p-l-6 p-r-6">返回</el-button>
       </el-card>
     </div>
@@ -159,13 +176,11 @@ import type { PaginatedRequest } from "@@/apis/tables/type";
 import { getSupplierList } from "../api/supplier";
 import {
   queryReturnConditions,
-  deleteReturn,
   findReturnPage,
   Return,
   ReturnStatus,
   ReturnStatusList,
 } from "../api/return";
-import { deleteReturnDetail } from "../api/returnDetail";
 import {
   Department,
   getDepartmentList,
@@ -173,10 +188,16 @@ import {
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { indexMethod } from "@@/utils/page";
 import Detail from "./detail.vue";
-import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.PurchaseReturn,
+  PermissionAction.Approve,
+);
 const ReturnStatusListWithAll = [{ id: 0, name: "全部" }, ...ReturnStatusList];
 const createRef = ref();
-const returnRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
 const selectProps = { value: "id", label: "name" };
@@ -213,7 +234,12 @@ const edit = (row: Return) => {
   currentData.value = row;
   processFlag.value = 1;
 };
-
+const isApprove = ref(false);
+const toApprove = (row: Return) => {
+  isApprove.value = true;
+  currentData.value = row;
+  processFlag.value = 1;
+};
 const tableData = ref<Return[]>([]);
 
 const searchFormRef = ref("searchFormRef");
@@ -265,31 +291,21 @@ function refreshTable() {
       loading.value = false;
     });
 }
-const save = () => {
-  if (processFlag.value === 1) {
-    createRef.value.confirmSave(() => {
-      back();
-    });
-  }
-  if (processFlag.value === 2) {
-    returnRef.value.confirmSave(() => {
-      back();
-    });
-  }
-};
 const back = () => {
+  isApprove.value = false;
   processFlag.value = 0;
   currentData.value = null;
   refreshTable();
 };
-const remove = async (id: string) => {
-  await deleteReturnDetail(id);
-  await deleteReturn(id);
-  ElMessage({
-    type: "success",
-    message: "删除成功",
+const approve = () => {
+  createRef.value.approve(() => {
+    back();
   });
-  refreshTable();
+};
+const rejected = () => {
+  createRef.value.rejected(() => {
+    back();
+  });
 };
 const getName = (id: string, mapData: Map<string, string>) => {
   return mapData.get(id) ?? "无";

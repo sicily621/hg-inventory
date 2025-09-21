@@ -109,8 +109,34 @@
 
             <template #operate="scope">
               <div class="flex">
+                <template
+                  v-if="scope.scope.row.status === DemandStatus.Pending"
+                >
+                  <el-icon
+                    v-if="enableApprove"
+                    @click="toApprove(scope.scope.row)"
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    title="审批"
+                    ><DocumentChecked
+                  /></el-icon>
+                  <el-icon
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="edit(scope.scope.row)"
+                  >
+                    <Edit />
+                  </el-icon>
+                  <el-icon
+                    class="fz16 cursor-pointer"
+                    text
+                    @click="remove(scope.scope.row.id)"
+                  >
+                    <Delete />
+                  </el-icon>
+                </template>
                 <el-icon
-                  v-if="scope.scope.row.status === DemandStatus.Approved"
+                  v-else-if="scope.scope.row.status === DemandStatus.Approved"
                   @click="toOrder(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
@@ -118,21 +144,12 @@
                   ><SetUp
                 /></el-icon>
                 <el-icon
+                  v-else
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
-                  @click="edit(scope.scope.row)"
+                  @click="view(scope.scope.row)"
                 >
-                  <Edit
-                    v-if="scope.scope.row.status === DemandStatus.Pending"
-                  />
-                  <View v-else />
-                </el-icon>
-                <el-icon
-                  class="fz16 cursor-pointer"
-                  text
-                  @click="remove(scope.scope.row.id)"
-                >
-                  <Delete />
+                  <View />
                 </el-icon>
               </div>
             </template>
@@ -154,6 +171,7 @@
         class="create-wrap"
         ref="createRef"
         :data="currentData"
+        :is-approve="isApprove"
         v-if="processFlag === 1"
       ></Create>
       <Order
@@ -163,7 +181,19 @@
         v-if="currentData && processFlag === 2"
       ></Order>
       <el-card class="footer flex flex-justify-end flex-items-center">
-        <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
+        <template v-if="isApprove">
+          <el-button type="primary" @click="approve" class="p-l-6 p-r-6 m-r-3">
+            审批
+          </el-button>
+          <el-button type="warning" @click="rejected" class="p-l-6 p-r-6 m-r-3">
+            驳回
+          </el-button>
+        </template>
+        <el-button
+          v-if="!onlyView"
+          type="primary"
+          @click="save"
+          class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
         >
         <el-button @click="back" class="p-l-6 p-r-6">返回</el-button>
@@ -194,6 +224,14 @@ import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import Order from "./order.vue";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.PurchaseDemand,
+  PermissionAction.Approve,
+);
 const DemandStatusListWithAll = [{ id: 0, name: "全部" }, ...DemandStatusList];
 const createRef = ref();
 const orderRef = ref();
@@ -236,7 +274,19 @@ const toOrder = (row: Demand) => {
   currentData.value = row;
   processFlag.value = 2;
 };
-
+const isApprove = ref(false);
+const toApprove = (row: Demand) => {
+  onlyView.value = true;
+  isApprove.value = true;
+  currentData.value = row;
+  processFlag.value = 1;
+};
+const onlyView = ref(false);
+const view = (row: Demand) => {
+  onlyView.value = true;
+  currentData.value = row;
+  processFlag.value = 1;
+};
 const tableData = ref<Demand[]>([]);
 
 const searchFormRef = ref("searchFormRef");
@@ -290,7 +340,19 @@ const save = () => {
     });
   }
 };
+const approve = () => {
+  createRef.value.approve(() => {
+    back();
+  });
+};
+const rejected = () => {
+  createRef.value.rejected(() => {
+    back();
+  });
+};
 const back = () => {
+  onlyView.value = false;
+  isApprove.value = false;
   processFlag.value = 0;
   currentData.value = null;
   refreshTable();

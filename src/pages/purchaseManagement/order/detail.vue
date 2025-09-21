@@ -25,6 +25,7 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -36,6 +37,7 @@
                   placeholder="请输入期望到货时间"
                   :default-time="defaultTime"
                   :disabled-date="isBefore"
+                  :disabled="onlyView"
                 />
               </el-form-item>
               <el-form-item label="总金额" prop="totalAmount">
@@ -48,7 +50,7 @@
                   v-model="form.status"
                   placeholder="请选择状态"
                   class="w-full"
-                  :disabled="disabledApprove"
+                  disabled
                 >
                   <el-option
                     v-for="item in OrderStatusList"
@@ -65,6 +67,7 @@
                   placeholder="请输入备注"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -132,12 +135,13 @@ const enableApprove = permissionStore.hasPermission(
   ModuleCode.PurchaseOrder,
   PermissionAction.Approve,
 );
-const disabledApprove = computed(() => {
-  return !enableApprove;
-});
+
 const pageSize = ref(1000);
 const currentPage = ref(0);
-const props = defineProps<{ data: Order }>();
+const props = defineProps<{ data: Order; isApprove: boolean }>();
+const onlyView = computed(() => {
+  return form.value.status !== OrderStatus.Pending || props.isApprove;
+});
 const formRef = ref();
 const defaultTime = new Date();
 const userStore = useUserStore();
@@ -256,8 +260,19 @@ const confirmSave = async (cb?: Function) => {
     cb && cb();
   }
 };
-
-defineExpose({ confirmSave });
+const approve = async (cb?: Function) => {
+  form.value.status = OrderStatus.Approved;
+  await confirmSave(cb);
+};
+const rejected = async (cb?: Function) => {
+  form.value.status = OrderStatus.Rejected;
+  await confirmSave(cb);
+};
+const confirm = async (cb?: Function) => {
+  form.value.status = OrderStatus.Confirmed;
+  await confirmSave(cb);
+};
+defineExpose({ confirmSave, approve, rejected, confirm });
 onMounted(async () => {
   await querySupplierOptions();
   await queryCategoryOptions();

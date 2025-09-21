@@ -126,27 +126,57 @@
             <template #operate="scope">
               <div class="flex">
                 <el-icon
-                  v-if="scope.scope.row.status !== OrderStatus.Returned"
+                  v-if="scope.scope.row.status === OrderStatus.FullyReceived"
                   @click="toReturn(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
                   title="退单"
                   ><DocumentDelete
                 /></el-icon>
+                <template
+                  v-else-if="scope.scope.row.status == OrderStatus.Pending"
+                >
+                  <el-icon
+                    v-if="enableApprove"
+                    @click="toApprove(scope.scope.row)"
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    title="审批"
+                    ><DocumentChecked
+                  /></el-icon>
+                  <el-icon
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="edit(scope.scope.row)"
+                  >
+                    <Edit />
+                  </el-icon>
+                  <el-icon
+                    class="fz16 cursor-pointer"
+                    text
+                    @click="remove(scope.scope.row.id)"
+                  >
+                    <Delete />
+                  </el-icon>
+                </template>
                 <el-icon
+                  v-else-if="scope.scope.row.status == OrderStatus.Approved"
+                  @click="toConfirm(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
-                  @click="edit(scope.scope.row)"
-                >
-                  <Edit />
-                </el-icon>
-                <el-icon
-                  class="fz16 cursor-pointer"
-                  text
-                  @click="remove(scope.scope.row.id)"
-                >
-                  <Delete />
-                </el-icon>
+                  title="客户已确认"
+                  ><CircleCheck
+                /></el-icon>
+
+                <span v-else>
+                  <el-icon
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    @click="view(scope.scope.row)"
+                  >
+                    <View />
+                  </el-icon>
+                </span>
               </div>
             </template>
           </baseTable>
@@ -167,6 +197,7 @@
         class="create-wrap"
         ref="createRef"
         :data="currentData"
+        :is-approve="isApprove"
         v-if="processFlag === 1"
       ></Create>
       <Return
@@ -176,9 +207,25 @@
         v-if="currentData && processFlag === 2"
       ></Return>
       <el-card class="footer flex flex-justify-end flex-items-center">
-        <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
-          >保存</el-button
+        <template v-if="isApprove">
+          <el-button type="primary" @click="approve" class="p-l-6 p-r-6 m-r-3">
+            审批
+          </el-button>
+          <el-button type="warning" @click="rejected" class="p-l-6 p-r-6 m-r-3">
+            驳回
+          </el-button>
+        </template>
+        <template v-else-if="isConfirmed"
+          ><el-button type="primary" @click="confirm" class="p-l-6 p-r-6 m-r-3">
+            客户已确认
+          </el-button></template
         >
+        <template v-if="!onlyView">
+          <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
+            >保存</el-button
+          >
+        </template>
+
         <el-button @click="back" class="p-l-6 p-r-6">返回</el-button>
       </el-card>
     </div>
@@ -208,6 +255,15 @@ import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import Return from "./return.vue";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.SalesOrder,
+  PermissionAction.Approve,
+);
+
 const OrderStatusListWithAll = [{ id: 0, name: "全部" }, ...OrderStatusList];
 const createRef = ref();
 const returnRef = ref();
@@ -245,7 +301,21 @@ const pageChange = (page: any) => {
   refreshTable();
 };
 const currentData = ref<Order | null>(null);
+const isApprove = ref(false);
+const isConfirmed = ref(false);
+const toConfirm = (row: Order) => {
+  isConfirmed.value = true;
+  onlyView.value = true;
+  currentData.value = row;
+  processFlag.value = 1;
+};
 const edit = (row: Order) => {
+  currentData.value = row;
+  processFlag.value = 1;
+};
+const toApprove = (row: Order) => {
+  isApprove.value = true;
+  onlyView.value = true;
   currentData.value = row;
   processFlag.value = 1;
 };
@@ -253,7 +323,27 @@ const toReturn = (row: Order) => {
   currentData.value = row;
   processFlag.value = 2;
 };
-
+const rejected = () => {
+  createRef.value.rejected(() => {
+    back();
+  });
+};
+const approve = () => {
+  createRef.value.approve(() => {
+    back();
+  });
+};
+const confirm = () => {
+  createRef.value.confirm(() => {
+    back();
+  });
+};
+const onlyView = ref(false);
+const view = (row: Order) => {
+  onlyView.value = true;
+  currentData.value = row;
+  processFlag.value = 1;
+};
 const tableData = ref<Order[]>([]);
 
 const searchFormRef = ref("searchFormRef");
@@ -320,6 +410,9 @@ const save = () => {
   }
 };
 const back = () => {
+  onlyView.value = false;
+  isConfirmed.value = false;
+  isApprove.value = false;
   processFlag.value = 0;
   currentData.value = null;
   refreshTable();

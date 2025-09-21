@@ -24,7 +24,7 @@
                 placeholder="请输入需求说明"
                 maxlength="32"
                 required
-                :disabled="form.status === DemandStatus.WorkOrder"
+                :disabled="onlyView"
               >
               </el-input>
             </el-form-item>
@@ -38,7 +38,7 @@
                 placeholder="请输入期望到货时间"
                 :default-time="defaultTime"
                 :disabled-date="isBefore"
-                :disabled="form.status === DemandStatus.WorkOrder"
+                :disabled="onlyView"
               />
             </el-form-item>
           </div>
@@ -48,7 +48,7 @@
                 v-model="form.status"
                 placeholder="请选择状态"
                 class="flex-1"
-                :disabled="disabledApprove"
+                disabled
               >
                 <el-option
                   v-for="item in DemandStatusList"
@@ -61,7 +61,7 @@
           </div> </el-form
       ></el-card>
       <div class="flex flex-1">
-        <el-card shadow="never">
+        <el-card shadow="never" v-if="!onlyView">
           <div class="zc-header-title">
             <div class="zc-header-word">商品信息</div>
           </div>
@@ -228,12 +228,12 @@ const enableApprove = permissionStore.hasPermission(
   ModuleCode.PurchaseDemand,
   PermissionAction.Approve,
 );
-const disabledApprove = computed(() => {
-  return !enableApprove || form.value.status === DemandStatus.WorkOrder;
-});
 const pageSize = ref(1000);
 const currentPage = ref(0);
-const props = defineProps<{ data: Demand | null }>();
+const props = defineProps<{ data: Demand | null; isApprove: boolean }>();
+const onlyView = computed(() => {
+  return form.value.status !== DemandStatus.Pending || props.isApprove;
+});
 const formRef = ref();
 const productFormRef = ref();
 const defaultTime = new Date();
@@ -254,15 +254,19 @@ const form = ref<Demand>({
   approverId: "",
   approvalTime: 0,
 });
-const columns = ref([
-  { prop: "index", label: "序号", width: "100", type: 1 },
-  { prop: "categoryId", label: "分类" },
-  { prop: "productId", label: "名称" },
-  { prop: "specification", label: "规格" },
-  { prop: "unit", label: "计量单位" },
-  { prop: "quantity", label: "数量" },
-  { prop: "operate", label: "操作", width: 80 },
-]);
+const columns = computed(() => {
+  const result: any[] = [
+    { prop: "index", label: "序号", width: "100", type: 1 },
+    { prop: "categoryId", label: "分类" },
+    { prop: "productId", label: "名称" },
+    { prop: "specification", label: "规格" },
+    { prop: "unit", label: "计量单位" },
+    { prop: "quantity", label: "数量" },
+  ];
+  if (!onlyView.value)
+    result.push({ prop: "operate", label: "操作", width: 80 });
+  return result;
+});
 const tableData = ref<any[]>([]);
 //合并props
 if (props.data) {
@@ -423,8 +427,15 @@ const remove = (row: any) => {
     tableData.value.splice(index, 1);
   }
 };
-
-defineExpose({ confirmSave });
+const approve = async (cb?: Function) => {
+  form.value.status = DemandStatus.Approved;
+  await confirmSave(cb);
+};
+const rejected = async (cb?: Function) => {
+  form.value.status = DemandStatus.Rejected;
+  await confirmSave(cb);
+};
+defineExpose({ confirmSave, approve, rejected });
 onMounted(async () => {
   await queryCategoryOptions();
   await queryProductOptions();
