@@ -38,7 +38,6 @@
               </el-select>
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
         </div>
       </el-card>
       <div
