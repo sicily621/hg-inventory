@@ -170,13 +170,9 @@ const columns = computed(() => {
           { prop: "actualDate", label: "实际到货日期" },
         ]
       : [{ prop: "createTime", label: "退单时间" }];
-  return [
+  const result = [
     { prop: "index", label: "序号", width: "100", type: 1 },
     { prop: "code", label: "编码" },
-    {
-      prop: searchData.type === 1 ? "supplierId" : "customerId",
-      label: searchData.type === 1 ? "供应商" : "客户",
-    },
     {
       prop: "employeeId",
       label: searchData.type === 1 ? "采购员工" : "退单员工",
@@ -187,6 +183,13 @@ const columns = computed(() => {
     { prop: "description", label: "备注" },
     { prop: "operate", label: "操作", width: 100 },
   ];
+  if (searchData.type === 2) {
+    result.splice(2, 0, {
+      prop: "customerId",
+      label: "客户",
+    });
+  }
+  return result;
 });
 
 //分页

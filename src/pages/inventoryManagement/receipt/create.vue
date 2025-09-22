@@ -810,6 +810,7 @@ const confirmSave = async (cb?: Function) => {
         const prevAccount = accountMap.get(relatedEntityId)?.amount ?? 0;
         const account = {
           orderId: props.type === 1 ? props.data.id : props.data.orderId,
+          relatedCode: props.data.code,
           type:
             props.type === 1
               ? AccountType.PurchasePayMent

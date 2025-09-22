@@ -46,7 +46,10 @@
         </el-card>
         <el-card class="flex-1" shadow="never">
           <el-tabs v-model="tabActiveIndex">
-            <el-tab-pane label="订单详情" :name="1"></el-tab-pane>
+            <el-tab-pane
+              :label="props.type === 1 ? '订单详情' : '退单详情'"
+              :name="1"
+            ></el-tab-pane>
             <el-tab-pane label="出库详情" :name="2"></el-tab-pane>
           </el-tabs>
           <div class="table-wrap">
@@ -832,6 +835,7 @@ const confirmSave = async (cb?: Function) => {
         const prevAccount = accountMap.get(relatedEntityId)?.amount ?? 0;
         const account = {
           orderId: props.type === 1 ? props.data.id : props.data.orderId,
+          relatedCode: props.data.code,
           type:
             props.type === 1
               ? AccountType.SalesRevenue
@@ -909,26 +913,33 @@ onMounted(async () => {
     }
   }
   orderQuantityMap.value.clear();
-  tableData.value = (res as any)?.data.map((item: any, i: number) => {
-    const { productId, categoryId, quantity, price, amount } = item;
-    const shipmentQuantity = shipmentDetailsMap.value.get(productId);
-    const result: any = Object.assign({}, defaultProduct, {
-      productId,
-      categoryId,
-      orderQuantity: Number(quantity),
-      quantity: shipmentQuantity ?? 0,
-      price,
-      amount,
-      index: i + 1,
+  tableData.value = (res as any)?.data
+    .map((item: any, i: number) => {
+      const { productId, categoryId, quantity, price, amount } = item;
+      const shipmentQuantity = shipmentDetailsMap.value.get(productId);
+      const result: any = Object.assign({}, defaultProduct, {
+        productId,
+        categoryId,
+        orderQuantity: Number(quantity),
+        quantity: shipmentQuantity ?? 0,
+        price,
+        amount,
+        index: i + 1,
+      });
+      orderQuantityMap.value.set(productId, result.orderQuantity);
+      if (props.type === 2) {
+        result.supplierId = item.supplierId;
+        result.receiptQuantity =
+          receiptDetailsMap.value.get(item.productId) ?? 0;
+      }
+      orderQuantityMap.value.set(productId, result.orderQuantity);
+      return result;
+    })
+    .filter((item: any) => item.orderQuantity > 0)
+    .map((item: any, i: number) => {
+      item.index = i + 1;
+      return item;
     });
-    orderQuantityMap.value.set(productId, result.orderQuantity);
-    if (props.type === 2) {
-      result.supplierId = item.supplierId;
-      result.receiptQuantity = receiptDetailsMap.value.get(item.productId) ?? 0;
-    }
-    orderQuantityMap.value.set(productId, result.orderQuantity);
-    return result;
-  });
   await queryProductOptions();
   await queryAccount();
 });

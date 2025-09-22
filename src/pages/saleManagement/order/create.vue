@@ -72,24 +72,10 @@
                 </el-select>
               </el-form-item>
 
-              <el-form-item label="折扣金额" prop="discount">
-                <el-input-number
-                  v-model="form.discount"
-                  :step="0.1"
-                  :min="0"
-                  :max="totalAmount"
-                  :disabled="onlyView"
-                />
-              </el-form-item>
               <div class="flex">
                 <el-form-item label="总金额" prop="totalAmount">
                   <el-tag class="fz22 p-5" type="primary"
                     >￥{{ totalAmount }}</el-tag
-                  >
-                </el-form-item>
-                <el-form-item label="最终金额" prop="finalAmount" class="m-l-5">
-                  <el-tag class="fz22 p-5" type="danger"
-                    >￥{{ finalAmount }}</el-tag
                   >
                 </el-form-item>
               </div>
@@ -150,12 +136,12 @@
               </template>
 
               <template #price="scope">
-                <el-tag type="primary"
-                  >￥{{
-                    getItem(scope.scope.row.productId, productMap)
-                      ?.purchasePrice
-                  }}</el-tag
-                >
+                <el-input-number
+                  v-model="scope.scope.row.price"
+                  :step="0.1"
+                  :disabled="onlyView"
+                  @change="changeQuantity(scope.scope.row)"
+                />
               </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
@@ -330,7 +316,7 @@ const isBefore = (date: Date) => {
 };
 const changeQuantity = (row: any) => {
   const { quantity, price } = row;
-  row.amount = +quantity * +price;
+  row.amount = Number(Number(+quantity * +price).toFixed(1));
 };
 const productFormRef = ref();
 const defaultProduct = {
@@ -457,14 +443,17 @@ const totalAmount = computed(() => {
   tableData.value.map((item) => {
     result += +item.amount;
   });
-  return result;
+  return result || props.data?.totalAmount || 0;
 });
 const finalAmount = computed(() => {
   return totalAmount.value - form.value.discount;
 });
 //合并props
 if (props.data) {
-  Object.assign(form.value, props.data);
+  const params = { ...props.data };
+  params.discount = +params.discount;
+  params.totalAmount = +params.totalAmount;
+  form.value = Object.assign(form.value, params);
 }
 
 const customerOptions = ref<any[]>([]);

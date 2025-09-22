@@ -25,6 +25,7 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
+                  disabled
                 >
                 </el-input>
               </el-form-item>
@@ -38,7 +39,7 @@
                   v-model="form.status"
                   placeholder="请选择状态"
                   class="w-full"
-                  :disabled="disabledApprove"
+                  disabled
                 >
                   <el-option
                     v-for="item in ReturnStatusList"
@@ -55,6 +56,7 @@
                   placeholder="请输入备注"
                   maxlength="32"
                   required
+                  disabled
                 >
                 </el-input>
               </el-form-item>

@@ -3,6 +3,7 @@ import { Post, Get, Put, Delete } from "@/http/axios";
 
 export interface Account {
   id?: string | number;
+  orderCode: string;
   orderId: string | number;
   type: AccountType;
   relatedEntityType: RelatedEntityType;
@@ -42,21 +43,23 @@ export const AccountTypeList = [
 export enum AccountStatus {
   Pending = 1,
   Approved = 2,
-  Paid = 3,
+  Receipt = 3,
+  Paid = 4,
 }
 
 export const AccountStatusList = [
   { id: 1, name: "待审核" },
   { id: 2, name: "已审核" },
-  { id: 3, name: "已支付" },
+  { id: 3, name: "已收款" },
+  { id: 4, name: "已付款" },
 ];
 
 export interface queryAccountConditions {
   orderId?: string | number;
-  type: AccountType;
+  type: AccountType | 0;
   relatedEntityId: string | number;
   employeeId: string | number;
-  status: AccountStatus;
+  status: AccountStatus | 0;
 }
 
 export const createAccount = (data: Account) => Post(accountPrefix, data);

@@ -82,19 +82,25 @@
             <template #operate="scope">
               <div class="flex">
                 <el-icon
+                  v-if="
+                    scope.scope.row.status == AccountStatus.Pending &&
+                    enableApprove
+                  "
+                  @click="toApprove(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
-                  @click="edit(scope.scope.row)"
-                >
-                  <Edit />
-                </el-icon>
+                  title="审批"
+                  ><DocumentChecked
+                /></el-icon>
                 <el-icon
-                  class="fz16 cursor-pointer"
+                  v-else-if="scope.scope.row.status == AccountStatus.Approved"
+                  class="fz16 pointer m-r-5 cursor-pointer"
                   text
-                  @click="remove(scope.scope.row.id)"
-                >
-                  <Delete />
-                </el-icon>
+                  :title="getIconTitle(scope.scope.row.type)"
+                  @click="handleAccount(scope.scope.row)"
+                  ><Coin
+                /></el-icon>
+                <span v-else>--</span>
               </div>
             </template>
           </baseTable>
@@ -127,24 +133,32 @@ import {
   AccountTypeList,
   RelatedEntityType,
   AccountActionList,
+  editAccount,
 } from "../api/account";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { getCustomerList } from "@/pages/saleManagement/api/customer";
 import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
 import { indexMethod } from "@@/utils/page";
 import { watchDebounced } from "@vueuse/core";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
 import { ElMessage } from "element-plus";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+import { useUserStore } from "@/pinia/stores/user";
+const permissionStore = usePermissionStore();
+const enableApprove = permissionStore.hasPermission(
+  ModuleCode.Account,
+  PermissionAction.Approve,
+);
 const allAccountTypeList = [{ id: 0, name: "全部" }, ...AccountTypeList];
 const allAccountStatusList = [{ id: 0, name: "全部" }, ...AccountStatusList];
 const createRef = ref();
-const selectProps = { value: "id", label: "name" };
-const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
 const columns = ref([
   { prop: "index", label: "序号", width: "100", type: 1 },
-  // { prop: "orderId", label: "订单" },
-  { prop: "createTime", label: "创建时间" },
+  { prop: "relatedCode", label: "关联编码" },
+  { prop: "createTime", label: "生成时间" },
   { prop: "type", label: "类型" },
   { prop: "relatedEntityType", label: "往来单位类型" },
   { prop: "relatedEntityId", label: "往来单位" },
@@ -165,9 +179,73 @@ const pageChange = (page: any) => {
   refreshTable();
 };
 const currentData = ref<Account | null>(null);
-const edit = (row: Account) => {
-  currentData.value = row;
-  processFlag.value = 1;
+const toApprove = (row: Account) => {
+  ElMessageBox.confirm("确认要审批账单吗", "审批账单", {
+    confirmButtonText: "确认",
+    confirmButtonClass: "w-80",
+    cancelButtonText: "取消",
+    cancelButtonClass: "message-box-cancel-btn w-80",
+    type: "warning",
+  }).then(async () => {
+    const params = { ...row, status: AccountStatus.Approved };
+    const res: any = await editAccount(params);
+    if (res.code) {
+      ElMessage({
+        type: "success",
+        message: "审批成功",
+      });
+      refreshTable();
+    } else {
+      ElMessage({
+        type: "info",
+        message: "审批失败",
+      });
+    }
+  });
+};
+const getIconTitle = (type: number) => {
+  if (type == 1 || type == 4) {
+    return "出账";
+  } else {
+    return "入账";
+  }
+};
+const userStore = useUserStore();
+
+const handleAccount = async (row: Account) => {
+  ElMessageBox.confirm(
+    `确认要${getIconTitle(row.type)}吗`,
+    getIconTitle(row.type),
+    {
+      confirmButtonText: "确认",
+      confirmButtonClass: "w-80",
+      cancelButtonText: "取消",
+      cancelButtonClass: "message-box-cancel-btn w-80",
+      type: "warning",
+    },
+  ).then(async () => {
+    const params = {
+      ...row,
+      employeeId: userStore.getInfo().id,
+      status:
+        getIconTitle(row.type) === "出账"
+          ? AccountStatus.Paid
+          : AccountStatus.Receipt,
+    };
+    const res: any = await editAccount(params);
+    if (res.code) {
+      ElMessage({
+        type: "success",
+        message: `${getIconTitle(row.type)}成功`,
+      });
+      refreshTable();
+    } else {
+      ElMessage({
+        type: "info",
+        message: `${getIconTitle(row.type)}失败`,
+      });
+    }
+  });
 };
 
 const tableData = ref<Account[]>([]);
@@ -195,11 +273,11 @@ function refreshTable() {
     currentPage: currentPage.value + 1,
     size: pageSize.value,
   };
-  if (searchData.orderId.length) params.orderId = searchData.orderId;
+  if (searchData?.orderId) params.orderId = searchData.orderId;
   if (searchData.type) params.type = searchData.type;
-  if (searchData.relatedEntityId.length)
+  if (searchData?.relatedEntityId)
     params.relatedEntityId = searchData.relatedEntityId;
-  if (searchData.employeeId.length) params.employeeId = searchData.employeeId;
+  if (searchData?.employeeId) params.employeeId = searchData.employeeId;
   if (searchData.status) params.status = searchData.status;
   findAccountPage(params)
     .then((res: any) => {
