@@ -599,7 +599,9 @@ onMounted(async () => {
     const res = await getOrderDetailList((props as any).data.id);
     tableData.value = (res as any)?.data.map((item: any) => {
       const { quantity, productId } = item;
-      const price = getItem(productId, productMap.value)?.purchasePrice;
+      const price = props.data
+        ? +item.price
+        : getItem(productId, productMap.value)?.purchasePrice;
       return { ...item, amount: quantity * price, price };
     });
   }
