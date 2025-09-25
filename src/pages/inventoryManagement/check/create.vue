@@ -80,7 +80,7 @@
             </el-form-item></div></el-form
       ></el-card>
       <div class="flex flex-1">
-        <el-card shadow="never">
+        <el-card shadow="never" v-if="form.status !== CheckStatus.Completed">
           <div class="zc-header-title">
             <div class="zc-header-word">商品列表</div>
           </div>

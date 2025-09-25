@@ -91,11 +91,15 @@
                   text
                   @click="edit(scope.scope.row)"
                 >
-                  <Edit />
+                  <View
+                    v-if="scope.scope.row.status === CheckStatus.Completed"
+                  />
+                  <Edit v-else />
                 </el-icon>
                 <el-icon
                   class="fz16 cursor-pointer"
                   text
+                  v-if="scope.scope.row.status !== CheckStatus.Completed"
                   @click="remove(scope.scope.row.id)"
                 >
                   <Delete />
@@ -118,7 +122,11 @@
     <div class="h-full w-full flex flex-col" v-if="processFlag">
       <Create class="create-wrap" ref="createRef" :data="currentData"></Create>
       <el-card class="footer flex flex-justify-end flex-items-center">
-        <el-button type="primary" @click="save" class="p-l-6 p-r-6 m-r-3"
+        <el-button
+          type="primary"
+          v-if="currentData?.status !== CheckStatus.Completed"
+          @click="save"
+          class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
         >
         <el-button @click="back" class="p-l-6 p-r-6">返回</el-button>
@@ -137,6 +145,7 @@ import {
   findCheckPage,
   Check,
   CheckStatusList,
+  CheckStatus,
 } from "../api/check";
 import { getWarehouseList } from "@/pages/warehouseManagement/api/warehouse";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
