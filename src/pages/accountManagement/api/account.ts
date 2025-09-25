@@ -48,8 +48,8 @@ export enum AccountStatus {
 }
 
 export const AccountStatusList = [
-  { id: 1, name: "待审核" },
-  { id: 2, name: "已审核" },
+  { id: 1, name: "待审批" },
+  { id: 2, name: "已审批" },
   { id: 3, name: "已收款" },
   { id: 4, name: "已付款" },
 ];

@@ -157,14 +157,15 @@
               <el-form-item label="系统库存" class="flex-1">
                 <el-input-number
                   v-model="productForm.systemQuantity"
-                  :min="1"
+                  :min="0"
+                  disabled
                   class="flex-1"
                 />
               </el-form-item>
               <el-form-item label="实际库存" class="flex-1 m-l-4">
                 <el-input-number
                   v-model="productForm.actualQuantity"
-                  :min="1"
+                  :min="0"
                   class="flex-1"
                 />
               </el-form-item>
@@ -233,7 +234,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import {
   Check,
   createCheck,
@@ -256,6 +257,12 @@ import { getWarehouseList } from "@/pages/warehouseManagement/api/warehouse";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import { getAreaList } from "@/pages/warehouseManagement/api/area";
 import { getShelfList } from "@/pages/warehouseManagement/api/shelf";
+import {
+  getInventoryList,
+  batchUpdateInventory,
+  Inventory,
+} from "../api/inventory";
+import { batchSaveHistory, HistoryType, History } from "../api/history";
 import baseTable from "@@/components/baseTable/baseTable.vue";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/pinia/stores/user";
@@ -419,9 +426,38 @@ const queryWarehouseOptions = async () => {
   const res = await getWarehouseList({});
   const { data } = res as any;
   warehouseOptions.value = data;
-  data.forEach((item: any) => {
+  data.forEach((item: any, i: number) => {
     const { id } = item;
     warehouseMap.value.set(id, item);
+    if (i == 0) {
+      form.value.warehouseId = id;
+    }
+  });
+};
+const inventoryMap = ref<Map<string, any>>(new Map());
+const getInventoryByProductId = (key: string) => {
+  return inventoryMap.value.get(key);
+};
+const queryInventory = async () => {
+  const params: any = {};
+  // if (productForm.value.productId)
+  //   params.productId = productForm.value.productId;
+  if (form.value.warehouseId) params.warehouseId = form.value.warehouseId;
+  // if (productForm.value.shelfId) params.shelfId = productForm.value.shelfId;
+  // if (productForm.value.areaId) params.areaId = productForm.value.areaId;
+  const res: any = await getInventoryList(params);
+  inventoryMap.value.clear();
+  res.data.map((item: any) => {
+    const { productId, quantity, areaId, shelfId } = item;
+    if (
+      productForm.value.productId == productId &&
+      productForm.value.areaId == areaId &&
+      productForm.value.shelfId == shelfId
+    ) {
+      productForm.value.actualQuantity = +quantity;
+      productForm.value.systemQuantity = +quantity;
+    }
+    inventoryMap.value.set(`${shelfId}_${productId}`, item);
   });
 };
 const employeeMap = ref(new Map());
@@ -442,11 +478,17 @@ const editIndex = ref(-1);
 const addProduct = async () => {
   const valid = await productFormRef.value.validate();
   if (valid) {
-    const { systemQuantity, actualQuantity } = productForm.value;
+    const { systemQuantity, actualQuantity, productId, shelfId } =
+      productForm.value;
+    const inventory = getInventoryByProductId(`${shelfId}_${productId}`);
     const row: any = {
       ...productForm.value,
       difference: actualQuantity - systemQuantity,
     };
+    if (inventory) {
+      row.inventoryId = inventory.id; //库存ID
+    }
+
     if (editIndex.value > -1) {
       row.index = editIndex.value + 1;
       tableData.value[editIndex.value] = row;
@@ -479,13 +521,49 @@ const confirmSave = async (cb?: Function) => {
     const api = params.id ? editCheck : createCheck;
     const res = await api(params);
     const detailList = tableData.value.map((item: any) => {
-      return {
+      const result = {
         ...item,
         checkId: (res as any).data.id,
       };
+      delete result["id"];
+      return result;
+    });
+    const needUpdateInventoryList: Inventory[] = tableData.value
+      .filter((item) => item.inventoryId && +item.difference != 0)
+      .map((item: any) => {
+        const {
+          productId,
+          shelfId,
+          areaId,
+          actualQuantity: quantity,
+          inventoryId,
+        } = item;
+        const data = {
+          id: inventoryId,
+          productId,
+          warehouseId: form.value.warehouseId,
+          shelfId,
+          areaId,
+          quantity,
+        };
+        return data;
+      });
+    const historyList = needUpdateInventoryList.map((item: any) => {
+      item.type = HistoryType.InventoryAdjust;
+      item.employeeId = userStore.getInfo().id;
+      delete item["id"];
+      return item;
     });
     await deleteCheckDetail((res as any).data.id);
     await createCheckDetail(detailList);
+    //如果已经完成盘点，修改库存
+    if (
+      needUpdateInventoryList.length &&
+      form.value.status === CheckStatus.Completed
+    ) {
+      await batchUpdateInventory(needUpdateInventoryList);
+      await batchSaveHistory(historyList);
+    }
     ElMessage({
       type: "success",
       message: "保存成功",
@@ -512,9 +590,20 @@ onMounted(async () => {
   await queryEmployeeOptions();
   await queryCategoryOptions();
   await queryProductOptions();
+  await queryInventory();
   if (props?.data?.id) {
     const res = await getCheckDetailList((props as any).data.id);
-    tableData.value = (res as any)?.data || [];
+    const list = (res as any)?.data || [];
+    tableData.value = list.map((item: any, i: number) => {
+      const { shelfId, productId } = item;
+      //根据货架-商品找到库存ID
+      const inventory = getInventoryByProductId(`${shelfId}_${productId}`);
+      if (inventory) {
+        item.inventoryId = inventory.id; //库存ID
+      }
+      item.index = i + 1;
+      return item;
+    });
   }
 });
 </script>

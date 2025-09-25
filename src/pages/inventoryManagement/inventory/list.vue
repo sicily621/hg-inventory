@@ -185,6 +185,7 @@ function refreshTable() {
   if (searchData.productId) params.productId = searchData.productId;
   if (searchData.warehouseId) params.warehouseId = searchData.warehouseId;
   if (searchData.shelfId) params.shelfId = searchData.shelfId;
+  if (searchData.areaId) params.areaId = searchData.areaId;
   findInventoryPage(params)
     .then((res: any) => {
       const { total, list } = res.data;

@@ -22,6 +22,8 @@ export const receipt = (data: Inventory[]) =>
 export const shipment = (data: Inventory[]) =>
   Post(inventoryPrefix + "/subtract", data);
 export const editInventory = (data: Inventory) => Put(inventoryPrefix, data);
+export const batchUpdateInventory = (data: Inventory[]) =>
+  Put(inventoryPrefix + "/batchUpdate", data);
 export const deleteInventory = (id: string | number) =>
   Delete(inventoryPrefix + `/${id}`);
 export const findInventoryPage = (data: any) =>

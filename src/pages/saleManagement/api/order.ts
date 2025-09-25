@@ -31,8 +31,8 @@ export enum OrderStatus {
 }
 
 export const OrderStatusList = [
-  { id: 1, name: "待审核" },
-  { id: 2, name: "已审核" },
+  { id: 1, name: "待审批" },
+  { id: 2, name: "已审批" },
   { id: 3, name: "已驳回" },
   { id: 4, name: "客户已确认" },
   { id: 5, name: "部分出库" },
