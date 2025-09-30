@@ -543,7 +543,7 @@ const confirmSave = async (cb?: Function) => {
   }
   const valid = await formRef.value.validate();
   if (valid) {
-    const params = {
+    const params: any = {
       ...form.value,
       totalAmount: totalAmount.value,
       finalAmount: finalAmount.value,
@@ -556,6 +556,8 @@ const confirmSave = async (cb?: Function) => {
       params.approverId = userStore.getInfo().id;
       params.approvalTime = Date.now();
     }
+    if (params.approvalTime == 0) delete params["approvalTime"];
+    if (params.actualDate == 0) delete params["actualDate"];
     const api = params.id ? editOrder : createOrder;
     const res = await api(params);
     const detailList: OrderDetail[] = tableData.value.map((item: any) => {

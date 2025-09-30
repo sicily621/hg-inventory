@@ -834,7 +834,11 @@ const confirmSave = async (cb?: Function) => {
     await receipt(list);
     await createReceiptDetail(detailList);
     if (props.type === 1) {
-      await editOrder({ id: (props as any).data.id, status });
+      await editOrder({
+        id: (props as any).data.id,
+        status,
+        actualDate: Date.now(),
+      });
     } else {
       await editReturn({ id: (props as any).data.id, status });
     }

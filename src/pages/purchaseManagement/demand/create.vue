@@ -386,7 +386,7 @@ const confirmSave = async (cb?: Function) => {
   }
   const valid = await formRef.value.validate();
   if (valid) {
-    const params = { ...form.value };
+    const params: any = { ...form.value };
     const api = params.id ? editDemand : createDemand;
 
     if (
@@ -398,6 +398,7 @@ const confirmSave = async (cb?: Function) => {
       params.approverId = userStore.getInfo().id;
       params.approvalTime = Date.now();
     }
+    if (params.approvalTime == 0) delete params["approvalTime"];
     const res = await api(params);
     const detailList = tableData.value.map((item: any) => {
       const { productId, categoryId, quantity } = item;

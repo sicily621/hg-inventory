@@ -243,7 +243,7 @@ const confirmSave = async (cb?: Function) => {
   }
   const valid = await formRef.value.validate();
   if (valid) {
-    const params = { ...form.value };
+    const params: any = { ...form.value };
     if (
       enableApprove &&
       (params.status == OrderStatus.Approved ||
@@ -252,6 +252,7 @@ const confirmSave = async (cb?: Function) => {
       params.approverId = userStore.getInfo().id;
       params.approvalTime = Date.now();
     }
+    if (params.approvalTime == 0) delete params["approvalTime"];
     await editOrder(params);
     ElMessage({
       type: "success",

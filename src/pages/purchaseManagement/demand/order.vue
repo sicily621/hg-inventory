@@ -263,7 +263,9 @@ const confirmSave = async (cb?: Function) => {
   }
   const valid = await formRef.value.validate();
   if (valid) {
-    const params = { ...form.value, totalAmount: totalAmount.value };
+    const params: any = { ...form.value, totalAmount: totalAmount.value };
+    if (params.approvalTime == 0) delete params["approvalTime"];
+    if (params.actualDate == 0) delete params["actualDate"];
     const res = await createOrder(params);
     const detailList: OrderDetail[] = tableData.value.map((item: any) => {
       const { productId, categoryId, price, quantity, amount, supplierId } =
