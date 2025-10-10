@@ -30,6 +30,7 @@ export const useUserStore: any = defineStore("user", () => {
     username: "",
     roleId: "",
     departmentId: "",
+    avatar:""
   };
   const userInfo = ref<userInfo>(cacheUserInfo || defaultUserInfo);
 

@@ -49,6 +49,13 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ""),
         },
+        "/static/": {
+          target: "http://localhost:8080",
+          // 是否为 WebSocket
+          ws: false,
+          // 是否允许跨域
+          changeOrigin: true,
+        },
       },
       // 是否允许跨域
       cors: true,

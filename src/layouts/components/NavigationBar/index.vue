@@ -10,6 +10,7 @@ import { useAppStore } from "@/pinia/stores/app"
 import { useSettingsStore } from "@/pinia/stores/settings"
 import { useUserStore } from "@/pinia/stores/user"
 import { Breadcrumb, Hamburger, Sidebar } from "../index"
+import { logoutApi } from "@/pages/login/apis"
 
 const { isMobile } = useDevice()
 
@@ -31,10 +32,12 @@ function toggleSidebar() {
 }
 
 /** 登出 */
-function logout() {
+const logout  = async ()=> {
+  await logoutApi()
   userStore.logout()
   router.push("/login")
 }
+const avatar = userStore.getInfo()?.avatar
 </script>
 
 <template>
@@ -54,7 +57,8 @@ function logout() {
       <Notify v-if="showNotify" class="right-menu-item" />
       <el-dropdown>
         <div class="right-menu-item user">
-          <el-avatar :icon="UserFilled" :size="30" />
+          <img v-if="avatar!='defaultAvatar.png'" class="avatar" :src='avatar' width="24"/>
+           <el-avatar :icon="UserFilled" v-else :size="30" />
           <span>{{ userStore.username }}</span>
         </div>
         <template #dropdown>
@@ -127,6 +131,10 @@ function logout() {
       display: flex;
       align-items: center;
       .el-avatar {
+        margin-right: 10px;
+      }
+      .avatar{
+        border-radius:50%;
         margin-right: 10px;
       }
       span {

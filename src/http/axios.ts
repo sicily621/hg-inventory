@@ -134,6 +134,16 @@ export const request = createRequest(instance);
 export const Post = (url: string, data: any) => {
   return request({ url, method: "post", data });
 };
+export const PostForm = (url: string, data: any) => {
+  return request({ 
+    url, 
+    method: "post",
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    data
+   });
+};
 export const Put = (url: string, data: any) => {
   return request({ url, method: "put", data });
 };

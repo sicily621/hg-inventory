@@ -148,10 +148,10 @@ function handleLogin() {
     params.password = md5(params.password);
     loginApi(params)
       .then(({ data }) => {
-        const { id, token, departmentId, roleId, username, tokenTimeout } =
+        const { id, token, departmentId, roleId, username, tokenTimeout,avatar } =
           data;
         userStore.setToken(token, tokenTimeout);
-        userStore.setInfo({ id, departmentId, roleId, username, tokenTimeout });
+        userStore.setInfo({ id, departmentId, roleId, username, tokenTimeout,avatar });
         if (roleId) {
           getRolePermissionRelationsByRoleId(roleId).then((res) => {
             const permissions = (res as any).data.map(

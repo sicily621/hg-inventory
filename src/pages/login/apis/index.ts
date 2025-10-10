@@ -17,3 +17,10 @@ export function loginApi(data: Auth.LoginRequestData) {
     data,
   });
 }
+//退出登录
+export function logoutApi() {
+  return request({
+    url: "logout",
+    method: "post",
+  });
+}
