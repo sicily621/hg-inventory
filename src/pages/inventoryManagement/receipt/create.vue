@@ -301,7 +301,10 @@ import {
   createReceiptDetail,
   getReceiptDetailList,
 } from "../api/receiptDetail";
-import { findProductListByIds } from "@/pages/productManagement/api/product";
+import {
+  findProductListByIds,
+  batchEditProduct,
+} from "@/pages/productManagement/api/product";
 import {
   Category,
   getCategoryList,
@@ -326,7 +329,10 @@ import { OrderStatus, editOrder } from "@/pages/purchaseManagement/api/order";
 import { getOrderDetailList } from "@/pages/purchaseManagement/api/orderDetail";
 import { ReturnStatus, editReturn } from "@/pages/saleManagement/api/return";
 import { getReturnDetailList } from "@/pages/saleManagement/api/returnDetail";
-import { receipt } from "@/pages/inventoryManagement/api/inventory";
+import {
+  receipt,
+  getInventoryByProductIds,
+} from "@/pages/inventoryManagement/api/inventory";
 import { batchSaveHistory, History, HistoryType } from "../api/history";
 import { getReturnList } from "@/pages/purchaseManagement/api/return";
 import { getReturnDetailList as getPurchaseReturnDetailList } from "@/pages/purchaseManagement/api/returnDetail";
@@ -478,10 +484,10 @@ const areaOptions = ref<any[]>([]);
 const shelfOptions = ref<any[]>([]);
 const areaMap = ref(new Map());
 const queryAreaOptions = async () => {
-  const parmas: any = {};
+  const params: any = {};
   if (productForm.value.warehouseId)
-    parmas.warehouseId = productForm.value.warehouseId;
-  const res = await getAreaList(parmas);
+    params.warehouseId = productForm.value.warehouseId;
+  const res = await getAreaList(params);
   const { data } = res as any;
   areaOptions.value = data;
   productForm.value.areaId = 0;
@@ -501,9 +507,9 @@ const queryShelfOptions = async () => {
     productForm.value.shelfId = 0;
     return;
   }
-  const parmas: any = {};
-  if (productForm.value.areaId) parmas.areaId = productForm.value.areaId;
-  const res = await getShelfList(parmas);
+  const params: any = {};
+  if (productForm.value.areaId) params.areaId = productForm.value.areaId;
+  const res = await getShelfList(params);
   const { data } = res as any;
   productForm.value.shelfId = 0;
   shelfOptions.value = data;
@@ -839,6 +845,49 @@ const confirmSave = async (cb?: Function) => {
         status,
         actualDate: Date.now(),
       });
+      if (status === OrderStatus.FullyReceived) {
+        //入库后重新计算采购平均成本
+        const productIds = detailList
+          .map((item: any) => item.productId)
+          .join(",");
+        const productInventoryRes: any =
+          await getInventoryByProductIds(productIds);
+        const productInventoryMap = new Map();
+        productInventoryRes.data.map((item: any) => {
+          const { productId, quantity } = item;
+          if (productInventoryMap.has(productId)) {
+            const { quantity: cache } = productInventoryMap.get(productId);
+            productInventoryMap.set(productId, {
+              productId,
+              quantity: Number(cache) + Number(quantity),
+            });
+          } else {
+            productInventoryMap.set(productId, {
+              productId,
+              quantity: Number(quantity),
+            });
+          }
+        });
+        const productNewPriceData = [...productInventoryMap.values()].map(
+          (item: any) => {
+            const { productId, quantity } = item;
+            const orderQuantity = orderQuantityMap.value.get(productId);
+            //原库存数量
+            const oldReceiptQuantity = Number(quantity) - Number(orderQuantity);
+            //订单采购价格
+            const orderPrice = productPriceMap.value.get(productId);
+            const { purchasePrice: oldPurchasePrice } =
+              productMap.value.get(productId);
+            const purchasePrice = +(
+              (oldReceiptQuantity * Number(oldPurchasePrice) +
+                Number(orderQuantity) * Number(orderPrice)) /
+              Number(quantity)
+            ).toFixed(2);
+            return { id: productId, purchasePrice };
+          },
+        );
+        await batchEditProduct(productNewPriceData);
+      }
     } else {
       await editReturn({ id: (props as any).data.id, status });
     }
@@ -851,6 +900,7 @@ const confirmSave = async (cb?: Function) => {
     await batchSaveHistory(historyList);
     //生成账单条件：一个订单下一个供应商所有商品都全部入库
     await batchAccount(accounts);
+
     ElMessage({
       type: "success",
       message: "保存成功",
@@ -859,6 +909,7 @@ const confirmSave = async (cb?: Function) => {
   }
 };
 const orderQuantityMap = ref<Map<any, any>>(new Map());
+const productPriceMap = ref<Map<any, any>>(new Map());
 const orderMap = ref<Map<any, any>>(new Map());
 const accountList = ref<any[]>([]);
 const queryAccount = async () => {
@@ -879,6 +930,7 @@ onMounted(async () => {
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
   const res = await api((props as any).data.id);
   orderQuantityMap.value.clear();
+  productPriceMap.value.clear();
   tableData.value = (res as any)?.data.map((item: any, i: number) => {
     const { productId, categoryId, quantity, price, amount } = item;
     const receiptQuantity = receiptDetailsMap.value.get(productId);
@@ -896,6 +948,7 @@ onMounted(async () => {
       result.returnQuantity = returnDetailsMap.value.get(item.productId) ?? 0;
     }
     orderQuantityMap.value.set(productId, result.orderQuantity);
+    productPriceMap.value.set(productId, result.price);
     return result;
   });
 

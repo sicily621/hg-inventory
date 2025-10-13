@@ -153,7 +153,7 @@ const isBefore = (date: Date) => {
 };
 const changeQuantity = (row: any) => {
   const { quantity, price } = row;
-  row.amount = +quantity * +price;
+  row.amount = Number(Number(+quantity * +price).toFixed(2));
 };
 //表单
 const form = ref<Order>({
@@ -304,7 +304,7 @@ onMounted(async () => {
       const price = getItem(productId, productMap.value)?.purchasePrice;
       return {
         ...item,
-        amount: quantity * price,
+        amount: Number(Number(+quantity * +price).toFixed(2)),
         price,
         supplierId: supplierOptions.value[0]?.id,
       };

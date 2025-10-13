@@ -351,7 +351,7 @@ const addProduct = async () => {
     productForm.value.price = getItem(
       String(productForm.value.productId),
       productMap.value,
-    )?.purchasePrice;
+    )?.retailPrice;
     const { price, quantity } = productForm.value;
     const row: any = {
       ...productForm.value,
@@ -603,7 +603,7 @@ onMounted(async () => {
       const { quantity, productId } = item;
       const price = props.data
         ? +item.price
-        : getItem(productId, productMap.value)?.purchasePrice;
+        : getItem(productId, productMap.value)?.retailPrice;
       return { ...item, amount: quantity * price, price };
     });
   }

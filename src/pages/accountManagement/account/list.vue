@@ -162,8 +162,7 @@ const columns = ref([
   { prop: "relatedEntityType", label: "往来单位类型" },
   { prop: "relatedEntityId", label: "往来单位" },
   { prop: "amount", label: "金额" },
-  { prop: "paymentMethod", label: "支付方式" },
-  { prop: "bankName", label: "银行名称" },
+  { prop: "time", label: "用时" },
   { prop: "employeeId", label: "收银员" },
   { prop: "status", label: "状态" },
   { prop: "operate", label: "操作", width: 100 },
@@ -266,6 +265,34 @@ watchDebounced(
   },
   { debounce: 500, maxWait: 1000 },
 );
+const formatSecondsToDuration = (totalSeconds: number) => {
+  if (totalSeconds < 60) {
+    return `0分`;
+  }
+  const secondsPerDay = 86400;
+  const secondsPerHour = 3600;
+  const secondsPerMinute = 60;
+
+  const days = Math.floor(totalSeconds / secondsPerDay);
+  const remainingSecondsAfterDays = totalSeconds % secondsPerDay;
+  const hours = Math.floor(remainingSecondsAfterDays / secondsPerHour);
+  const remainingSecondsAfterHours = remainingSecondsAfterDays % secondsPerHour;
+  const minutes = Math.floor(remainingSecondsAfterHours / secondsPerMinute);
+
+  const parts: string[] = [];
+  if (days > 0) {
+    parts.push(`${days}天`);
+  }
+  if (hours > 0) {
+    parts.push(`${hours}时`);
+  }
+  if (minutes > 0) {
+    parts.push(`${minutes}分`);
+  }
+
+  return parts.join("");
+};
+const now = new Date();
 function refreshTable() {
   loading.value = true;
   const params: PaginatedRequest<queryAccountConditions> = {
@@ -282,7 +309,24 @@ function refreshTable() {
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
-      tableData.value = list;
+      tableData.value = list.map((item: any) => {
+        const { createTime, updateTime, status } = item;
+        if (
+          status == AccountStatus.Pending ||
+          status == AccountStatus.Approved
+        ) {
+          item.time = formatSecondsToDuration(
+            (now.getTime() - new Date(createTime).getTime()) / 1000,
+          );
+        } else {
+          item.time = formatSecondsToDuration(
+            (new Date(updateTime).getTime() - new Date(createTime).getTime()) /
+              1000,
+          );
+        }
+
+        return item;
+      });
     })
     .catch(() => {
       tableData.value = [];

@@ -43,6 +43,7 @@
               placeholder="请输入采购价"
               maxlength="32"
               required
+              :disabled="disabled"
             >
             </el-input>
           </el-form-item>
@@ -119,6 +120,7 @@
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
 import { Product, createProduct, editProduct } from "../api/product";
+import { getInventoryByProductIds } from "@/pages/inventoryManagement/api/inventory";
 import { Category, getCategoryList } from "../api/category";
 import { ElMessage } from "element-plus";
 import { formatTimeToString } from "@@/utils/datetime";
@@ -203,8 +205,18 @@ const queryCategoryOptions = async () => {
     categoryOptions.value = buildCategoryTree((res as any)?.data || []);
   }
 };
-onMounted(() => {
-  queryCategoryOptions();
+//是否可以编辑商品采购价，有库存的商品不能修改采购价了，在入库已经计算了
+const disabled = ref(false);
+const queryInventory = async (id: string) => {
+  const res: any = await getInventoryByProductIds(id);
+  const quantity = res.data.reduce((prev: number, cur: any) => {
+    return prev + Number(cur.quantity);
+  }, 0);
+  disabled.value = quantity > 0 ? true : false;
+};
+onMounted(async () => {
+  await queryCategoryOptions();
+  if (props?.data?.id) queryInventory(props.data.id as any as string);
 });
 defineExpose({ confirmSave });
 </script>

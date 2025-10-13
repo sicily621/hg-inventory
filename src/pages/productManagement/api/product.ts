@@ -20,6 +20,7 @@ export interface queryProductConditions {
 
 export const createProduct = (data: Product) => Post(productPrefix, data);
 export const editProduct = (data: Product) => Put(productPrefix, data);
+export const batchEditProduct = (data: Partial<Product>[]) => Put(`${productPrefix}/batchUpdate`, data);
 export const deleteProduct = (id: string | number) =>
   Delete(productPrefix + `/${id}`);
 export const findProductPage = (data: any) =>

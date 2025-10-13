@@ -30,3 +30,5 @@ export const findInventoryPage = (data: any) =>
   Get(inventoryPrefix + "/page", data);
 export const getInventoryList = (data: any) =>
   Get(`${inventoryPrefix}/list`, data);
+export const getInventoryByProductIds = (ids: string) =>
+  Get(`${inventoryPrefix}/getByProductIds/${ids}`, ids);

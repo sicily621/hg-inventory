@@ -99,8 +99,7 @@
               <template #price="scope">
                 <el-tag type="primary"
                   >￥{{
-                    getItem(scope.scope.row.productId, productMap)
-                      ?.purchasePrice
+                    getItem(scope.scope.row.productId, productMap)?.retailPrice
                   }}</el-tag
                 >
               </template>

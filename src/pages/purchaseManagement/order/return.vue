@@ -77,7 +77,6 @@
                   v-model="scope.scope.row.quantity"
                   :min="0"
                   :max="scope.scope.row.quantityOrder"
-                  :step="scope.scope.row.quantityOrder"
                   step-strictly
                   class="flex-1"
                   @change="changeQuantity(scope.scope.row)"

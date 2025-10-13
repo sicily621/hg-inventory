@@ -302,7 +302,10 @@ import {
 } from "../api/shipmentDetail";
 import { getReceiptList } from "../api/receipt";
 import { getReceiptDetailList } from "../api/receiptDetail";
-import { findProductListByIds } from "@/pages/productManagement/api/product";
+import {
+  findProductListByIds,
+  batchEditProduct,
+} from "@/pages/productManagement/api/product";
 import {
   Category,
   getCategoryList,
@@ -326,6 +329,7 @@ import { getReturnDetailList } from "@/pages/purchaseManagement/api/returnDetail
 import {
   shipment,
   getInventoryList,
+  getInventoryByProductIds,
 } from "@/pages/inventoryManagement/api/inventory";
 import { batchSaveHistory, History, HistoryType } from "../api/history";
 import {
@@ -866,6 +870,49 @@ const confirmSave = async (cb?: Function) => {
       });
     } else {
       await editReturn({ id: (props as any).data.id, status });
+      if (status === ReturnStatus.FullyReceived) {
+        //入库后重新计算采购平均成本
+        const productIds = detailList
+          .map((item: any) => item.productId)
+          .join(",");
+        const productInventoryRes: any =
+          await getInventoryByProductIds(productIds);
+        const productInventoryMap = new Map();
+        productInventoryRes.data.map((item: any) => {
+          const { productId, quantity } = item;
+          if (productInventoryMap.has(productId)) {
+            const { quantity: cache } = productInventoryMap.get(productId);
+            productInventoryMap.set(productId, {
+              productId,
+              quantity: Number(cache) + Number(quantity),
+            });
+          } else {
+            productInventoryMap.set(productId, {
+              productId,
+              quantity: Number(quantity),
+            });
+          }
+        });
+        const productNewPriceData = [...productInventoryMap.values()].map(
+          (item: any) => {
+            const { productId, quantity } = item;
+            const orderQuantity = orderQuantityMap.value.get(productId);
+            //原库存数量
+            const oldReceiptQuantity = Number(quantity) - Number(orderQuantity);
+            //订单采购价格
+            const orderPrice = productPriceMap.value.get(productId);
+            const { purchasePrice: oldPurchasePrice } =
+              productMap.value.get(productId);
+            const purchasePrice = +(
+              (oldPurchasePrice * Number(quantity) -
+                Number(orderQuantity) * Number(orderPrice)) /
+              Number(oldReceiptQuantity)
+            ).toFixed(2);
+            return { id: productId, purchasePrice };
+          },
+        );
+        await batchEditProduct(productNewPriceData);
+      }
     }
     const historyList = list.map((item) => {
       item.type =
@@ -884,6 +931,7 @@ const confirmSave = async (cb?: Function) => {
   }
 };
 const orderQuantityMap = ref<Map<any, any>>(new Map());
+const productPriceMap = ref<Map<any, any>>(new Map());
 const orderMap = ref<Map<any, any>>(new Map());
 const accountList = ref<any[]>([]);
 const queryAccount = async () => {
@@ -912,11 +960,20 @@ onMounted(async () => {
       receiptDetailsMap.value.clear();
       (receiptDetails as any).data.map((item: any) => {
         item.quantity = +item.quantity;
-        receiptDetailsMap.value.set(item.productId, item.quantity);
+        if (receiptDetailsMap.value.get(item.productId)) {
+          const cache = receiptDetailsMap.value.get(item.productId);
+          receiptDetailsMap.value.set(
+            item.productId,
+            Number(cache) + Number(item.quantity),
+          );
+        } else {
+          receiptDetailsMap.value.set(item.productId, item.quantity);
+        }
       });
     }
   }
   orderQuantityMap.value.clear();
+  productPriceMap.value.clear();
   tableData.value = (res as any)?.data
     .map((item: any, i: number) => {
       const { productId, categoryId, quantity, price, amount } = item;
@@ -937,6 +994,7 @@ onMounted(async () => {
           receiptDetailsMap.value.get(item.productId) ?? 0;
       }
       orderQuantityMap.value.set(productId, result.orderQuantity);
+      productPriceMap.value.set(productId, price);
       return result;
     })
     .filter((item: any) => item.orderQuantity > 0)
@@ -967,4 +1025,3 @@ onMounted(async () => {
   }
 }
 </style>
-@/pages/accountManagement/api/account
