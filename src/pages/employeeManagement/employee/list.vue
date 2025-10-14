@@ -270,9 +270,9 @@ const roleMap = ref(new Map());
 const queryRoleOptions = async () => {
   const res = await getRoleList();
   if ((res as any)?.data?.length) {
-    roleOptions.value = (res as any).data;
     roleMap.value.clear();
     (res as any)?.data.map((item: any) => {
+      roleOptions.value.push(item);
       roleMap.value.set(item.id, item.name);
     });
   }

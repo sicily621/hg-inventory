@@ -292,7 +292,7 @@ const confirmSave = async (cb?: Function) => {
         params.password = md5(defaultPwd);
       }
       if (form.value.avatarFile) {
-        const res = await uploadFile({ file: form.value.avatarFile });
+        const res: any = await uploadFile({ file: form.value.avatarFile });
         if (res?.fileName) params.avatar = res.fileName;
         delete params["avatarFile"];
       }
