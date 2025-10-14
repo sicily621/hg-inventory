@@ -9,6 +9,7 @@ export interface Account {
   relatedEntityType: RelatedEntityType;
   relatedEntityId: string | number;
   amount: number;
+  cost: number;
   paymentMethod?: any;
   bankName?: string;
   employeeId: string | number;
@@ -60,6 +61,8 @@ export interface queryAccountConditions {
   relatedEntityId: string | number;
   employeeId: string | number;
   status: AccountStatus | 0;
+  startTime: string;
+  endTime: string;
 }
 
 export const createAccount = (data: Account) => Post(accountPrefix, data);

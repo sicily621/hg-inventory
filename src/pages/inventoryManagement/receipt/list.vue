@@ -167,7 +167,7 @@ const columns = computed(() => {
     searchData.type === 1
       ? [
           { prop: "expectedDate", label: "期望到货日期" },
-          { prop: "actualDate", label: "实际到货日期" },
+          { prop: "actualDate", label: "实际入库日期" },
         ]
       : [{ prop: "createTime", label: "退单时间" }];
   const result = [

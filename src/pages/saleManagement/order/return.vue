@@ -103,6 +103,9 @@
                   }}</el-tag
                 >
               </template>
+              <template #cost="scope">
+                <el-tag type="warning">￥{{ scope.scope.row.cost }}</el-tag>
+              </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
               </template>
@@ -170,7 +173,8 @@ const columns = ref([
   { prop: "unit", label: "计量单位" },
   { prop: "quantityOrder", label: "订单数量" },
   { prop: "quantity", label: "退单数量" },
-  { prop: "price", label: "采购价" },
+  { prop: "price", label: "销售价" },
+  { prop: "cost", label: "成本价" },
   { prop: "amount", label: "金额" },
 ]);
 
@@ -252,7 +256,7 @@ const confirmSave = async (cb?: Function) => {
     if (params.approvalTime == 0) delete params["approvalTime"];
     const res = await createReturn(params);
     const detailList: ReturnDetail[] = tableData.value.map((item: any) => {
-      const { productId, categoryId, price, quantity, amount } = item;
+      const { productId, categoryId, price, quantity, amount, cost } = item;
       return {
         productId,
         categoryId,
@@ -260,6 +264,7 @@ const confirmSave = async (cb?: Function) => {
         quantity,
         returnId: (res as any).data.id,
         amount,
+        cost,
       };
     });
     await deleteReturnDetail((res as any).data.id);

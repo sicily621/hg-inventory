@@ -258,6 +258,7 @@ import { ElMessage } from "element-plus";
 import { ModuleCode } from "@/router/moduleCode";
 import { usePermissionStore } from "@/pinia/stores/permission";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+import { formatSecondsToDuration } from "@@/utils/datetime";
 const permissionStore = usePermissionStore();
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.SalesOrder,
@@ -282,7 +283,8 @@ const columns = ref([
   { prop: "customerId", label: "客户" },
   { prop: "employeeId", label: "销售人" },
   { prop: "expectedDate", label: "期望到货日期" },
-  { prop: "actualDate", label: "实际到货日期" },
+  { prop: "actualDate", label: "实际发货日期" },
+  { prop: "time", label: "用时" },
   { prop: "status", label: "状态" },
   { prop: "totalAmount", label: "总金额" },
   { prop: "description", label: "备注" },
@@ -368,7 +370,7 @@ const queryCustomerOptions = async () => {
     });
   }
 };
-
+const now = new Date();
 function refreshTable() {
   loading.value = true;
   const params: PaginatedRequest<queryOrderConditions> = {
@@ -387,7 +389,28 @@ function refreshTable() {
     .then((res: any) => {
       const { total, list } = res.data;
       totalItems.value = total;
-      tableData.value = list;
+      tableData.value = list.map((item: any) => {
+        const { createTime, updateTime, actualDate, status } = item;
+        if (status < OrderStatus.FullyReceived) {
+          if (status == OrderStatus.Rejected) {
+            item.time = formatSecondsToDuration(
+              (new Date(updateTime).getTime() -
+                new Date(createTime).getTime()) /
+                1000,
+            );
+          } else {
+            item.time = formatSecondsToDuration(
+              (now.getTime() - new Date(createTime).getTime()) / 1000,
+            );
+          }
+        } else {
+          item.time = formatSecondsToDuration(
+            (new Date(actualDate).getTime() - new Date(createTime).getTime()) /
+              1000,
+          );
+        }
+        return item;
+      });
     })
     .catch(() => {
       tableData.value = [];

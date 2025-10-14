@@ -7,6 +7,7 @@ export interface OrderDetail {
   categoryId: string | number;
   quantity: number;
   price: number;
+  cost: number;
   amount: number;
 }
 export const createOrderDetail = (data: OrderDetail[]) =>

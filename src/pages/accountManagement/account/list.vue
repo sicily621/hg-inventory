@@ -37,6 +37,19 @@
                 />
               </el-select>
             </el-form-item>
+            <el-form-item label="时间范围">
+              <el-date-picker
+                v-model="time"
+                class="width-100"
+                type="daterange"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                format="YYYY/MM/DD"
+                value-format="YYYY-MM-DD"
+                @change="refreshTable"
+                :disabled-date="isAfter"
+              />
+            </el-form-item>
           </el-form>
         </div>
       </el-card>
@@ -77,6 +90,15 @@
               <el-tag>
                 {{ getStatus(scope.scope.row.status, AccountStatusList) }}
               </el-tag>
+            </template>
+            <template #cost="scope">
+              <el-tag type="warning" v-if="scope.scope.row.cost">
+                ￥{{ scope.scope.row.cost }}
+              </el-tag>
+              <span v-else>--</span>
+            </template>
+            <template #amount="scope">
+              <el-tag type="danger"> ￥{{ scope.scope.row.amount }} </el-tag>
             </template>
             <template #operate="scope">
               <div class="flex">
@@ -144,6 +166,7 @@ import { usePermissionStore } from "@/pinia/stores/permission";
 import { ElMessage } from "element-plus";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 import { useUserStore } from "@/pinia/stores/user";
+import { formatSecondsToDuration } from "@@/utils/datetime";
 const permissionStore = usePermissionStore();
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.Account,
@@ -151,6 +174,10 @@ const enableApprove = permissionStore.hasPermission(
 );
 const allAccountTypeList = [{ id: 0, name: "全部" }, ...AccountTypeList];
 const allAccountStatusList = [{ id: 0, name: "全部" }, ...AccountStatusList];
+const time = ref("");
+const isAfter = (date: Date) => {
+  return date.getTime() - Date.now() >= 0;
+};
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
@@ -162,6 +189,7 @@ const columns = ref([
   { prop: "relatedEntityType", label: "往来单位类型" },
   { prop: "relatedEntityId", label: "往来单位" },
   { prop: "amount", label: "金额" },
+  { prop: "cost", label: "成本" },
   { prop: "time", label: "用时" },
   { prop: "employeeId", label: "收银员" },
   { prop: "status", label: "状态" },
@@ -256,6 +284,8 @@ const searchData = reactive<queryAccountConditions>({
   relatedEntityId: "",
   employeeId: "",
   status: 0,
+  startTime: "",
+  endTime: "",
 });
 
 watchDebounced(
@@ -265,33 +295,7 @@ watchDebounced(
   },
   { debounce: 500, maxWait: 1000 },
 );
-const formatSecondsToDuration = (totalSeconds: number) => {
-  if (totalSeconds < 60) {
-    return `0分`;
-  }
-  const secondsPerDay = 86400;
-  const secondsPerHour = 3600;
-  const secondsPerMinute = 60;
 
-  const days = Math.floor(totalSeconds / secondsPerDay);
-  const remainingSecondsAfterDays = totalSeconds % secondsPerDay;
-  const hours = Math.floor(remainingSecondsAfterDays / secondsPerHour);
-  const remainingSecondsAfterHours = remainingSecondsAfterDays % secondsPerHour;
-  const minutes = Math.floor(remainingSecondsAfterHours / secondsPerMinute);
-
-  const parts: string[] = [];
-  if (days > 0) {
-    parts.push(`${days}天`);
-  }
-  if (hours > 0) {
-    parts.push(`${hours}时`);
-  }
-  if (minutes > 0) {
-    parts.push(`${minutes}分`);
-  }
-
-  return parts.join("");
-};
 const now = new Date();
 function refreshTable() {
   loading.value = true;
@@ -305,6 +309,10 @@ function refreshTable() {
     params.relatedEntityId = searchData.relatedEntityId;
   if (searchData?.employeeId) params.employeeId = searchData.employeeId;
   if (searchData.status) params.status = searchData.status;
+  if (time.value?.[0] && time.value?.[1]) {
+    params.startTime = `${time.value?.[0]} 00:00:00`;
+    params.endTime = `${time.value?.[1]} 23:59:59`;
+  }
   findAccountPage(params)
     .then((res: any) => {
       const { total, list } = res.data;

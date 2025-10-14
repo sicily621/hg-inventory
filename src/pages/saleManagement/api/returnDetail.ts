@@ -7,6 +7,7 @@ export interface ReturnDetail {
   categoryId: string | number;
   quantity: number;
   price: number;
+  cost: number;
   amount: number;
 }
 export const createReturnDetail = (data: ReturnDetail[]) =>

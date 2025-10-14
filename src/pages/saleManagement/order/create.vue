@@ -143,6 +143,9 @@
                   @change="changeQuantity(scope.scope.row)"
                 />
               </template>
+              <template #cost="scope">
+                <el-tag type="danger">￥{{ scope.scope.row.cost }}</el-tag>
+              </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
               </template>
@@ -243,6 +246,12 @@
             >
             </el-input>
           </el-form-item>
+          <el-form-item label="成本价" class="flex-1 m-l-4">
+            <el-tag type="danger" class="fz18 p-t-5 p-b-5"
+              >￥{{ selectedProduct.purchasePrice }}</el-tag
+            >
+          </el-form-item>
+
           <div class="flex-1 m-l-4"></div>
         </div>
       </el-form>
@@ -325,6 +334,7 @@ const defaultProduct = {
   quantity: 0,
   price: 0,
   amount: 0,
+  cost: 0,
 };
 const productForm = ref<OrderDetail>(defaultProduct);
 const productRules = reactive({
@@ -332,16 +342,16 @@ const productRules = reactive({
   categoryId: [{ required: true, message: "不能为空" }],
   quantity: [{ required: true, message: "不能为空" }],
 });
-const seletedProduct = computed(() => {
+const selectedProduct = computed(() => {
   return productOptions.value.find(
     (item: any) => item.id === productForm.value.productId,
   );
 });
 const specification = computed(() => {
-  return seletedProduct.value?.specification;
+  return selectedProduct.value?.specification;
 });
 const unit = computed(() => {
-  return seletedProduct.value?.unit;
+  return selectedProduct.value?.unit;
 });
 
 const editIndex = ref(-1);
@@ -358,6 +368,7 @@ const addProduct = async () => {
       specification: specification.value,
       unit: unit.value,
       amount: +quantity * +price,
+      cost: selectedProduct.value.purchasePrice,
     };
     const hasAdd = tableData.value.find((item: any, i: number) => {
       if (editIndex.value > -1) {
@@ -419,6 +430,7 @@ const columns = computed(() => {
     { prop: "unit", label: "计量单位" },
     { prop: "quantity", label: "数量" },
     { prop: "price", label: "销售价" },
+    { prop: "cost", label: "成本价" },
     { prop: "amount", label: "金额" },
   ];
   if (!onlyView.value) {
@@ -561,7 +573,7 @@ const confirmSave = async (cb?: Function) => {
     const api = params.id ? editOrder : createOrder;
     const res = await api(params);
     const detailList: OrderDetail[] = tableData.value.map((item: any) => {
-      const { productId, categoryId, price, quantity, amount } = item;
+      const { productId, categoryId, price, quantity, amount, cost } = item;
       return {
         productId,
         categoryId,
@@ -569,6 +581,7 @@ const confirmSave = async (cb?: Function) => {
         quantity,
         orderId: (res as any).data.id,
         amount,
+        cost,
       };
     });
     await deleteOrderDetail((res as any).data.id);

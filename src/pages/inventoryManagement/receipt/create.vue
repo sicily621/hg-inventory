@@ -814,6 +814,7 @@ const confirmSave = async (cb?: Function) => {
         const relatedEntityId =
           props.type === 1 ? item.supplierId : props.data.customerId;
         const prevAccount = accountMap.get(relatedEntityId)?.amount ?? 0;
+        const prevCost = accountMap.get(relatedEntityId)?.cost ?? 0;
         const account = {
           orderId: props.type === 1 ? props.data.id : props.data.orderId,
           relatedCode: props.data.code,
@@ -830,6 +831,11 @@ const confirmSave = async (cb?: Function) => {
           employeeId: userStore.getInfo().id,
           status: AccountStatus.Pending,
           description: "",
+          cost:
+            prevCost +
+            Number(
+              Number(Number(item.cost) * Number(item.quantity)).toFixed(2),
+            ),
         };
         accountMap.set(relatedEntityId, account);
       });
@@ -942,6 +948,7 @@ onMounted(async () => {
       price,
       amount,
       index: i + 1,
+      cost: item.cost ?? 0,
     });
     if (props.type === 1) {
       result.supplierId = item.supplierId;

@@ -108,6 +108,9 @@
                   }}</el-tag
                 >
               </template>
+              <template #cost="scope">
+                <el-tag type="warning">￥{{ scope.scope.row.cost }}</el-tag>
+              </template>
               <template #amount="scope">
                 <el-tag type="danger">￥{{ scope.scope.row.amount }}</el-tag>
               </template>
@@ -167,6 +170,7 @@ const columns = ref([
   { prop: "unit", label: "计量单位" },
   { prop: "quantity", label: "数量" },
   { prop: "price", label: "销售价" },
+  { prop: "cost", label: "成本价" },
   { prop: "amount", label: "金额" },
 ]);
 
