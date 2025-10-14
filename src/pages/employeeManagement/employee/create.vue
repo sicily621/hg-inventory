@@ -152,7 +152,12 @@
 </template>
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
-import { Employee, createEmployee, editEmployee,uploadFile } from "../api/employee";
+import {
+  Employee,
+  createEmployee,
+  editEmployee,
+  uploadFile,
+} from "../api/employee";
 import { Department, getDepartmentList } from "../api/department";
 import { getRoleList } from "../api/role";
 import type { UploadProps } from "element-plus";
@@ -255,7 +260,8 @@ function buildDepartmentTree(departments: Department[]) {
 const departmentOptions = ref<any[]>([{ name: "无", id: 0 }]);
 const roleOptions = ref<any[]>([{ name: "无", value: 0 }]);
 const imageUrl = ref("");
-if(form.value.avatar!="defaultAvatar.png") imageUrl.value = form.value.avatar;
+if (form.value.avatar != "defaultAvatar.png")
+  imageUrl.value = form.value.avatar;
 
 // 处理文件选择
 const handleFileChange: UploadProps["onChange"] = (file: any) => {
@@ -268,7 +274,9 @@ const handleFileChange: UploadProps["onChange"] = (file: any) => {
 
   form.value.avatarFile = file.raw;
 };
-const resetPwd = () => {};
+const resetPwd = () => {
+  form.value.password = defaultPwd;
+};
 const confirmSave = async (cb?: Function) => {
   try {
     const valid = await formRef.value.validate();
@@ -283,12 +291,12 @@ const confirmSave = async (cb?: Function) => {
       } else {
         params.password = md5(defaultPwd);
       }
-      if(form.value.avatarFile){
-        const res = await uploadFile({file:form.value.avatarFile})
-        if(res?.fileName) params.avatar = res.fileName
+      if (form.value.avatarFile) {
+        const res = await uploadFile({ file: form.value.avatarFile });
+        if (res?.fileName) params.avatar = res.fileName;
         delete params["avatarFile"];
       }
-      
+
       const api = params.id ? editEmployee : createEmployee;
       await api(params);
       ElMessage({
