@@ -172,7 +172,7 @@ const enableApprove = permissionStore.hasPermission(
   ModuleCode.Account,
   PermissionAction.Approve,
 );
-const allAccountTypeList = [{ id: 0, name: "全部" }, ...AccountTypeList];
+const allAccountTypeList = [{ id: 0, name: "全部" }, ...AccountActionList];
 const allAccountStatusList = [{ id: 0, name: "全部" }, ...AccountStatusList];
 const time = ref("");
 const isAfter = (date: Date) => {
