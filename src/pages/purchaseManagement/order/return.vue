@@ -26,6 +26,7 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -41,6 +42,7 @@
                   placeholder="请输入备注"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -80,6 +82,7 @@
                   step-strictly
                   class="flex-1"
                   @change="changeQuantity(scope.scope.row)"
+                  :disabled="onlyView"
                 />
               </template>
 
@@ -104,8 +107,14 @@ import {
   getCategoryList,
 } from "@/pages/productManagement/api/category";
 import { Order, OrderStatus, editOrder } from "../api/order";
-import { Return, ReturnStatus, createReturn } from "../api/return";
 import {
+  Return,
+  ReturnStatus,
+  createReturn,
+  getReturnList,
+} from "../api/return";
+import {
+  getReturnDetailList,
   ReturnDetail,
   createReturnDetail,
   deleteReturnDetail,
@@ -124,7 +133,12 @@ const props = defineProps<{ data: Order }>();
 const formRef = ref();
 const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const productOptions = ref<any[]>([]);
-
+const onlyView = computed(() => {
+  return (
+    props.data.status == OrderStatus.PartiallyReturned ||
+    props.data.status == OrderStatus.Returned
+  );
+});
 const changeQuantity = (row: any) => {
   const { quantity, price } = row;
   row.amount = +quantity * +price;
@@ -280,10 +294,31 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryProductOptions();
   if (props?.data?.id) {
-    const res = await getOrderDetailList((props as any).data.id);
-    tableData.value = (res as any)?.data.map((item: any) => {
-      return { ...item, quantityOrder: item.quantity };
+    const returnRes: any = await getReturnList({ orderId: props?.data?.id });
+    form.value = Object.assign(form.value, returnRes?.data?.[0] || {});
+    const returnListRes: any = await getReturnDetailList(
+      returnRes?.data?.[0].id,
+    );
+    const orderDetailRes: any = await getOrderDetailList(
+      (props as any).data.id,
+    );
+    const quantityOrderMap = ref(new Map());
+    orderDetailRes.data.map((item: any) => {
+      const { productId, quantity } = item;
+      quantityOrderMap.value.set(productId, quantity);
     });
+    if (returnListRes?.data.length) {
+      tableData.value = returnListRes.data.map((item: any) => {
+        return {
+          ...item,
+          quantityOrder: quantityOrderMap.value.get(item.productId),
+        };
+      });
+    } else {
+      tableData.value = (orderDetailRes as any)?.data.map((item: any) => {
+        return { ...item, quantityOrder: item.quantity };
+      });
+    }
   }
 });
 </script>

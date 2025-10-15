@@ -176,6 +176,18 @@
                   >
                     <View />
                   </el-icon>
+                  <el-icon
+                    v-if="
+                      scope.scope.row.status == OrderStatus.PartiallyReturned ||
+                      scope.scope.row.status == OrderStatus.Returned
+                    "
+                    class="fz16 pointer m-r-5 cursor-pointer"
+                    text
+                    title="查看退单"
+                    @click="viewReturn(scope.scope.row)"
+                  >
+                    <DocumentRemove />
+                  </el-icon>
                 </span>
               </div>
             </template>
@@ -321,6 +333,11 @@ const toApprove = (row: Order) => {
   processFlag.value = 1;
 };
 const toReturn = (row: Order) => {
+  currentData.value = row;
+  processFlag.value = 2;
+};
+const viewReturn = (row: Order) => {
+  onlyView.value = true;
   currentData.value = row;
   processFlag.value = 2;
 };

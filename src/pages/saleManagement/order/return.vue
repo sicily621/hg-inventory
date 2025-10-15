@@ -26,6 +26,7 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -56,6 +57,7 @@
                   placeholder="请输入备注"
                   maxlength="32"
                   required
+                  :disabled="onlyView"
                 >
                 </el-input>
               </el-form-item>
@@ -93,6 +95,7 @@
                   :max="scope.scope.row.quantityOrder"
                   class="flex-1"
                   @change="changeQuantity(scope.scope.row)"
+                  :disabled="onlyView"
                 />
               </template>
 
@@ -144,6 +147,12 @@ const props = defineProps<{ data: Order }>();
 const formRef = ref();
 const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const productOptions = ref<any[]>([]);
+const onlyView = computed(() => {
+  return (
+    props.data.status == OrderStatus.PartiallyReturned ||
+    props.data.status == OrderStatus.Returned
+  );
+});
 
 const changeQuantity = (row: any) => {
   const { quantity, price } = row;
