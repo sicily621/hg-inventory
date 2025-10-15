@@ -3,9 +3,9 @@ import { Post, Get, Put, Delete } from "@/http/axios";
 
 export interface Account {
   id?: string | number;
-  orderCode: string;
   orderId: string | number;
   type: AccountType;
+  relatedCode: string;
   relatedEntityType: RelatedEntityType;
   relatedEntityId: string | number;
   amount: number;

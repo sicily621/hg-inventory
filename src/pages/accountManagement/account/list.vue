@@ -103,6 +103,13 @@
             <template #operate="scope">
               <div class="flex">
                 <el-icon
+                  class="fz16 pointer m-r-5 cursor-pointer"
+                  text
+                  @click="view(scope.scope.row)"
+                >
+                  <View />
+                </el-icon>
+                <el-icon
                   v-if="
                     scope.scope.row.status == AccountStatus.Pending &&
                     enableApprove
@@ -137,6 +144,41 @@
         </div>
       </div>
     </div>
+    <div class="h-full w-full flex flex-col" v-if="processFlag">
+      <SaleOrder
+        class="create-wrap"
+        ref="createRef"
+        :code="currentData.relatedCode"
+        v-if="currentData && currentType === AccountType.SalesRevenue"
+      ></SaleOrder>
+      <SaleReturn
+        class="create-wrap"
+        ref="createRef"
+        :code="currentData.relatedCode"
+        v-if="currentData && currentType === AccountType.SalesRefund"
+      >
+      </SaleReturn>
+      <PurchaseOrder
+        class="create-wrap"
+        ref="createRef"
+        :code="currentData.relatedCode"
+        v-if="currentData && currentType === AccountType.PurchasePayMent"
+      ></PurchaseOrder>
+      <PurchaseReturn
+        class="create-wrap"
+        ref="createRef"
+        :code="currentData.relatedCode"
+        v-if="currentData && currentType === AccountType.PurchaseRefund"
+      ></PurchaseReturn>
+      <el-card class="footer flex flex-justify-end flex-items-center">
+        <template v-if="isApprove">
+          <el-button type="primary" @click="approve" class="p-l-6 p-r-6 m-r-3">
+            审批
+          </el-button>
+        </template>
+        <el-button @click="back" class="p-l-6 p-r-6">返回</el-button>
+      </el-card>
+    </div>
   </div>
 </template>
 <script lang="ts" setup>
@@ -152,6 +194,7 @@ import {
   AccountStatus,
   AccountStatusList,
   AccountTypeList,
+  AccountType,
   RelatedEntityType,
   AccountActionList,
   editAccount,
@@ -167,6 +210,10 @@ import { ElMessage } from "element-plus";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 import { useUserStore } from "@/pinia/stores/user";
 import { formatSecondsToDuration } from "@@/utils/datetime";
+import SaleOrder from "./saleOrder.vue";
+import SaleReturn from "./saleReturn.vue";
+import PurchaseOrder from "./purchaseOrder.vue";
+import PurchaseReturn from "./purchaseReturn.vue";
 const permissionStore = usePermissionStore();
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.Account,
@@ -177,6 +224,13 @@ const allAccountStatusList = [{ id: 0, name: "全部" }, ...AccountStatusList];
 const time = ref("");
 const isAfter = (date: Date) => {
   return date.getTime() - Date.now() >= 0;
+};
+const isApprove = ref(false);
+const currentType = ref(-1);
+const view = (row: Account) => {
+  processFlag.value = 1;
+  currentData.value = row;
+  currentType.value = row.type;
 };
 const createRef = ref();
 const loading = ref<boolean>(false);
@@ -206,28 +260,27 @@ const pageChange = (page: any) => {
 };
 const currentData = ref<Account | null>(null);
 const toApprove = (row: Account) => {
-  ElMessageBox.confirm("确认要审批账单吗", "审批账单", {
-    confirmButtonText: "确认",
-    confirmButtonClass: "w-80",
-    cancelButtonText: "取消",
-    cancelButtonClass: "message-box-cancel-btn w-80",
-    type: "warning",
-  }).then(async () => {
-    const params = { ...row, status: AccountStatus.Approved };
-    const res: any = await editAccount(params);
-    if (res.code) {
-      ElMessage({
-        type: "success",
-        message: "审批成功",
-      });
-      refreshTable();
-    } else {
-      ElMessage({
-        type: "info",
-        message: "审批失败",
-      });
-    }
-  });
+  isApprove.value = true;
+  processFlag.value = 1;
+  currentData.value = row;
+  currentType.value = row.type;
+};
+const approve = async () => {
+  const params: any = { ...currentData.value, status: AccountStatus.Approved };
+  const res: any = await editAccount(params);
+  if (res.code) {
+    ElMessage({
+      type: "success",
+      message: "审批成功",
+    });
+    refreshTable();
+  } else {
+    ElMessage({
+      type: "info",
+      message: "审批失败",
+    });
+  }
+  back();
 };
 const getIconTitle = (type: number) => {
   if (type == 1 || type == 4) {
@@ -346,28 +399,13 @@ function refreshTable() {
 const getStatus = (id: string, list: any[]) => {
   return list.find((item) => item.id === id)?.name ?? "无";
 };
-const create = () => {
-  processFlag.value = 1;
-};
-const save = () => {
-  currentData.value = null;
-  createRef.value.confirmSave(() => {
-    back();
-  });
-};
 const back = () => {
   processFlag.value = 0;
   currentData.value = null;
+  isApprove.value = false;
   refreshTable();
 };
-const remove = async (id: string) => {
-  await deleteAccount(id);
-  ElMessage({
-    type: "success",
-    message: "删除成功",
-  });
-  refreshTable();
-};
+
 const getName = (id: string, mapData: Map<string, string>) => {
   return mapData.get(id) ?? "无";
 };
