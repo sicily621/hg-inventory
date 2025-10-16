@@ -78,3 +78,10 @@ export const getAccountByOrderId = (orderId: any) =>
   Get(`${accountPrefix}/getByOrderId/${orderId}`, null);
 export const batchAccount = (data: Account[]) =>
   Post(`${accountPrefix}/batchSave`, data);
+
+//查询多个时间类型统计
+export const getListSalesStatisticsByTimeType = (data: { timeType: number; startTime: string }) =>
+  Get(`${accountPrefix}/statistics/listSalesStatisticsByTimeType`, data);
+//查询单个时间类型统计
+export const getSalesStatisticsByTimeType = (data: { timeType: number; startTime: string }) =>
+  Get(`${accountPrefix}/statistics/getSalesStatisticsByTimeType`, data);

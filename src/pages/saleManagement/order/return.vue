@@ -90,7 +90,6 @@
                 <el-input-number
                   v-model="scope.scope.row.quantity"
                   :min="0"
-                  :step="scope.scope.row.quantityOrder"
                   step-strictly
                   :max="scope.scope.row.quantityOrder"
                   class="flex-1"
@@ -127,8 +126,14 @@ import {
   getCategoryList,
 } from "@/pages/productManagement/api/category";
 import { Order, OrderStatus, editOrder } from "../api/order";
-import { Return, ReturnStatus, createReturn } from "../api/return";
 import {
+  Return,
+  ReturnStatus,
+  createReturn,
+  getReturnList,
+} from "../api/return";
+import {
+  getReturnDetailList,
   ReturnDetail,
   createReturnDetail,
   deleteReturnDetail,
@@ -251,6 +256,12 @@ const queryProductOptions = async () => {
 const getItem = (id: string, mapData: Map<string, any>) => {
   return mapData.get(id);
 };
+const getStatus = () => {
+  const allReturn = tableData.value.every((item) => {
+    return +item.quantity == +item.quantityOrder;
+  });
+  return allReturn ? OrderStatus.Returned : OrderStatus.PartiallyReturned;
+};
 const confirmSave = async (cb?: Function) => {
   if (totalAmount.value == 0) {
     ElMessage({
@@ -278,7 +289,7 @@ const confirmSave = async (cb?: Function) => {
     });
     await deleteReturnDetail((res as any).data.id);
     await createReturnDetail(detailList);
-    const order = { ...props.data, status: OrderStatus.Returned };
+    const order = { ...props.data, status: getStatus() };
     await editOrder(order);
     ElMessage({
       type: "success",
@@ -294,10 +305,32 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryProductOptions();
   if (props?.data?.id) {
-    const res = await getOrderDetailList((props as any).data.id);
-    tableData.value = (res as any)?.data.map((item: any) => {
-      return { ...item, quantityOrder: item.quantity };
+    const returnRes: any = await getReturnList({ orderId: props?.data?.id });
+    let returnListRes: any;
+    if (returnRes?.data?.[0]) {
+      form.value = Object.assign(form.value, returnRes?.data?.[0] || {});
+      returnListRes = await getReturnDetailList(returnRes?.data?.[0].id);
+    }
+    const orderDetailRes: any = await getOrderDetailList(
+      (props as any).data.id,
+    );
+    const quantityOrderMap = ref(new Map());
+    orderDetailRes.data.map((item: any) => {
+      const { productId, quantity } = item;
+      quantityOrderMap.value.set(productId, quantity);
     });
+    if (returnListRes?.data.length) {
+      tableData.value = returnListRes.data.map((item: any) => {
+        return {
+          ...item,
+          quantityOrder: quantityOrderMap.value.get(item.productId),
+        };
+      });
+    } else {
+      tableData.value = (orderDetailRes as any)?.data.map((item: any) => {
+        return { ...item, quantityOrder: item.quantity };
+      });
+    }
   }
 });
 </script>

@@ -57,6 +57,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  unit: {
+    type: String,
+    default: "",
+  },
 });
 
 // 定义组件事件
@@ -112,6 +116,18 @@ const initChart = () => {
 // 获取图表配置项
 const getChartOption = (): any => {
   return {
+    color: [
+      "#3c52bf",
+      "#fa8b16",
+      "#4cc09e",
+      "#ff4d4f",
+      "#f6bb06",
+      "#0271e3",
+      "#957dc5",
+      "#50c9d2",
+      "#df58fd",
+      "#37df48",
+    ],
     // 图表标题
     title: {
       text: props.title,
@@ -142,7 +158,7 @@ const getChartOption = (): any => {
       formatter: function (params: any) {
         let result = `${params[0].name}<br/>`;
         params.forEach((item: any) => {
-          result += `${item.seriesName}: ${item.value}<br/>`;
+          result += `${item.seriesName}: ${item.value}${props.unit}<br/>`;
         });
         return result;
       },
@@ -199,7 +215,7 @@ const getChartOption = (): any => {
       // 数值标签
       label: props.showLabel
         ? {
-            show: true,
+            show: false,
             position: "top",
             fontSize: 12,
             color: "#666",

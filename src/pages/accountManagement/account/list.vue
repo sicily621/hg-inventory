@@ -92,7 +92,13 @@
               </el-tag>
             </template>
             <template #cost="scope">
-              <el-tag type="warning" v-if="scope.scope.row.cost">
+              <el-tag
+                type="warning"
+                v-if="
+                  scope.scope.row.type == AccountType.SalesRevenue ||
+                  scope.scope.row.type == AccountType.SalesRefund
+                "
+              >
                 ￥{{ scope.scope.row.cost }}
               </el-tag>
               <span v-else>--</span>
@@ -128,7 +134,6 @@
                   @click="handleAccount(scope.scope.row)"
                   ><Coin
                 /></el-icon>
-                <span v-else>--</span>
               </div>
             </template>
           </baseTable>

@@ -295,10 +295,12 @@ onMounted(async () => {
   await queryProductOptions();
   if (props?.data?.id) {
     const returnRes: any = await getReturnList({ orderId: props?.data?.id });
-    form.value = Object.assign(form.value, returnRes?.data?.[0] || {});
-    const returnListRes: any = await getReturnDetailList(
-      returnRes?.data?.[0].id,
-    );
+    let returnListRes: any;
+    if (returnRes?.data?.[0]) {
+      form.value = Object.assign(form.value, returnRes?.data?.[0] || {});
+      returnListRes = await getReturnDetailList(returnRes?.data?.[0].id);
+    }
+
     const orderDetailRes: any = await getOrderDetailList(
       (props as any).data.id,
     );

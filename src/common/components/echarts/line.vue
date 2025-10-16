@@ -15,6 +15,7 @@ import {
 } from "vue";
 import * as echarts from "echarts";
 import type { ECharts, EChartsOption } from "echarts";
+import { hexToRgb } from "@@/utils/color";
 
 // 定义组件属性
 const props = defineProps({
@@ -51,6 +52,10 @@ const props = defineProps({
   showArea: {
     type: Boolean,
     default: false,
+  },
+  unit: {
+    type: String,
+    default: "",
   },
 });
 
@@ -107,6 +112,18 @@ const initChart = () => {
 // 获取图表配置项
 const getChartOption = (): any => {
   return {
+    color: [
+      "#3c52bf",
+      "#fa8b16",
+      "#4cc09e",
+      "#ff4d4f",
+      "#f6bb06",
+      "#0271e3",
+      "#957dc5",
+      "#50c9d2",
+      "#df58fd",
+      "#37df48",
+    ],
     // 图表标题
     title: {
       text: props.title,
@@ -134,7 +151,7 @@ const getChartOption = (): any => {
       formatter: function (params: any) {
         let result = `${params[0].name}<br/>`;
         params.forEach((item: any) => {
-          result += `${item.seriesName}: ${item.value}<br/>`;
+          result += `${item.seriesName}: ${item.value}${props.unit}<br/>`;
         });
         return result;
       },
@@ -180,6 +197,7 @@ const getChartOption = (): any => {
       name: series.name,
       type: "line",
       data: series.data,
+      smooth: true,
       // 线条样式
       lineStyle: {
         width: 3,
@@ -188,7 +206,7 @@ const getChartOption = (): any => {
       // 区域填充
       areaStyle: props.showArea
         ? {
-            opacity: 0.3,
+            opacity: 0.13,
             color: series.color
               ? {
                   type: "linear",
@@ -203,7 +221,7 @@ const getChartOption = (): any => {
                     },
                     {
                       offset: 1,
-                      color: series.color + "33", // 透明度降低
+                      color: series.color + "00", // 透明度降低
                     },
                   ],
                 }

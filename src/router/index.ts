@@ -57,9 +57,8 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import("@/pages/dashboard/index.vue"),
         name: "Dashboard",
         meta: {
-          title: "首页",
-          svgIcon: "dashboard",
-          affix: true,
+          title: "经营概览",
+          elIcon: "DataAnalysis",
         },
       },
     ],
@@ -356,6 +355,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [
           title: "账单管理",
           elIcon: "Coin",
           moduleCode: ModuleCode.Account,
+        },
+      }, {
+        path: "accountStatistics",
+        component: () => import("@/pages/accountManagement/statistics/index.vue"),
+        name: ModuleCode.AccountStatistics,
+        meta: {
+          title: "利润统计",
+          elIcon: "DataLine",
+          moduleCode: ModuleCode.AccountStatistics,
         },
       },
     ],

@@ -28,4 +28,5 @@ export enum ModuleCode {
   InventoryShipment = "inventoryShipment",
   AccountManagement = "accountManagement",
   Account = "account",
+  AccountStatistics = "accountStatistics",
 }

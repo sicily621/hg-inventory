@@ -55,7 +55,9 @@ function resolvePath(routePath: string) {
     <Link v-if="theOnlyOneChild.meta" :to="resolvePath(theOnlyOneChild.path)">
       <el-menu-item
         :index="resolvePath(theOnlyOneChild.path)"
-        :class="{ 'm-l-3': !theOnlyOneChild.meta.elIcon }"
+        :class="{
+          'm-l-3': !theOnlyOneChild.meta.elIcon,
+        }"
       >
         <SvgIcon
           v-if="theOnlyOneChild.meta.svgIcon"
