@@ -93,7 +93,7 @@
                     v-if="
                       searchData.type === 1
                         ? scope.scope.row.status <=
-                          OrderStatus.PartiallyReturned
+                          OrderStatus.PartiallyReceived
                         : scope.scope.row.status < ReturnStatus.FullyReceived
                     "
                   />
@@ -124,7 +124,7 @@
       <el-card class="footer flex flex-justify-end flex-items-center">
         <el-button
           type="primary"
-          :disabled="disableSave"
+          v-if="editable"
           @click="save"
           class="p-l-6 p-r-6 m-r-3"
           >保存</el-button
@@ -201,11 +201,11 @@ const pageChange = (page: any) => {
   refreshTable();
 };
 const currentData = ref<Receipt | null>(null);
-const disableSave = computed(() => {
+const editable = computed(() => {
   const status = (currentData.value as any)?.status;
   return searchData.type === 1
-    ? status === OrderStatus.FullyReceived
-    : status === ReturnStatus.FullyReceived;
+    ? status <= OrderStatus.PartiallyReceived
+    : status < ReturnStatus.FullyReceived;
 });
 const edit = (row: Receipt) => {
   currentData.value = row;

@@ -358,7 +358,7 @@ const openModal = () => {
 };
 const disabled = computed(() => {
   return props.type === 1
-    ? props.data.status === OrderStatus.FullyReceived
+    ? props.data.status >= OrderStatus.FullyReceived
     : props.data.status === ReturnStatus.FullyReceived;
 });
 const tabActiveIndex = ref(1);

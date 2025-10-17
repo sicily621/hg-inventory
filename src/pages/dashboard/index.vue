@@ -3,7 +3,9 @@
     <div class="h-full w-full flex flex-col">
       <div class="flex-1 flex">
         <div class="el-card flex-1 m-r-2 h-full">
-          <div class="m-t-6 m-l-6">商品概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            商品概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20">
               <div class="fz24 m-b-5">{{ categoryCount }}</div>
@@ -16,7 +18,9 @@
           </div>
         </div>
         <div class="el-card flex-1 m-r-2 h-full">
-          <div class="m-t-6 m-l-6">仓库概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            仓库概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20">
               <div class="fz24 m-b-5">{{ warehouseCount }}</div>
@@ -33,7 +37,9 @@
           </div>
         </div>
         <div class="el-card flex-1 h-full">
-          <div class="m-t-6 m-l-6">销售概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            销售概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20">
               <div class="fz24 m-b-5">{{ customerCount }}</div>
@@ -52,7 +58,9 @@
       </div>
       <div class="flex-1 flex m-t-2">
         <div class="el-card flex-1 m-r-2 h-full">
-          <div class="m-t-6 m-l-6">采购概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            采购概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20">
               <div class="fz24 m-b-5">{{ supplierCount }}</div>
@@ -73,7 +81,9 @@
           </div>
         </div>
         <div class="el-card flex-1 m-r-2 h-full">
-          <div class="m-t-6 m-l-6">销售订单概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            销售订单概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20 yellow">
               <div class="fz24 m-b-5">{{ pendingSaleOrderCount }}</div>
@@ -90,7 +100,9 @@
           </div>
         </div>
         <div class="el-card flex-1 h-full">
-          <div class="m-t-6 m-l-6">销售退单概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            销售退单概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20 yellow">
               <div class="fz24 m-b-5">{{ pendingSaleReturnCount }}</div>
@@ -109,7 +121,9 @@
       </div>
       <div class="flex-1 flex m-t-2">
         <div class="el-card flex-1 m-r-2 h-full">
-          <div class="m-t-6 m-l-6">采购订单概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            采购订单概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20 yellow">
               <div class="fz24 m-b-5">{{ pendingPurchaseOrderCount }}</div>
@@ -126,7 +140,9 @@
           </div>
         </div>
         <div class="el-card flex-1 m-r-2 h-full">
-          <div class="m-t-6 m-l-6">采购退单概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            采购退单概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20 yellow">
               <div class="fz24 m-b-5">{{ pendingPurchaseReturnCount }}</div>
@@ -139,19 +155,17 @@
           </div>
         </div>
         <div class="el-card flex-1 h-full">
-          <div class="m-t-6 m-l-6">账单概况</div>
+          <div class="m-t-6 m-l-6 flex">
+            出入库概况<el-icon class="m-l-1"><DArrowRight /></el-icon>
+          </div>
           <div class="flex flex-center content-height">
             <div class="flex flex-col flex-center m-r-20 yellow">
-              <div class="fz24 m-b-5">8</div>
-              <div>待审批</div>
+              <div class="fz24 m-b-5">{{ needReceiptOrder }}</div>
+              <div>待入库采购订单</div>
             </div>
-            <div class="flex flex-col flex-center m-r-20 green">
-              <div class="fz24 m-b-5">8</div>
-              <div>已收款</div>
-            </div>
-            <div class="flex flex-col flex-center blue">
-              <div class="fz24 m-b-5">8</div>
-              <div>已付款</div>
+            <div class="flex flex-col flex-center green">
+              <div class="fz24 m-b-5">{{ needShipmentOrder }}</div>
+              <div>待出库销售订单</div>
             </div>
           </div>
         </div>
@@ -197,6 +211,8 @@ const approvedPurchaseOrderCount = ref(0);
 const deliveredPurchaseOrderCount = ref(0);
 const pendingPurchaseReturnCount = ref(0);
 const approvedPurchaseReturnCount = ref(0);
+const needReceiptOrder = ref(0);
+const needShipmentOrder = ref(0);
 
 onMounted(async () => {
   const categoryRes: any = await getCategoryList();
@@ -254,6 +270,16 @@ onMounted(async () => {
     endStatus: 5,
   });
   approvedPurchaseReturnCount.value = purchaseReturnRes3?.data.length;
+  const receiptRes: any = await getPurchaseOrderList({
+    startStatus: 4,
+    endStatus: 5,
+  });
+  needReceiptOrder.value = receiptRes?.data.length;
+  const shipmentRes: any = await getOrderList({
+    startStatus: 4,
+    endStatus: 5,
+  });
+  needShipmentOrder.value = shipmentRes?.data.length;
 });
 </script>
 <style lang="scss" scoped>
