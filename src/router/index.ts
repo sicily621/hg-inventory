@@ -50,12 +50,12 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/",
     component: Layouts,
-    redirect: "/dashboard",
+    redirect: "/home",
     children: [
       {
-        path: "dashboard",
-        component: () => import("@/pages/dashboard/index.vue"),
-        name: "Dashboard",
+        path: "home",
+        component: () => import("@/pages/home/index.vue"),
+        name: "Home",
         meta: {
           title: "经营概览",
           elIcon: "DataAnalysis",

@@ -31,6 +31,7 @@ export const usePermissionStore: any = defineStore("permission", () => {
       return true;
     } else {
       const moduleCode = route.meta?.moduleCode;
+      console.log("moduleCode", moduleCode, permissions.value);
       const includes = permissions.value.find(
         (data: any) =>
           data.moduleCode === moduleCode && data.type === PermissionType.Menu,

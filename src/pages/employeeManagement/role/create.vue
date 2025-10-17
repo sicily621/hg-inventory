@@ -1,12 +1,12 @@
 <template>
   <div class="flex flex-col">
-    <el-card class="w-full h-full">
+    <div class="el-card w-full h-full wrapper">
       <div class="zc-header-title">
         <div class="zc-header-icon"></div>
         <div class="zc-header-word">角色信息</div>
       </div>
       <el-divider />
-      <div class="flex">
+      <div class="flex content-wrapper">
         <el-form
           ref="formRef"
           :model="form"
@@ -57,28 +57,30 @@
         </el-form>
         <div class="width-350 m-l-16">
           <div class="fz14">拥有权限</div>
-          <el-tree-select
-            class="w-full"
-            v-model="relations"
-            default-expand-all
-            placeholder="请选择权限"
-            :data="permissionOptions"
-            check-strictly
-            :render-after-expand="false"
-            collapse-tags
-            :max-collapse-tags="3"
-            :props="selectProps"
-            multiple
-          >
-          </el-tree-select>
+          <div class="tree-wrap">
+            <tree
+              :data="permissionOptions"
+              :expandedKeys="expandedKeys"
+              :currentNodeKey="currentNodeKey"
+              ref="treeRef"
+              :checkBoxFlag="true"
+              :checkedKeys="relations"
+              placeholder="请输入权限名称"
+              :propsObj="defaultProps"
+              :searchFlag="true"
+              check-strictly
+            >
+            </tree>
+          </div>
         </div>
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from "vue";
 import { Role, createRole, editRole } from "../api/role";
+import tree from "@@/components/tree/tree.vue";
 import {
   RolePermissionRelations,
   createRolePermissionRelations,
@@ -100,7 +102,7 @@ const form = ref<Role>({
   status: 1,
 });
 const relations = ref<string[]>([]);
-const permissionOptions = ref<Permission[]>([]);
+const permissionOptions = ref<any[]>([]);
 
 //合并props
 if (props.data) {
@@ -111,7 +113,29 @@ const rules = reactive({
   code: [{ required: true, message: "不能为空" }],
   name: [{ required: true, message: "不能为空" }],
 });
+// 左侧树列表
+const virtualRootId = "root";
+const treeData: any = ref<any[]>([
+  {
+    id: virtualRootId,
+    name: "权限",
+    children: [],
+  },
+]);
+const treeRef = ref();
+//为过滤保留源数据
+const rawParkData = ref<any[]>([]);
 
+//左侧树列表props name当label
+const defaultProps = {
+  children: "children",
+  label: "name",
+};
+
+//树列表默认展开建筑
+const expandedKeys = ref<Array<number | string>>([virtualRootId]);
+//树列表当前选中建筑
+const currentNodeKey = ref<number | string>("");
 const confirmSave = async (cb?: Function) => {
   const valid = await formRef.value.validate();
   if (valid) {
@@ -121,6 +145,9 @@ const confirmSave = async (cb?: Function) => {
     if (params.id) {
       await deleteRolePermissionRelations(String(params.id));
     }
+    relations.value = treeRef.value
+      .getCheckedNodes()
+      .map((item: any) => item.id);
     const relationsParams: RolePermissionRelations[] = relations.value.map(
       (permissionId) => {
         return {
@@ -206,5 +233,16 @@ defineExpose({ confirmSave });
   font-size: 14px;
   line-height: 22px;
   margin-bottom: 8px;
+}
+.wrapper {
+  padding: zrem(20);
+  height: calc(100% - zrem(40));
+}
+.content-wrapper {
+  height: calc(100% - zrem(50));
+}
+.tree-wrap {
+  height: calc(100% - zrem(30));
+  border: zrem(1) solid var(--el-border-color);
 }
 </style>

@@ -39,12 +39,14 @@
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
                     @click="addSubDepartment(scope.row)"
+                    v-if="enableDelete"
                   >
                     <Plus />
                   </el-icon>
                   <el-icon
                     class="fz16 cursor-pointer"
                     text
+                    v-if="!hasChildren(scope.row)"
                     @click="remove(scope.row.id)"
                   >
                     <Delete />
@@ -93,6 +95,14 @@ import {
   editDepartment,
 } from "../api/department";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Department,
+  PermissionAction.Delete,
+);
 const dialogFormVisible = ref(false);
 const form = reactive({
   name: "",
@@ -105,6 +115,9 @@ const rules = reactive({
   name: [{ required: true, message: "不能为空" }],
 });
 const tableData = ref<Department[]>([]);
+const hasChildren = (row: Department) => {
+  return departmentMap.get(row.id)?.children.length > 0;
+};
 
 function refreshTable() {
   loading.value = true;
@@ -133,12 +146,11 @@ const remove = async (id: string) => {
   });
   refreshTable();
 };
+const departmentMap = new Map();
 function buildDepartmentTree(departments: Department[]) {
-  const map = new Map();
-
   // 第一步：创建所有部门的映射并初始化children
   departments.forEach((dept: Department) => {
-    map.set(dept.id, {
+    departmentMap.set(dept.id, {
       ...dept,
       children: [],
     });
@@ -146,9 +158,9 @@ function buildDepartmentTree(departments: Department[]) {
 
   // 第二步：建立所有层级的父子关系
   departments.forEach((dept: Department) => {
-    const current = map.get(dept.id);
+    const current = departmentMap.get(dept.id);
     if (dept.parentId !== 0) {
-      const parent = map.get(dept.parentId);
+      const parent = departmentMap.get(dept.parentId);
       if (parent) {
         parent.children.push(current);
       }
@@ -158,7 +170,7 @@ function buildDepartmentTree(departments: Department[]) {
   // 第三步：收集顶级部门
   return departments
     .filter((dept: Department) => dept.parentId === 0)
-    .map((dept: Department) => map.get(dept.id));
+    .map((dept: Department) => departmentMap.get(dept.id));
 }
 const closeModal = () => {
   form.name = "";

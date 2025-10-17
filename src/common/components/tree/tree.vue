@@ -285,7 +285,6 @@ const treeAdd = () => emits("treeAdd");
 const treeEdit = () => emits("treeEdit");
 
 const treeDelete = () => emits("treeDelete");
-
 /**
  * 导出父组件用到的方法和变量
  */
@@ -323,7 +322,7 @@ defineExpose({
     width: 100%;
     display: flex;
     align-items: center;
-    margin-bottom: zrem(14);
+    // margin-bottom: zrem(14);
     .zc-tree-input-con {
       flex: 1;
       height: zrem(32);

@@ -331,7 +331,7 @@ const remove = async (id: string) => {
 };
 const warehouseOptions = ref<any[]>([]);
 const queryWarehouseOptions = async () => {
-  const res = await getWarehouseList();
+  const res = await getWarehouseList({});
   if ((res as any)?.data?.length) {
     warehouseOptions.value = (res as any)?.data || [];
     rawParkData.value = (res as any)?.data.map((node: any, index: number) => {

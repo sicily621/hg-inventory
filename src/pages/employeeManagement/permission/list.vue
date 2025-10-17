@@ -66,6 +66,7 @@
                         class="fz16 cursor-pointer"
                         text
                         @click="remove(scope.row.id)"
+                        v-if="!hasChildren(scope.row)"
                       >
                         <Delete />
                       </el-icon>
@@ -109,6 +110,9 @@ const processFlag = ref(0); // 0列表 1新建 2编辑
 const getName = (value: number, list: any[]) => {
   const result = list.find((item) => item.id == value);
   return result?.name ?? "";
+};
+const hasChildren = (row: Permission) => {
+  return permissionMap.get(row.id)?.children.length > 0;
 };
 //分页
 const pageSize = ref(1000);
@@ -154,12 +158,11 @@ function refreshTable() {
       loading.value = false;
     });
 }
+const permissionMap = new Map();
 function buildPermissionTree(permissions: Permission[]) {
-  const map = new Map();
-
   // 第一步：创建所有部门的映射并初始化children
   permissions.forEach((dept: Permission) => {
-    map.set(dept.id, {
+    permissionMap.set(dept.id, {
       ...dept,
       children: [],
     });
@@ -167,9 +170,9 @@ function buildPermissionTree(permissions: Permission[]) {
 
   // 第二步：建立所有层级的父子关系
   permissions.forEach((dept: Permission) => {
-    const current = map.get(dept.id);
+    const current = permissionMap.get(dept.id);
     if (dept.parentId !== 0) {
-      const parent = map.get(dept.parentId);
+      const parent = permissionMap.get(dept.parentId);
       if (parent) {
         parent.children.push(current);
       }
@@ -179,7 +182,7 @@ function buildPermissionTree(permissions: Permission[]) {
   // 第三步：收集顶级部门
   return permissions
     .filter((dept: Permission) => dept.parentId === 0)
-    .map((dept: Permission) => map.get(dept.id));
+    .map((dept: Permission) => permissionMap.get(dept.id));
 }
 const create = () => {
   currentData.value = null;

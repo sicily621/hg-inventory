@@ -66,6 +66,7 @@
               check-strictly
               :render-after-expand="false"
               :props="selectProps"
+              :disabled="!!props.data"
             />
           </el-form-item>
           <el-form-item label="操作类型" prop="action">
@@ -104,6 +105,7 @@ import {
   PermissionTypeList,
 } from "../api/permission";
 import { ElMessage } from "element-plus";
+import { disabled } from "happy-dom/lib/PropertySymbol.js";
 const props = defineProps<{ data: Permission | null }>();
 const formRef = ref();
 const selectProps = { value: "id", label: "name" };

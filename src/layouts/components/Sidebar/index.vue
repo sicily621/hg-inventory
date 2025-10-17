@@ -31,7 +31,7 @@ const settingsStore = useSettingsStore();
 const activeMenu = computed(() => route.meta.activeMenu || route.path);
 
 const noHiddenRoutes = computed(() =>
-  permissionStore.routes.filter((item) => !item.meta?.hidden),
+  permissionStore.routes.filter((item: any) => !item.meta?.hidden),
 );
 
 const isCollapse = computed(() => !appStore.sidebar.opened);

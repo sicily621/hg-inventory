@@ -16,4 +16,5 @@ export type LoginResponseData = ApiResponseData<{
   roleId: string;
   username: string;
   tokenTimeout: number;
+  avatar: string
 }>;
