@@ -16,7 +16,9 @@
               <el-input v-model="searchData.code" placeholder="请输入" />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" @click="create" v-if="enableCreate"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -42,6 +44,7 @@
                 <el-icon
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
+                  v-if="enableEdit"
                   @click="edit(scope.scope.row)"
                 >
                   <Edit />
@@ -49,6 +52,7 @@
                 <el-icon
                   class="fz16 cursor-pointer"
                   text
+                  v-if="enableDelete"
                   @click="remove(scope.scope.row.id)"
                 >
                   <Delete />
@@ -94,7 +98,22 @@ import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
-
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Supplier,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Supplier,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Supplier,
+  PermissionAction.Edit,
+);
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑

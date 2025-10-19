@@ -63,6 +63,7 @@
               :expandedKeys="expandedKeys"
               :currentNodeKey="currentNodeKey"
               ref="treeRef"
+              @checkChange="checkChange"
               :checkBoxFlag="true"
               :checkedKeys="relations"
               placeholder="请输入权限名称"
@@ -93,7 +94,6 @@ import { formatTimeToString } from "@@/utils/datetime";
 import { ModuleCode } from "@/router/moduleCode";
 const props = defineProps<{ data: Role | null }>();
 const formRef = ref();
-const selectProps = { value: "id", label: "name" };
 //表单
 const form = ref<Role>({
   name: "",
@@ -115,23 +115,20 @@ const rules = reactive({
 });
 // 左侧树列表
 const virtualRootId = "root";
-const treeData: any = ref<any[]>([
-  {
-    id: virtualRootId,
-    name: "权限",
-    children: [],
-  },
-]);
 const treeRef = ref();
-//为过滤保留源数据
-const rawParkData = ref<any[]>([]);
 
 //左侧树列表props name当label
 const defaultProps = {
   children: "children",
   label: "name",
 };
-
+const checkChange = (node: any) => {
+  if (node.data.id == "checkAll") {
+    const allIds: any[] = rawData.value.map((item: any) => item.id);
+    const ids = node.checked ? [...allIds, "checkAll"] : [];
+    treeRef.value.setCheckedKeys(ids);
+  }
+};
 //树列表默认展开建筑
 const expandedKeys = ref<Array<number | string>>([virtualRootId]);
 //树列表当前选中建筑
@@ -147,6 +144,7 @@ const confirmSave = async (cb?: Function) => {
     }
     relations.value = treeRef.value
       .getCheckedNodes()
+      .filter((item: any) => item.id != "checkAll")
       .map((item: any) => item.id);
     const relationsParams: RolePermissionRelations[] = relations.value.map(
       (permissionId) => {
@@ -191,10 +189,17 @@ function buildPermissionTree(permissions: Permission[]) {
     .filter((dept: Permission) => dept.parentId === 0)
     .map((dept: Permission) => map.get(dept.id));
 }
+const rawData = ref<any[]>([]);
 const queryPermissionOptions = async () => {
   const res = await getPermissionList();
   if ((res as any)?.data?.length) {
+    rawData.value = (res as any).data;
     permissionOptions.value = buildPermissionTree((res as any).data);
+    permissionOptions.value.unshift({
+      id: "checkAll",
+      name: "全选",
+      children: [],
+    });
   }
 };
 const queryRelations = async () => {
@@ -203,6 +208,9 @@ const queryRelations = async () => {
     relations.value = (res as any).data.map(
       (item: RolePermissionRelations) => item.permissionId,
     );
+    if (relations.value.length === rawData.value.length) {
+      relations.value.unshift("checkAll");
+    }
   }
 };
 onMounted(async () => {

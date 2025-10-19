@@ -58,7 +58,9 @@
               </el-select>
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" @click="create" v-if="enableCreate"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -89,6 +91,7 @@
                 <el-icon
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
+                  v-if="enableEdit"
                   @click="edit(scope.scope.row)"
                 >
                   <View
@@ -99,7 +102,10 @@
                 <el-icon
                   class="fz16 cursor-pointer"
                   text
-                  v-if="scope.scope.row.status !== CheckStatus.Completed"
+                  v-if="
+                    scope.scope.row.status !== CheckStatus.Completed &&
+                    enableDelete
+                  "
                   @click="remove(scope.scope.row.id)"
                 >
                   <Delete />
@@ -157,6 +163,22 @@ import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.InventoryCheck,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.InventoryCheck,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.InventoryCheck,
+  PermissionAction.Edit,
+);
 const allCheckStatusList = [{ id: 0, name: "全部" }, ...CheckStatusList];
 const createRef = ref();
 const categoryOptions = ref([{ name: "全部", id: 0 }]);

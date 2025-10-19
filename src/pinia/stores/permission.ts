@@ -31,7 +31,6 @@ export const usePermissionStore: any = defineStore("permission", () => {
       return true;
     } else {
       const moduleCode = route.meta?.moduleCode;
-      console.log("moduleCode", moduleCode, permissions.value);
       const includes = permissions.value.find(
         (data: any) =>
           data.moduleCode === moduleCode && data.type === PermissionType.Menu,
@@ -40,13 +39,18 @@ export const usePermissionStore: any = defineStore("permission", () => {
     }
   }
   const hasPermission = (moduleCode: string, action: PermissionAction) => {
-    const includes = permissions.value.find(
-      (data: any) =>
-        data.moduleCode === moduleCode &&
-        data.action === action &&
-        data.type === PermissionType.Button,
-    );
-    return includes ? true : false;
+    const userInfo = getUserInfo() ? JSON.parse(getUserInfo() || "") : null;
+    if (userInfo.username === "admin") {
+      return true;
+    } else {
+      const includes = permissions.value.find(
+        (data: any) =>
+          data.moduleCode === moduleCode &&
+          data.action === action &&
+          data.type === PermissionType.Button,
+      );
+      return includes ? true : false;
+    }
   };
 
   function filterDynamicRoutes(routes: RouteRecordRaw[]) {

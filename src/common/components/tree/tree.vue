@@ -1,4 +1,3 @@
-<!-- {{ $t('elementUI.tree.title') }} -->
 <template>
   <div class="zc-tree-con">
     <div class="disabled-con" v-if="disabledFlag"></div>

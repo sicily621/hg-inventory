@@ -32,7 +32,7 @@ export const ReturnStatusList = [
 
 export interface queryReturnConditions {
   code: string;
-  orderId: string | number;
+  orderId?: string | number;
   employeeId: string | number;
   startTime: string;
   endTime: string;

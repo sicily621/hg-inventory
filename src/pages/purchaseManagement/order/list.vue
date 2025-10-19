@@ -129,6 +129,7 @@
                   <el-icon
                     class="fz16 cursor-pointer"
                     text
+                    v-if="enableDelete"
                     @click="remove(scope.scope.row.id)"
                   >
                     <Delete />
@@ -136,7 +137,8 @@
                 </template>
                 <el-icon
                   v-else-if="
-                    scope.scope.row.status === OrderStatus.FullyReceived
+                    scope.scope.row.status === OrderStatus.FullyReceived &&
+                    enableCreateReturn
                   "
                   @click="toReturn(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
@@ -145,7 +147,9 @@
                   ><DocumentDelete
                 /></el-icon>
                 <el-icon
-                  v-else-if="scope.scope.row.status == OrderStatus.Approved"
+                  v-else-if="
+                    scope.scope.row.status == OrderStatus.Approved && enableEdit
+                  "
                   @click="toConfirm(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
@@ -258,6 +262,18 @@ import { usePermissionStore } from "@/pinia/stores/permission";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 import { formatSecondsToDuration } from "@@/utils/datetime";
 const permissionStore = usePermissionStore();
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.PurchaseOrder,
+  PermissionAction.Delete,
+);
+const enableCreateReturn = permissionStore.hasPermission(
+  ModuleCode.PurchaseReturn,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.PurchaseOrder,
+  PermissionAction.Edit,
+);
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.PurchaseOrder,
   PermissionAction.Approve,

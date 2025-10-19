@@ -16,7 +16,9 @@
               <el-input v-model="searchData.code" placeholder="请输入" />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" @click="create" v-if="enableCreate"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -42,6 +44,7 @@
                 <el-icon
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
+                  v-if="enableEdit"
                   @click="edit(scope.scope.row)"
                 >
                   <Edit />
@@ -50,6 +53,7 @@
                   class="fz16 cursor-pointer"
                   text
                   @click="remove(scope.scope.row.id)"
+                  v-if="enableDelete"
                 >
                   <Delete />
                 </el-icon>
@@ -95,10 +99,24 @@ import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
 
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Warehouse,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Warehouse,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Warehouse,
+  PermissionAction.Edit,
+);
 const createRef = ref();
-const selectProps = { value: "id", label: "name" };
-const categoryOptions = ref([{ name: "全部", id: 0 }]);
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
 const columns = ref([
@@ -185,7 +203,7 @@ const remove = async (id: string) => {
 };
 const employeeMap = ref<Map<string, string>>(new Map());
 const queryEmployeeOptions = async () => {
-  const res = await getEmployeeList();
+  const res = await getEmployeeList({});
   if ((res as any)?.data?.length) {
     employeeMap.value.clear();
     (res as any)?.data.map((item: any) => {

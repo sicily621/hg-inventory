@@ -65,7 +65,9 @@
               />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" @click="create" v-if="enableCreate"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -123,6 +125,7 @@
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
+                    v-if="enableEdit"
                     @click="edit(scope.scope.row)"
                   >
                     <Edit />
@@ -130,13 +133,17 @@
                   <el-icon
                     class="fz16 cursor-pointer"
                     text
+                    v-if="enableDelete"
                     @click="remove(scope.scope.row.id)"
                   >
                     <Delete />
                   </el-icon>
                 </template>
                 <el-icon
-                  v-else-if="scope.scope.row.status === DemandStatus.Approved"
+                  v-else-if="
+                    scope.scope.row.status === DemandStatus.Approved &&
+                    enableCreateOrder
+                  "
                   @click="toOrder(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
@@ -228,6 +235,22 @@ import { ModuleCode } from "@/router/moduleCode";
 import { usePermissionStore } from "@/pinia/stores/permission";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 const permissionStore = usePermissionStore();
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.PurchaseDemand,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.PurchaseDemand,
+  PermissionAction.Add,
+);
+const enableCreateOrder = permissionStore.hasPermission(
+  ModuleCode.PurchaseOrder,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.PurchaseDemand,
+  PermissionAction.Edit,
+);
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.PurchaseDemand,
   PermissionAction.Approve,

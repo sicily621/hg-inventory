@@ -13,7 +13,9 @@
               <el-input v-model="searchData.moduleCode" placeholder="请输入" />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" v-if="enableCreate" @click="create"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -52,6 +54,7 @@
                         class="fz16 pointer m-r-5 cursor-pointer"
                         text
                         @click="edit(scope.row)"
+                        v-if="enableEdit"
                       >
                         <Edit />
                       </el-icon>
@@ -59,6 +62,7 @@
                         class="fz16 pointer m-r-5 cursor-pointer"
                         text
                         @click="addSubPermission(scope.row)"
+                        v-if="enableCreate"
                       >
                         <Plus />
                       </el-icon>
@@ -66,7 +70,7 @@
                         class="fz16 cursor-pointer"
                         text
                         @click="remove(scope.row.id)"
-                        v-if="!hasChildren(scope.row)"
+                        v-if="!hasChildren(scope.row) && enableDelete"
                       >
                         <Delete />
                       </el-icon>
@@ -103,7 +107,23 @@ import {
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
 
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Permission,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Permission,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Permission,
+  PermissionAction.Edit,
+);
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑

@@ -7,7 +7,9 @@
             <div class="zc-header-icon"></div>
             <div class="zc-header-word">分类管理</div>
           </div>
-          <el-button type="primary" @click="create">新增一级分类</el-button>
+          <el-button type="primary" v-if="enableCreate" @click="create"
+            >新增一级分类</el-button
+          >
         </div>
       </el-card>
       <div
@@ -32,12 +34,14 @@
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
                     @click="edit(scope.row)"
+                    v-if="enableEdit"
                   >
                     <Edit />
                   </el-icon>
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
+                    v-if="enableCreate"
                     @click="addSubCategory(scope.row)"
                   >
                     <Plus />
@@ -46,6 +50,7 @@
                     class="fz16 cursor-pointer"
                     text
                     @click="remove(scope.row.id)"
+                    v-if="!hasChildren(scope.row) && enableDelete"
                   >
                     <Delete />
                   </el-icon>
@@ -93,6 +98,23 @@ import {
   editCategory,
 } from "../api/category";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Category,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Category,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Category,
+  PermissionAction.Edit,
+);
 const dialogFormVisible = ref(false);
 const form = reactive({
   name: "",
@@ -133,12 +155,14 @@ const remove = async (id: string) => {
   });
   refreshTable();
 };
+const categoryMap = new Map();
+const hasChildren = (row: Category) => {
+  return categoryMap.get(row.id)?.children.length > 0;
+};
 function buildCategoryTree(categorys: Category[]) {
-  const map = new Map();
-
   // 第一步：创建所有分类的映射并初始化children
   categorys.forEach((dept: Category) => {
-    map.set(dept.id, {
+    categoryMap.set(dept.id, {
       ...dept,
       children: [],
     });
@@ -146,9 +170,9 @@ function buildCategoryTree(categorys: Category[]) {
 
   // 第二步：建立所有层级的父子关系
   categorys.forEach((dept: Category) => {
-    const current = map.get(dept.id);
+    const current = categoryMap.get(dept.id);
     if (dept.parentId !== 0) {
-      const parent = map.get(dept.parentId);
+      const parent = categoryMap.get(dept.parentId);
       if (parent) {
         parent.children.push(current);
       }
@@ -158,7 +182,7 @@ function buildCategoryTree(categorys: Category[]) {
   // 第三步：收集顶级分类
   return categorys
     .filter((dept: Category) => dept.parentId === 0)
-    .map((dept: Category) => map.get(dept.id));
+    .map((dept: Category) => categoryMap.get(dept.id));
 }
 const closeModal = () => {
   form.name = "";

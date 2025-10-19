@@ -127,7 +127,10 @@
                   ><DocumentChecked
                 /></el-icon>
                 <el-icon
-                  v-else-if="scope.scope.row.status == AccountStatus.Approved"
+                  v-else-if="
+                    scope.scope.row.status == AccountStatus.Approved &&
+                    enableCreate
+                  "
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
                   :title="getIconTitle(scope.scope.row.type)"
@@ -193,14 +196,12 @@ import pagination from "@@/components/pagination/pagination.vue";
 import type { PaginatedRequest } from "@@/apis/tables/type";
 import {
   queryAccountConditions,
-  deleteAccount,
   findAccountPage,
   Account,
   AccountStatus,
   AccountStatusList,
   AccountTypeList,
   AccountType,
-  RelatedEntityType,
   AccountActionList,
   editAccount,
 } from "../api/account";
@@ -220,6 +221,10 @@ import SaleReturn from "./saleReturn.vue";
 import PurchaseOrder from "./purchaseOrder.vue";
 import PurchaseReturn from "./purchaseReturn.vue";
 const permissionStore = usePermissionStore();
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Account,
+  PermissionAction.Add,
+);
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.Account,
   PermissionAction.Approve,

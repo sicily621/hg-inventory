@@ -7,7 +7,9 @@
             <div class="zc-header-icon"></div>
             <div class="zc-header-word">部门管理</div>
           </div>
-          <el-button type="primary" @click="create">新增一级部门</el-button>
+          <el-button type="primary" v-if="enableCreate" @click="create"
+            >新增一级部门</el-button
+          >
         </div>
       </el-card>
       <div
@@ -25,28 +27,33 @@
             class="text-align-center"
           >
             <el-table-column prop="name" label="部门名称" />
-            <el-table-column prop="operate" label="操作">
+            <el-table-column
+              prop="operate"
+              label="操作"
+              v-if="enableDelete || enableEdit || enableCreate"
+            >
               <template #default="scope">
                 <div class="flex">
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
+                    v-if="enableEdit"
                     @click="edit(scope.row)"
                   >
                     <Edit />
                   </el-icon>
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
+                    v-if="enableCreate"
                     text
                     @click="addSubDepartment(scope.row)"
-                    v-if="enableDelete"
                   >
                     <Plus />
                   </el-icon>
                   <el-icon
                     class="fz16 cursor-pointer"
                     text
-                    v-if="!hasChildren(scope.row)"
+                    v-if="!hasChildren(scope.row) && enableDelete"
                     @click="remove(scope.row.id)"
                   >
                     <Delete />
@@ -102,6 +109,14 @@ const permissionStore = usePermissionStore();
 const enableDelete = permissionStore.hasPermission(
   ModuleCode.Department,
   PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Department,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Department,
+  PermissionAction.Edit,
 );
 const dialogFormVisible = ref(false);
 const form = reactive({

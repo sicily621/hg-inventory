@@ -31,7 +31,9 @@
                 <el-input v-model="searchData.name" placeholder="请输入" />
               </el-form-item>
             </el-form>
-            <el-button type="primary" @click="create">新增</el-button>
+            <el-button type="primary" @click="create" v-if="enableCreate"
+              >新增</el-button
+            >
           </div>
         </el-card>
         <div
@@ -52,6 +54,7 @@
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
                     @click="edit(scope.scope.row)"
+                    v-if="enableEdit"
                   >
                     <Edit />
                   </el-icon>
@@ -59,6 +62,7 @@
                     class="fz16 cursor-pointer"
                     text
                     @click="remove(scope.scope.row.id)"
+                    v-if="enableDelete"
                   >
                     <Delete />
                   </el-icon>
@@ -128,7 +132,22 @@ import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
 import { formatTimeToString } from "@@/utils/datetime";
 import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
 
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Shelf,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Shelf,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Shelf,
+  PermissionAction.Edit,
+);
 const dialogFormVisible = ref(false);
 const isEdit = ref(false);
 const form = reactive<Shelf>({

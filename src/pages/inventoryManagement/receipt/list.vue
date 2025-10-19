@@ -87,6 +87,7 @@
                 <el-icon
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
+                  v-if="enableCreate"
                   @click="edit(scope.scope.row)"
                 >
                   <Edit
@@ -139,7 +140,7 @@ import { onMounted, ref, reactive, computed } from "vue";
 import baseTable from "@@/components/baseTable/baseTable.vue";
 import pagination from "@@/components/pagination/pagination.vue";
 import { getSupplierList } from "@/pages/purchaseManagement/api/supplier";
-import { deleteReceipt, Receipt } from "../api/receipt";
+import { Receipt } from "../api/receipt";
 import { getEmployeeList } from "@/pages/employeeManagement/api/employee";
 import {
   findOrderPage,
@@ -155,7 +156,14 @@ import {
 import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
-import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.InventoryReceipt,
+  PermissionAction.Add,
+);
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑

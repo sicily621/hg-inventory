@@ -79,7 +79,9 @@
               />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" v-if="enableCreate" @click="create"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -126,7 +128,10 @@
             <template #operate="scope">
               <div class="flex">
                 <el-icon
-                  v-if="scope.scope.row.status === OrderStatus.FullyReceived"
+                  v-if="
+                    scope.scope.row.status === OrderStatus.FullyReceived &&
+                    enableCreateReturn
+                  "
                   @click="toReturn(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
@@ -147,6 +152,7 @@
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
+                    v-if="enableEdit"
                     @click="edit(scope.scope.row)"
                   >
                     <Edit />
@@ -154,13 +160,16 @@
                   <el-icon
                     class="fz16 cursor-pointer"
                     text
+                    v-if="enableDelete"
                     @click="remove(scope.scope.row.id)"
                   >
                     <Delete />
                   </el-icon>
                 </template>
                 <el-icon
-                  v-else-if="scope.scope.row.status == OrderStatus.Approved"
+                  v-else-if="
+                    scope.scope.row.status == OrderStatus.Approved && enableEdit
+                  "
                   @click="toConfirm(scope.scope.row)"
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
@@ -272,6 +281,22 @@ import { usePermissionStore } from "@/pinia/stores/permission";
 import { PermissionAction } from "@/pages/employeeManagement/api/permission";
 import { formatSecondsToDuration } from "@@/utils/datetime";
 const permissionStore = usePermissionStore();
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.SalesOrder,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.SalesOrder,
+  PermissionAction.Add,
+);
+const enableCreateReturn = permissionStore.hasPermission(
+  ModuleCode.SalesReturn,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.SalesOrder,
+  PermissionAction.Edit,
+);
 const enableApprove = permissionStore.hasPermission(
   ModuleCode.SalesOrder,
   PermissionAction.Approve,

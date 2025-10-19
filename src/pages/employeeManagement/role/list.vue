@@ -13,7 +13,9 @@
               <el-input v-model="searchData.code" placeholder="请输入" />
             </el-form-item>
           </el-form>
-          <el-button type="primary" @click="create">新增</el-button>
+          <el-button type="primary" v-if="enableCreate" @click="create"
+            >新增</el-button
+          >
         </div>
       </el-card>
       <div
@@ -39,6 +41,7 @@
                   class="fz16 pointer m-r-5 cursor-pointer"
                   text
                   @click="edit(scope.scope.row)"
+                  v-if="enableEdit"
                 >
                   <Edit />
                 </el-icon>
@@ -46,6 +49,7 @@
                   class="fz16 cursor-pointer"
                   text
                   @click="remove(scope.scope.row.id)"
+                  v-if="enableDelete"
                 >
                   <Delete />
                 </el-icon>
@@ -90,18 +94,36 @@ import { indexMethod } from "@@/utils/page";
 import Create from "./create.vue";
 import { watchDebounced } from "@vueuse/core";
 import { ElMessage } from "element-plus";
+import { ModuleCode } from "@/router/moduleCode";
+import { usePermissionStore } from "@/pinia/stores/permission";
+import { PermissionAction } from "@/pages/employeeManagement/api/permission";
+const permissionStore = usePermissionStore();
 
+const enableDelete = permissionStore.hasPermission(
+  ModuleCode.Role,
+  PermissionAction.Delete,
+);
+const enableCreate = permissionStore.hasPermission(
+  ModuleCode.Role,
+  PermissionAction.Add,
+);
+const enableEdit = permissionStore.hasPermission(
+  ModuleCode.Role,
+  PermissionAction.Edit,
+);
 const createRef = ref();
 const loading = ref<boolean>(false);
 const processFlag = ref(0); // 0列表 1新建 2编辑
-const columns = ref([
+const columns = ref<any[]>([
   { prop: "index", label: "序号", width: "100", type: 1 },
   { prop: "name", label: "名称" },
   { prop: "code", label: "编码" },
   { prop: "description", label: "描述" },
   { prop: "status", label: "状态" },
-  { prop: "operate", label: "操作", width: 100 },
 ]);
+if (enableDelete || enableCreate || enableEdit) {
+  columns.value.push({ prop: "operate", label: "操作", width: 100 });
+}
 
 //分页
 const pageSize = ref(10);
