@@ -4,7 +4,7 @@
       <el-card>
         <div class="zc-header-title">
           <div class="zc-header-icon"></div>
-          <div class="zc-header-word">采购需求转工单信息</div>
+          <div class="zc-header-word">采购需求转订单信息</div>
         </div>
       </el-card>
       <div class="flex flex-1">
