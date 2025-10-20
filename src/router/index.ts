@@ -198,7 +198,7 @@ export const dynamicRoutes: RouteRecordRaw[] = [
     meta: {
       title: "销售管理",
       elIcon: "DataLine",
-      moduleCode: ModuleCode.WarehouseManagement,
+      moduleCode: ModuleCode.SaleManagement,
     },
     children: [
       {
