@@ -9,10 +9,11 @@
             :inline="true"
             :model="searchData"
           >
-            <el-form-item prop="moduleCode" label="模块编码">
+            <!-- <el-form-item prop="moduleCode" label="模块编码">
               <el-input v-model="searchData.moduleCode" placeholder="请输入" />
-            </el-form-item>
+            </el-form-item> -->
           </el-form>
+
           <el-button type="primary" v-if="enableCreate" @click="create"
             >新增</el-button
           >

@@ -296,6 +296,7 @@ const drawCaptcha = () => {
 
   // 生成验证码
   const code = generateCode(4);
+  loginFormData.code = code;
 
   // 设置字体
   ctx.font = 'bold 20px "Microsoft YaHei", Arial, sans-serif';
