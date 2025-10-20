@@ -33,6 +33,7 @@
         style="width: 100%; height: 100%; padding-right: 10px"
         @scroll="scrollFunc($event)"
       >
+        <!-- :allow-drop="allowDrop" -->
         <el-tree
           class="zc-tree"
           :node-key="nodeKey || 'id'"
@@ -48,7 +49,6 @@
           :default-expand-all="true"
           :filter-node-method="searchFlag ? filterNode : () => {}"
           :draggable="draggableFlag"
-          :allow-drop="allowDrop"
           @node-drop="nodeDrop"
           :props="propsObj"
           :style="style"
