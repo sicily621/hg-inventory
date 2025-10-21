@@ -362,14 +362,14 @@ const openModal = () => {
 };
 const disabled = computed(() => {
   return props.type === 1
-    ? props.data.status >= OrderStatus.FullyReceived
-    : props.data.status === ReturnStatus.FullyReceived;
+    ? props?.data?.status >= OrderStatus.FullyReceived
+    : props?.data?.status === ReturnStatus.FullyReceived;
 });
 const tabActiveIndex = ref(1);
 //表单
 const form = ref<Shipment>({
   code: `${ModuleCode.InventoryShipment}${formatTimeToString()}`,
-  orderId: props.type === 1 ? props.data.id : props.data.orderId,
+  orderId: props.type === 1 ? props?.data?.id : props?.data?.orderId,
   employeeId: userStore.getInfo().id,
   description: "",
 });
@@ -735,8 +735,8 @@ const shipmentDetailsRawMap = ref<Map<any, any>>(new Map());
 const queryShipment = async () => {
   const params =
     props.type === 1
-      ? { orderId: (props as any).data.id }
-      : { orderId: (props as any).data.orderId };
+      ? { orderId: (props as any)?.data?.id }
+      : { orderId: (props as any)?.data?.orderId };
   const shipment = await getShipmentList(params);
   if ((shipment as any)?.data?.[0]) {
     Object.assign(form.value, (shipment as any)?.data?.[0]);
@@ -941,7 +941,7 @@ const productPriceMap = ref<Map<any, any>>(new Map());
 const orderMap = ref<Map<any, any>>(new Map());
 const accountList = ref<any[]>([]);
 const queryAccount = async () => {
-  const orderId = props.type === 1 ? props.data.id : props.data.orderId;
+  const orderId = props.type === 1 ? props?.data?.id : props?.data?.orderId;
   const res = await getAccountByOrderId(orderId);
   accountList.value = (res as any).data;
 };
@@ -956,7 +956,7 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryShipment();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
-  const res = await api((props as any).data.id);
+  const res = await api((props as any)?.data?.id);
   if (props.type === 2) {
     const res = await getReceiptList({
       orderId: (props as any).data.orderId,

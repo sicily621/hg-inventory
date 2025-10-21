@@ -358,20 +358,23 @@ const openModal = () => {
 };
 const disabled = computed(() => {
   return props.type === 1
-    ? props.data.status >= OrderStatus.FullyReceived
-    : props.data.status === ReturnStatus.FullyReceived;
+    ? props?.data?.status >= OrderStatus.FullyReceived
+    : props?.data?.status === ReturnStatus.FullyReceived;
 });
 const tabActiveIndex = ref(1);
 //表单
 const form = ref<Receipt>({
   code: `${ModuleCode.InventoryReceipt}${formatTimeToString()}`,
-  orderId: props.type === 1 ? props.data.id : props.data.orderId,
+  orderId: "",
   employeeId: userStore.getInfo().id,
   description: "",
 });
 
 if (props.type === 1) {
   form.value.orderId = props.data.id;
+}
+if (props.type === 2) {
+  form.value.orderId = props.data.orderId;
 }
 const columns = computed(() => {
   const result: any[] = [
@@ -711,8 +714,8 @@ const receiptDetailsRawMap = ref<Map<any, any>>(new Map());
 const queryReceipt = async () => {
   const params =
     props.type === 1
-      ? { orderId: (props as any).data.id }
-      : { orderId: (props as any).data.orderId };
+      ? { orderId: (props as any)?.data?.id }
+      : { orderId: (props as any)?.data?.orderId };
   const receipt = await getReceiptList(params);
   if ((receipt as any)?.data?.[0]) {
     Object.assign(form.value, (receipt as any)?.data?.[0]);
@@ -919,7 +922,7 @@ const productPriceMap = ref<Map<any, any>>(new Map());
 const orderMap = ref<Map<any, any>>(new Map());
 const accountList = ref<any[]>([]);
 const queryAccount = async () => {
-  const orderId = props.type === 1 ? props.data.id : props.data.orderId;
+  const orderId = props.type === 1 ? props?.data?.id : props?.data?.orderId;
   const res = await getAccountByOrderId(orderId);
   accountList.value = (res as any).data;
 };
@@ -934,7 +937,7 @@ onMounted(async () => {
   await queryCategoryOptions();
   await queryReceipt();
   const api = props.type === 1 ? getOrderDetailList : getReturnDetailList;
-  const res = await api((props as any).data.id);
+  const res = await api((props as any)?.data?.id);
   orderQuantityMap.value.clear();
   productPriceMap.value.clear();
   tableData.value = (res as any)?.data.map((item: any, i: number) => {

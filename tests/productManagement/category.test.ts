@@ -17,6 +17,14 @@ import { Edit, Plus, Delete } from "@element-plus/icons-vue";
 // 关键：提前 Mock 整个 API 模块（自动转为 Mock 函数）
 vi.mock("@/pages/productManagement/api/category");
 
+// 直接 mock store 模块
+vi.mock('@/pinia/stores/permission', () => {
+  return {
+    usePermissionStore: vi.fn(() => ({
+      hasPermission: vi.fn(() => true),
+    })),
+  }
+})
 // -------------------------- 模拟数据定义 --------------------------
 const mockRawCategoryData: categoryApi.Category[] = [
   { id: "1", name: "电子产品", parentId: 0 },
@@ -70,7 +78,7 @@ describe("分类管理组件（CategoryList.vue）", () => {
               template: "<div class='el-table-column-stub'><slot /></div>",
             }, // 补充 stub，避免警告
           },
-          config: { warnHandler: () => {} },
+          config: { warnHandler: () => { } },
         },
       });
       await new Promise((resolve) => setTimeout(resolve, 100));

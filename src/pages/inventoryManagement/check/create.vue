@@ -557,6 +557,7 @@ const confirmSave = async (cb?: Function) => {
     await deleteCheckDetail((res as any).data.id);
     await createCheckDetail(detailList);
     //如果已经完成盘点，修改库存
+    debugger;
     if (
       needUpdateInventoryList.length &&
       form.value.status === CheckStatus.Completed

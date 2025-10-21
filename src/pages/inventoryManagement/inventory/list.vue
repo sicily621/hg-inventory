@@ -28,7 +28,7 @@
               <el-select
                 v-model="searchData.areaId"
                 placeholder="请选择区域"
-                @change="queryShelfOptions()"
+                @change="changeArea()"
                 class="w-40"
               >
                 <el-option
@@ -255,9 +255,24 @@ const queryProductOptions = async () => {
 };
 const warehouseOptions = ref<any[]>([]);
 const changeWarehouse = async () => {
-  await queryAreaOptions();
-  await queryShelfOptions();
+  if (searchData.warehouseId) {
+    await queryAreaOptions();
+    await queryShelfOptions();
+  } else {
+    searchData.areaId = 0;
+    searchData.shelfId = 0;
+  }
+  refreshTable();
 };
+const changeArea = async () => {
+  if (searchData.areaId) {
+    await queryShelfOptions();
+  } else {
+    searchData.shelfId = 0;
+  }
+  refreshTable();
+};
+
 const warehouseMap = ref(new Map());
 const queryWarehouseOptions = async () => {
   const res = await getWarehouseList({});

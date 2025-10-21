@@ -2,18 +2,21 @@
   <div class="app-container flex flex-col h-full">
     <div class="h-full w-full flex flex-col" v-if="!processFlag">
       <el-card v-loading="loading" shadow="never" class="search-wrapper">
-        <div class="flex">
-          <el-form
+        <div class="flex flex-items-center flex-justify-between">
+          <!-- <el-form
             ref="searchFormRef"
             class="flex-grow-1"
             :inline="true"
             :model="searchData"
           >
-            <!-- <el-form-item prop="moduleCode" label="模块编码">
+            <el-form-item prop="moduleCode" label="模块编码">
               <el-input v-model="searchData.moduleCode" placeholder="请输入" />
-            </el-form-item> -->
-          </el-form>
-
+            </el-form-item>
+          </el-form> -->
+          <div class="zc-header-title">
+            <div class="zc-header-icon"></div>
+            <div class="zc-header-word">权限管理</div>
+          </div>
           <el-button type="primary" v-if="enableCreate" @click="create"
             >新增</el-button
           >
@@ -133,7 +136,7 @@ const getName = (value: number, list: any[]) => {
   return result?.name ?? "";
 };
 const hasChildren = (row: Permission) => {
-  return permissionMap.get(row.id)?.children.length > 0;
+  return permissionMap.get(row?.id)?.children.length > 0;
 };
 //分页
 const pageSize = ref(1000);
@@ -248,6 +251,17 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 @use "@@/assets/styles/size.scss" as *;
+.zc-header-title {
+  display: flex;
+  align-items: center;
+
+  .zc-header-icon {
+    background: var(--el-color-primary);
+    width: zrem(6);
+    height: zrem(18);
+    margin-right: zrem(10);
+  }
+}
 .table-card {
   height: calc(100% - zrem(110));
 }

@@ -1,43 +1,44 @@
 <script lang="ts" setup>
-import Notify from "@@/components/Notify/index.vue"
-import Screenfull from "@@/components/Screenfull/index.vue"
-import SearchMenu from "@@/components/SearchMenu/index.vue"
-import ThemeSwitch from "@@/components/ThemeSwitch/index.vue"
-import { useDevice } from "@@/composables/useDevice"
-import { useLayoutMode } from "@@/composables/useLayoutMode"
-import { UserFilled } from "@element-plus/icons-vue"
-import { useAppStore } from "@/pinia/stores/app"
-import { useSettingsStore } from "@/pinia/stores/settings"
-import { useUserStore } from "@/pinia/stores/user"
-import { Breadcrumb, Hamburger, Sidebar } from "../index"
-import { logoutApi } from "@/pages/login/apis"
+import Notify from "@@/components/Notify/index.vue";
+import Screenfull from "@@/components/Screenfull/index.vue";
+import SearchMenu from "@@/components/SearchMenu/index.vue";
+import ThemeSwitch from "@@/components/ThemeSwitch/index.vue";
+import { useDevice } from "@@/composables/useDevice";
+import { useLayoutMode } from "@@/composables/useLayoutMode";
+import { UserFilled } from "@element-plus/icons-vue";
+import { useAppStore } from "@/pinia/stores/app";
+import { useSettingsStore } from "@/pinia/stores/settings";
+import { useUserStore } from "@/pinia/stores/user";
+import { Breadcrumb, Hamburger, Sidebar } from "../index";
+import { logoutApi } from "@/pages/login/apis";
 
-const { isMobile } = useDevice()
+const { isMobile } = useDevice();
 
-const { isTop } = useLayoutMode()
+const { isTop } = useLayoutMode();
 
-const router = useRouter()
+const router = useRouter();
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
-const settingsStore = useSettingsStore()
+const settingsStore = useSettingsStore();
 
-const { showNotify, showThemeSwitch, showScreenfull, showSearchMenu } = storeToRefs(settingsStore)
+const { showNotify, showThemeSwitch, showScreenfull, showSearchMenu } =
+  storeToRefs(settingsStore);
 
 /** 切换侧边栏 */
 function toggleSidebar() {
-  appStore.toggleSidebar(false)
+  appStore.toggleSidebar(false);
 }
 
 /** 登出 */
-const logout  = async ()=> {
-  await logoutApi()
-  userStore.logout()
-  router.push("/login")
-}
-const avatar = userStore.getInfo()?.avatar
+const logout = async () => {
+  await logoutApi();
+  userStore.logout();
+  router.push("/login");
+};
+const avatar = userStore.getInfo()?.avatar;
 </script>
 
 <template>
@@ -57,17 +58,19 @@ const avatar = userStore.getInfo()?.avatar
       <Notify v-if="showNotify" class="right-menu-item" />
       <el-dropdown>
         <div class="right-menu-item user">
-          <img v-if="avatar!='defaultAvatar.png'" class="avatar" :src='avatar' width="24"/>
-           <el-avatar :icon="UserFilled" v-else :size="30" />
+          <img
+            v-if="avatar != 'defaultAvatar.png'"
+            class="avatar"
+            :src="avatar"
+            width="24"
+          />
+          <el-avatar :icon="UserFilled" v-else :size="30" />
           <span>{{ userStore.username }}</span>
         </div>
         <template #dropdown>
           <el-dropdown-menu>
-            <a target="_blank" href="https://github.com/un-pany/v3-admin-vite">
+            <a target="_blank" href="https://github.com/sicily621/hg-inventory">
               <el-dropdown-item>GitHub</el-dropdown-item>
-            </a>
-            <a target="_blank" href="https://gitee.com/un-pany/v3-admin-vite">
-              <el-dropdown-item>Gitee</el-dropdown-item>
             </a>
             <el-dropdown-item divided @click="logout">
               退出登录
@@ -133,8 +136,8 @@ const avatar = userStore.getInfo()?.avatar
       .el-avatar {
         margin-right: 10px;
       }
-      .avatar{
-        border-radius:50%;
+      .avatar {
+        border-radius: 50%;
         margin-right: 10px;
       }
       span {

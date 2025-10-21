@@ -177,7 +177,7 @@
                   ><CircleCheck
                 /></el-icon>
 
-                <span v-else>
+                <template v-else>
                   <el-icon
                     class="fz16 pointer m-r-5 cursor-pointer"
                     text
@@ -197,7 +197,7 @@
                   >
                     <DocumentRemove />
                   </el-icon>
-                </span>
+                </template>
               </div>
             </template>
           </baseTable>

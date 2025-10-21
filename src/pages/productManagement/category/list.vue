@@ -157,7 +157,7 @@ const remove = async (id: string) => {
 };
 const categoryMap = new Map();
 const hasChildren = (row: Category) => {
-  return categoryMap.get(row.id)?.children.length > 0;
+  return categoryMap.get(row?.id)?.children.length > 0;
 };
 function buildCategoryTree(categorys: Category[]) {
   // 第一步：创建所有分类的映射并初始化children

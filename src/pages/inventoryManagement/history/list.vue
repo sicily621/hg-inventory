@@ -164,6 +164,7 @@ const columns = ref([
   { prop: "areaId", label: "区域" },
   { prop: "type", label: "操作类型" },
   { prop: "quantity", label: "变动数量" },
+  { prop: "createTime", label: "操作时间" },
   { prop: "employeeId", label: "操作人" },
 ]);
 

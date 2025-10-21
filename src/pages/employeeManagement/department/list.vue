@@ -131,7 +131,7 @@ const rules = reactive({
 });
 const tableData = ref<Department[]>([]);
 const hasChildren = (row: Department) => {
-  return departmentMap.get(row.id)?.children.length > 0;
+  return departmentMap.get(row?.id)?.children.length > 0;
 };
 
 function refreshTable() {
