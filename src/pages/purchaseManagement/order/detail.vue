@@ -25,7 +25,7 @@
                   placeholder="请输入编码"
                   maxlength="32"
                   required
-                  :disabled="onlyView"
+                  disabled
                 >
                 </el-input>
               </el-form-item>
