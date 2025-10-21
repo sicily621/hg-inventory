@@ -21,7 +21,7 @@ export enum DemandStatus {
 
 export const DemandStatusList = [
   { id: 1, name: "待审批" },
-  { id: 2, name: "已通过" },
+  { id: 2, name: "已审批" },
   { id: 3, name: "已驳回" },
   { id: 4, name: "已转订单" },
 ];
